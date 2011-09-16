@@ -32,6 +32,7 @@ gem "bson_ext", "~> 1.3"
 
 group :development, :test do
   gem "machinist"
+  gem 'machinist_mongo', :require => 'machinist/mongoid'
   gem 'faker', '0.9.4'
   gem "shoulda"
   gem "rspec-rails", "~> 2.4"

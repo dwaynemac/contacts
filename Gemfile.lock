@@ -72,6 +72,8 @@ GEM
     json_pure (1.6.0)
     libnotify (0.5.7)
     machinist (1.0.6)
+    machinist_mongo (1.2.0)
+      machinist (~> 1.0.6)
     mail (2.3.0)
       i18n (>= 0.4.0)
       mime-types (~> 1.16)
@@ -163,6 +165,7 @@ DEPENDENCIES
   guard-rspec
   libnotify
   machinist
+  machinist_mongo
   mongoid (~> 2.2)
   mongoid-rspec
   rails (= 3.1.0)
