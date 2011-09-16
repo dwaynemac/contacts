@@ -1,5 +1,5 @@
 require 'mail'
-class EmailValidator < ActiveModel::EachValidator
+class EmailFormatValidator < ActiveModel::EachValidator
   def validate_each(record,attribute,value)
     begin
       m = Mail::Address.new(value)
