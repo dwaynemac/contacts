@@ -4,8 +4,8 @@ describe Email do
   it { should validate_presence_of :value }
 end
 
-describe Contact do
-  it "should have unique emails" do
+describe Email do
+  it "should be unique" do
     c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
     c.contact_attributes << Email.new(:category => :home, :value => "bart@thesimpsons.com")
     c.save

@@ -8,6 +8,8 @@ class Contact
   field :first_name
   field :last_name
 
+  referenced_in :account
+
   validates :first_name, :presence => true
 
   def full_name

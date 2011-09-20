@@ -10,7 +10,7 @@ describe ContactAttribute do
     before do
       @empty_account = Account.make
       @ok_account = Account.make
-      @contact = Contact.make
+      @contact = Contact.make(:account => @ok_account)
       @contact.contact_attributes << ContactAttribute.make(:account => @ok_account)
       @contact.save
     end

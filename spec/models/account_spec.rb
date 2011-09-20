@@ -4,6 +4,8 @@ describe Account do
 
     it { should validate_presence_of :name }
 
+    it { should reference_many :contacts }
+
     #it do
     #  Account.make
     #  should validate_uniqueness_of :name
