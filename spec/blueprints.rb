@@ -7,6 +7,10 @@ Contact.blueprint do
   last_name { Faker::Name.last_name }
 end
 
+ContactAttribute.blueprint do
+  account
+end
+
 Account.blueprint do
   name { Faker::Internet.user_name }
 end
