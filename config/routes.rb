@@ -1,4 +1,9 @@
 Contacts::Application.routes.draw do
+
+  namespace 'v0' do
+    resources :contacts
+  end
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
