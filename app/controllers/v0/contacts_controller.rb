@@ -1,6 +1,6 @@
 class V0::ContactsController < V0::ApplicationController
 
-  before_filter :set_scope, :except => :create
+  before_filter :set_scope
 
   #  Returns list of contacts
   #
@@ -42,14 +42,14 @@ class V0::ContactsController < V0::ApplicationController
   #   POST /v0/accounts/:account_name/contacts
   #
   #  == Valid params:
-  #   :account_idname [string]: (account name) account which the contact will belong to
+  #   :account_name [string]: (account name) account which the contact will belong to
   #   :name [string]: name of the contact
   #   :description [string]: short description of the contact
   #
   #  == Response:
-  #   contact_id: [integer]: id of the contact created
+  #   :contact_id: [integer]: id of the contact created
   def create
-    @contact = Contact.new(params[:contact])
+    @contact = @scope.new(params[:contact])
     if @contact.save
       render :json => { :id => @contact.id }.to_json, :status => :created
     else
