@@ -7,5 +7,7 @@ class Account
 
   has_many :contacts, :foreign_key => :owner_id
 
+  has_many :lists
+
   validates :name, :presence => true, :uniqueness => true, :existance_on_padma => true
 end

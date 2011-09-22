@@ -9,6 +9,7 @@ class Contact
   field :last_name
 
   belongs_to :owner, :class_name => "Account"
+  references_and_referenced_in_many :lists
 
   validates :first_name, :presence => true
 
