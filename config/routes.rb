@@ -2,6 +2,10 @@ Contacts::Application.routes.draw do
 
   namespace 'v0' do
     resources :contacts
+
+    scope "/accounts/:account_name" do
+      resources :contacts
+    end
   end
 
   # The priority is based upon order of creation:
