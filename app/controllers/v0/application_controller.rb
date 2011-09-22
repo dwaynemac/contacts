@@ -15,11 +15,11 @@ class V0::ApplicationController < ApplicationController
     end
   end
 
-  # will set @account if params[:account_id] is found
+  # will set @account if params[:account_name] is found
   # will create account if it's not mapped localy (Account checks with ACCOUNTS before creating)
   def get_account
     if params[:account_name]
-      @account = Account.find_or_create_by_name(params[:account_name])
+      @account = Account.find_or_create_by(:name => params[:account_name])
       if @account.id.nil?
         render :json => "404 - Not Found".to_json, :status => 404
       end
