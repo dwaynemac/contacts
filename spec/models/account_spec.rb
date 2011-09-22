@@ -6,6 +6,8 @@ describe Account do
 
     it { should have_many_related :owned_contacts }
 
+    it { should have_many_related :lists }
+
     #it do
     #  Account.make
     #  should validate_uniqueness_of :name
