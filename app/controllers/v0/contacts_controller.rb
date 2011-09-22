@@ -101,6 +101,6 @@ class V0::ContactsController < V0::ApplicationController
   #  Sets the scope
   def set_scope
     @scope = Contact
-    @scope = @account.contacts if params[:account_name] # @account is created in V0::ApplicationController#get_account
+    @scope = @account.owned_contacts if params[:account_name] # @account is created in V0::ApplicationController#get_account
   end
 end

@@ -5,7 +5,7 @@ class Account
 
   field :name
 
-  has_many :contacts, :foreign_key => :owner_id
+  has_many :owned_contacts, :foreign_key => :owner_id, :class_name => "Contact"
 
   validates :name, :presence => true, :uniqueness => true, :existance_on_padma => true
 end
