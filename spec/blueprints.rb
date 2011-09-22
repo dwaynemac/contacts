@@ -5,11 +5,11 @@ require 'machinist/mongoid'
 Contact.blueprint do
   first_name { Faker::Name.first_name }
   last_name { Faker::Name.last_name }
-  account { Account.make }
+  owner { Account.make }
 end
 
 ContactAttribute.blueprint do
-  account
+  account { Account.make }
 end
 
 Account.blueprint do

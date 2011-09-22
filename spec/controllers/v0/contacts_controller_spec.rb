@@ -24,7 +24,7 @@ describe V0::ContactsController do
   describe "#show" do
     before(:each) do
       @contact = Contact.first
-      @contact.contact_attributes << ContactAttribute.make(:account => @contact.account)
+      @contact.contact_attributes << ContactAttribute.make(:account => @contact.owner)
       @contact.contact_attributes << ContactAttribute.make(:account => Account.make, :public => true)
       @contact.contact_attributes << ContactAttribute.make(:account => Account.make, :public => false)
       @contact.save

@@ -8,7 +8,7 @@ class Contact
   field :first_name
   field :last_name
 
-  referenced_in :account
+  belongs_to :owner, :class_name => "Account"
 
   validates :first_name, :presence => true
 

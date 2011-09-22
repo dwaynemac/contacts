@@ -4,7 +4,7 @@ describe Account do
 
     it { should validate_presence_of :name }
 
-    it { should reference_many :contacts }
+    it { should have_many_related :contacts }
 
     #it do
     #  Account.make
