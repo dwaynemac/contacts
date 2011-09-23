@@ -20,6 +20,7 @@ class V0::ApplicationController < ApplicationController
   def get_account
     if params[:account_name]
       @account = Account.find_or_create_by(:name => params[:account_name])
+
       if @account.id.nil?
         render :json => "404 - Not Found".to_json, :status => 404
       end

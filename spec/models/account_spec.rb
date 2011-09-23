@@ -27,4 +27,10 @@ describe Account do
         acc = Account.make_unsaved
         acc.should_not be_valid
     end
+
+    it "should create base list on creation" do
+      acc = Account.make_unsaved
+      acc.save
+      acc.reload.lists.should have_at_least(1).list
+    end
 end
