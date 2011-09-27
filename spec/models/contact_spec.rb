@@ -20,5 +20,18 @@ describe Contact do
     it {
       @contact.owner.should == @account
     }
+
+    describe "but not when added to a new list" do
+      before do
+        @account_b = Account.make(:lists => [List.make])
+        @contact.lists << @account_b.lists.first
+      end
+
+      specify { @contact.lists.count.should == 2 }
+
+      it {
+        @contact.owner.should == @account
+      }
+    end
   end
 end

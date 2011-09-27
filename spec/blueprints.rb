@@ -15,3 +15,8 @@ end
 Account.blueprint do
   name { Faker::Internet.user_name }
 end
+
+List.blueprint do
+  name { Faker::Internet.user_name }
+  account { Account.make }
+end
