@@ -32,7 +32,7 @@ class V0::ContactsController < V0::ApplicationController
   #   :contact [Checklist]: single contact {:id, :name, :description, :items}
   def show
     @contact = @scope.find(params[:id])
-    render :json => @contact.to_json
+    render :json => @contact.as_json(:account => @account)
   end
 
   #  Returns a new contact
@@ -92,7 +92,7 @@ class V0::ContactsController < V0::ApplicationController
   #   :response [string]: "OK"
   def destroy
     @contact = @scope.find(params[:id])
-    @contact.destroy
+    @contact.destroy if @account && @contact.owner == @account
     render :json => "OK"
   end
 
@@ -101,6 +101,8 @@ class V0::ContactsController < V0::ApplicationController
   #  Sets the scope
   def set_scope
     @scope = Contact
-    @scope = @account.owned_contacts if params[:account_name] # @account is created in V0::ApplicationController#get_account
+    if @account && params[:list_name].blank?
+      @scope = @account.lists.first.contacts
+    end
   end
 end

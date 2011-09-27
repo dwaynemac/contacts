@@ -28,19 +28,29 @@ describe V0::ContactsController do
       @contact.contact_attributes << ContactAttribute.make(:account => Account.make, :public => true)
       @contact.contact_attributes << ContactAttribute.make(:account => Account.make, :public => false)
       @contact.save
-      get :show, :id => @contact.id, :app_key => V0::ApplicationController::APP_KEY
     end
-
-    it { should respond_with(:success) }
-    it { should assign_to(:contact) }
     describe "when unscoped" do
+      before(:each) do
+        get :show, :id => @contact.id, :app_key => V0::ApplicationController::APP_KEY
+      end
+
+      it { should respond_with(:success) }
+      it { should assign_to(:contact) }
+
       it "should include all the contact_attributes" do
-        assigns(:contact).contact_attributes.should have_exactly(3).attributes
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:contact_attributes].count.should equal(3)
       end
     end
 
     describe "when scoped to an account" do
-      it "should include only the contact_attributes visible to that account"
+      before(:each) do
+        get :show, :id => @contact.id, :account_name => @contact.owner.name, :app_key => V0::ApplicationController::APP_KEY
+      end
+      it "should include only the contact_attributes visible to that account" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:contact_attributes].count.should equal(2)
+      end
     end
   end
 
@@ -76,6 +86,15 @@ describe V0::ContactsController do
 
       Contact.last.owner.should == account
     end
+    it "should set the default list if scoped to an account" do
+      account = Account.make
+      post :create,
+           :account_name => account.name,
+           :contact => Contact.plan(:owner => nil),
+           :app_key => V0::ApplicationController::APP_KEY
+
+      account.reload.lists.first.contacts.include? assigns(:contact)
+    end
     it "should not set the owner if not scoped to an account" do
       post :create,
            :contact => Contact.plan(:owner => nil),
@@ -97,7 +116,11 @@ describe V0::ContactsController do
       end
     end
     describe "as a viewer/editor" do
-      it "should not delete the contact"
+      it "should not delete the contact" do
+        expect{post :destroy, :method => :delete,
+                    :id => @contact.id,
+                    :app_key => V0::ApplicationController::APP_KEY}.not_to change{Contact.count}
+      end
     end
   end
 
