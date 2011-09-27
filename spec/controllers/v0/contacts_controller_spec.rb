@@ -112,6 +112,7 @@ describe V0::ContactsController do
       it "should delete a contact" do
         expect{post :destroy, :method => :delete,
                     :id => @contact.id,
+                    :account_name => @contact.owner.name,
                     :app_key => V0::ApplicationController::APP_KEY}.to change{Contact.count}.by(-1)
       end
     end
