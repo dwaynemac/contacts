@@ -52,6 +52,21 @@ describe V0::ContactsController do
         result[:contact_attributes].count.should equal(2)
       end
     end
+
+    describe "when scoped to an account that doesn't own the contact" do
+      before(:each) do
+        @contact2 = Contact.make(:owner => @contact.owner)
+        @contact2.contact_attributes << ContactAttribute.make(:account => @contact.owner, :public => true)
+        @contact2.contact_attributes << ContactAttribute.make(:account => @contact.owner, :public => false)
+
+        get :show, :id => @contact2.id, :account_name => Account.make.name, :app_key => V0::ApplicationController::APP_KEY
+      end
+
+      it "should show only public contact attributes" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:contact_attributes].count.should equal(1)
+      end
+    end
   end
 
   describe "#update" do
