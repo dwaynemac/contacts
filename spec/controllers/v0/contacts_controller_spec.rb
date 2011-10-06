@@ -87,6 +87,18 @@ describe V0::ContactsController do
                   :contact => Contact.plan,
                   :app_key => V0::ApplicationController::APP_KEY}.to change{Contact.count}.by(1)
     end
+
+    describe "should create a contact with attributes" do
+      before do
+        post :create,
+                  :contact => Contact.plan(:contact_attributes => [ContactAttribute.plan]),
+                  :app_key => V0::ApplicationController::APP_KEY
+      end
+      it { assigns(:contact).should_not be_new_record }
+      it { assigns(:contact).contact_attributes.should have_at_least(1).attribute }
+      it { assigns(:contact).contact_attributes.first.should_not be_new_record }
+    end
+
     it "should respect model validations" do
       expect{post :create,
                   :contact => Contact.plan(:first_name => ""),
