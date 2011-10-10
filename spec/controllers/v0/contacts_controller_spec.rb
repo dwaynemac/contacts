@@ -99,6 +99,17 @@ describe V0::ContactsController do
       it { assigns(:contact).contact_attributes.first.should_not be_new_record }
     end
 
+    describe "should create a contact with attributes (Typhoeus)" do
+      before do
+        post :create,
+                  "contact"=>{"contact_attributes"=>["{\"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"12345\", \"public\"=>1}"], "first_name"=>"lala"},
+                  :app_key => V0::ApplicationController::APP_KEY
+      end
+      it { assigns(:contact).should_not be_new_record }
+      it { assigns(:contact).contact_attributes.should have_at_least(1).attribute }
+      it { assigns(:contact).contact_attributes.first.should_not be_new_record }
+    end
+
     it "should respect model validations" do
       expect{post :create,
                   :contact => Contact.plan(:first_name => ""),

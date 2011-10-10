@@ -49,6 +49,11 @@ class V0::ContactsController < V0::ApplicationController
   #  == Response:
   #   :contact_id: [integer]: id of the contact created
   def create
+    # Fix for Typhoeus call bug
+    if params[:contact] && params[:contact][:contact_attributes] && params[:contact][:contact_attributes].first.is_a?(String)
+      params[:contact][:contact_attributes] = params[:contact][:contact_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":"))}
+    end
+
     @contact = @scope.new(params[:contact])
     if @contact.save
       render :json => { :id => @contact.id }.to_json, :status => :created
