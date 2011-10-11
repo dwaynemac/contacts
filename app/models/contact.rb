@@ -3,6 +3,11 @@ class Contact
   #include Mongoid::Timestamps
   #include Mongoid::Versioning
 
+  accepts_nested_attributes_for :contact_attributes
+
+  before_create :assign_owner
+
+
   embeds_many :contact_attributes
 
   field :first_name
@@ -13,7 +18,6 @@ class Contact
 
   validates :first_name, :presence => true
 
-  before_create :assign_owner
 
   def full_name
     "#{first_name} #{last_name}"
@@ -31,5 +35,11 @@ class Contact
 
   def assign_owner
     self.owner = lists.first.account unless lists.empty?
+
+    # Callbacks arent called when mass-assigning nested models.
+    # Iterate over the contact_attributes and set the owner.
+    if self.owner.present?
+      contact_attributes.each {|att| att.account = owner}
+    end
   end
 end

@@ -29,4 +29,17 @@ describe ContactAttribute do
       assert_empty @contact.contact_attributes.for_account @empty_account
     end
   end
+
+  describe "When created" do
+    before do
+      @account = Account.make
+      @contact = Contact.make(:owner => @account)
+      @contact.contact_attributes << ContactAttribute.make(:account => nil)
+      @contact.save
+    end
+
+    it "should be owned by contact owner if not specified" do
+      @contact.contact_attributes.first.account.should == @account
+    end
+  end
 end

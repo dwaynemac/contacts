@@ -34,4 +34,15 @@ describe Contact do
       }
     end
   end
+
+  describe "#create with nested attribute params" do
+    before do
+      @account = Account.make
+      @contact = Contact.create(Contact.plan(:owner => @account, :account_id => @account.id, :contact_attributes => [{:_type => "ContactAttribute"}]))
+    end
+
+    it "should set the owner on new attributes" do
+      @contact.contact_attributes.first.account.should == @account
+    end
+  end
 end

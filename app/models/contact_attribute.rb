@@ -9,4 +9,12 @@ class ContactAttribute
   referenced_in :account
 
   scope :for_account, ->(account) { any_of({:account_id => account.id}, {:public => true}) }
+
+  before_create :assign_owner
+
+  protected
+
+  def assign_owner
+    self.account = contact.owner if self.account.blank? && contact.owner.present?
+  end
 end
