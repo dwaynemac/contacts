@@ -11,7 +11,7 @@ gem "mongoid", "~> 2.2"
 gem "bson_ext", "~> 1.3"
 
 gem 'typhoeus', '0.2.4'
-gem "logical_model", "~> 0.2"
+gem "logical_model", "0.2.5"
 
 gem 'kaminari', '0.12.4'
 

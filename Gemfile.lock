@@ -73,7 +73,7 @@ GEM
     kaminari (0.12.4)
       rails (>= 3.0.0)
     libnotify (0.5.7)
-    logical_model (0.2.0)
+    logical_model (0.2.5)
       activemodel
       activesupport
       kaminari
@@ -175,7 +175,7 @@ DEPENDENCIES
   guard-rspec
   kaminari (= 0.12.4)
   libnotify
-  logical_model (~> 0.2)
+  logical_model (= 0.2.5)
   machinist
   machinist_mongo
   mongoid (~> 2.2)

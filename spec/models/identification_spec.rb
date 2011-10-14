@@ -14,14 +14,14 @@ describe Identification do
       c.contact_attributes << Identification.new(:category => :dni, :value => "30366832")
       c.should_not be_valid
     end
-    specify " scoping to category" do
+    specify " scoping to name (type of id)" do
       c = Contact.new(:first_name => "Bartman")
       c.contact_attributes << Identification.new(:category => :cpf, :value => "30366832")
       c.should be_valid
     end
   end
 
-  describe "should validate that contacts have only one Identification of each category" do
+  describe "should validate that contacts have only one Identification of each name (type of id)" do
     before do
       @c = Contact.make(:first_name => "Bartolomeo")
     end
