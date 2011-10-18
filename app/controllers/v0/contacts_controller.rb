@@ -123,7 +123,7 @@ class V0::ContactsController < V0::ApplicationController
           @scope = Contact
         end
       when :destroy
-        @scope = @account.owned_contacts
+        @scope = Contact
       else
         @scope = Contact
     end
