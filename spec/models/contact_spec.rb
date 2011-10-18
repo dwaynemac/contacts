@@ -11,15 +11,20 @@ describe Contact do
 
   it { should validate_presence_of :first_name }
 
-  describe "should set the owner to the list's account when created" do
+  describe "when scoped to a list" do
     before do
       @account = Account.make
-      @contact = @account.lists.first.contacts.create(:first_name => "Marge")
+      @contact = @account.lists.first.contacts.new(:first_name => "Marge")
+      @contact.save
     end
 
-    it {
+    it "should set the owner" do
       @contact.owner.should == @account
-    }
+    end
+
+    it "should update the lists contacts" do
+      @account.lists.first.contacts.should include(@contact)
+    end
 
     describe "but not when added to a new list" do
       before do
