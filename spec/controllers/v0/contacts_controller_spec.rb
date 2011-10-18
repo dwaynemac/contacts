@@ -131,7 +131,7 @@ describe V0::ContactsController do
            :contact => Contact.plan(:owner => nil),
            :app_key => V0::ApplicationController::APP_KEY
 
-      account.reload.lists.first.contacts.include? assigns(:contact)
+      account.reload.lists.first.contacts.should include(assigns(:contact))
     end
     it "should not set the owner if not scoped to an account" do
       post :create,

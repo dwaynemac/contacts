@@ -10,4 +10,13 @@ describe List do
   it { should validate_presence_of :name }
 
   it { should validate_presence_of :account }
+
+  it "should allow access to contacts" do
+    l = List.make
+    a = l.account
+    c = Contact.make(:lists => [l])
+    l.reload
+    l.contacts.should == [c]
+    a.lists.first.contacts.should == [c]
+  end
 end

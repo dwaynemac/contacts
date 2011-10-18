@@ -93,6 +93,14 @@ class V0::ContactsController < V0::ApplicationController
 
   #  Destroys the contact
   #
+  #  == Request
+  #    DELETE /v0/contacts/:id
+  #    DELETE /v0/accounts/:account_name/contacts/:id
+  #
+  #  == Valid params:
+  #  @param [String] account_name - scope to this accounts contacts
+  #  @param [String] id - contact id
+  #
   #  == Response:
   #   :response [string]: "OK"
   def destroy
