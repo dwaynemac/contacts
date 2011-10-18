@@ -113,9 +113,19 @@ class V0::ContactsController < V0::ApplicationController
 
   #  Sets the scope
   def set_scope
-    @scope = Contact
-    if @account && params[:list_name].blank?
-      @scope = @account.lists.first.contacts
+    case action_name.to_sym
+      when :index, :update, :create
+        if @account && params[:list_name] && list = @account.lists.find_by(:name, params[:list_name])
+          @scope = list.contacts
+        elsif @account
+          @scope = @account.lists.first.contacts
+        else
+          @scope = Contact
+        end
+      when :destroy
+        @scope = @account.owned_contacts
+      else
+        @scope = Contact
     end
   end
 end
