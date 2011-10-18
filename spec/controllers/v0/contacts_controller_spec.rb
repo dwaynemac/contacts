@@ -115,24 +115,24 @@ describe V0::ContactsController do
                   :contact => Contact.plan(:first_name => ""),
                   :app_key => V0::ApplicationController::APP_KEY }.not_to change{Contact.count}
     end
-    it "should set the owner if scoped to an account" do
-      account = Account.make
-      post :create,
-           :account_name => account.name,
-           :contact => Contact.plan(:owner => nil),
-           :app_key => V0::ApplicationController::APP_KEY
 
-      Contact.last.owner.should == account
-    end
-    it "should set the default list if scoped to an account" do
-      account = Account.make
-      post :create,
-           :account_name => account.name,
-           :contact => Contact.plan(:owner => nil),
-           :app_key => V0::ApplicationController::APP_KEY
+    describe "when scoped to an account" do
+      before(:each) do
+        @account = Account.make
+        post :create,
+             :account_name => @account.name,
+             :contact => Contact.plan(:owner => nil),
+             :app_key => V0::ApplicationController::APP_KEY
+      end
 
-      account.reload.lists.first.contacts.should include(assigns(:contact))
+      it "should set the owner if scoped to an account" do
+        Contact.last.owner.should == @account
+      end
+      it "should set the default list if scoped to an account" do
+        @account.lists.first.contacts.should include(assigns(:contact))
+      end
     end
+
     it "should not set the owner if not scoped to an account" do
       post :create,
            :contact => Contact.plan(:owner => nil),
