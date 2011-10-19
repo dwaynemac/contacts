@@ -14,8 +14,7 @@ describe Contact do
   describe "when scoped to a list" do
     before do
       @account = Account.make
-      @contact = @account.lists.first.contacts.new(:first_name => "Marge")
-      @contact.save
+      @contact = @account.lists.first.contacts.create(:first_name => "Marge")
     end
 
     it "should set the owner" do
