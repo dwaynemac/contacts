@@ -25,7 +25,7 @@ describe Contact do
       @account.lists.first.contacts.should include(@contact)
     end
 
-    describe "but not when added to a new list" do
+    describe "and after adding the contact to a new list" do
       before do
         @account_b = Account.make(:lists => [List.make])
         @contact.lists << @account_b.lists.first
@@ -33,20 +33,33 @@ describe Contact do
 
       specify { @contact.lists.count.should == 2 }
 
-      it {
+      it "should not update the owner" do
         @contact.owner.should == @account
-      }
+      end
     end
   end
 
   describe "#create with nested attribute params" do
     before do
       @account = Account.make
-      @contact = Contact.create(Contact.plan(:owner => @account, :account_id => @account.id, :contact_attributes => [{:_type => "ContactAttribute"}]))
+      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [{:_type => "ContactAttribute"}]))
     end
 
     it "should set the owner on new attributes" do
       @contact.contact_attributes.first.account.should == @account
+    end
+  end
+
+  describe "#save" do
+    before do
+      @account = Account.make
+      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [{:_type => "ContactAttribute"}]))
+      @contact.lists = []
+      @contact.save
+    end
+
+    it "should set the owners main list" do
+      @contact.lists.first.should == @account.lists.first
     end
   end
 end
