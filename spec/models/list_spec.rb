@@ -14,7 +14,7 @@ describe List do
   it "should allow access to contacts" do
     l = List.make
     a = l.account
-    c = Contact.make(:lists => [l])
+    c = Contact.create(:first_name => "Barney", :lists => [l])
     l.reload
     l.contacts.should == [c]
     a.lists.first.contacts.should == [c]
