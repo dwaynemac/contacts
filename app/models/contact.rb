@@ -8,7 +8,7 @@ class Contact
   before_create :assign_owner
   before_save :update_lists_contacts
 
-  embeds_many :contact_attributes
+  embeds_many :contact_attributes, :validate => true
 
   field :first_name
   field :last_name
@@ -18,6 +18,7 @@ class Contact
 
   validates :first_name, :presence => true
 
+  validates_associated :contact_attributes
 
   def full_name
     "#{first_name} #{last_name}"

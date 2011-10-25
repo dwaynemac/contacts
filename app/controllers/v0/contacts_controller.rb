@@ -51,10 +51,14 @@ class V0::ContactsController < V0::ApplicationController
   def create
     # Fix for Typhoeus call bug
     if params[:contact] && params[:contact][:contact_attributes] && params[:contact][:contact_attributes].first.is_a?(String)
-      params[:contact][:contact_attributes] = params[:contact][:contact_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":"))}
+      params[:contact][:contact_attributes] = params[:contact][:contact_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":").gsub(/nil/, "null"))}
     end
 
     @contact = @scope.create(params[:contact])
+
+    # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
+    @contact = @contact.reload
+
     if @contact.valid?
       render :json => { :id => @contact.id }.to_json, :status => :created
     else
