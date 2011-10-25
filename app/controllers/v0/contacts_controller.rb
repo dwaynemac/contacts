@@ -57,7 +57,7 @@ class V0::ContactsController < V0::ApplicationController
     @contact = @scope.create(params[:contact])
 
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
-    @contact = @contact.reload
+    @contact = @contact.reload unless @contact.new_record?
 
     if @contact.valid?
       render :json => { :id => @contact.id }.to_json, :status => :created
