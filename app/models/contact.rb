@@ -20,6 +20,8 @@ class Contact
 
   validates_associated :contact_attributes
 
+  accepts_nested_attributes_for :contact_attributes
+
   def full_name
     "#{first_name} #{last_name}"
   end

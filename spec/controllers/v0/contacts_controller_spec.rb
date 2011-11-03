@@ -24,7 +24,7 @@ describe V0::ContactsController do
   describe "#show" do
     before(:each) do
       @contact = Contact.first
-      @contact.contact_attributes << ContactAttribute.make(:account => @contact.owner)
+      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
       @contact.contact_attributes << ContactAttribute.make(:account => Account.make, :public => true)
       @contact.contact_attributes << ContactAttribute.make(:account => Account.make, :public => false)
       @contact.save
@@ -81,6 +81,24 @@ describe V0::ContactsController do
     end
   end
 
+  describe "#update from Typhoeus" do
+    before do
+      @contact = Contact.first
+      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
+      @contact.save
+      @new_first_name = "Homer"
+      put :update, :id => @contact.id, "contact"=>{"contact_attributes_attributes"=>["{\"_id\"=>\"#{@contact.contact_attributes.first._id}\", \"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"12345\", \"public\"=>1}"], "_id" => @contact.id, "first_name"=>@new_first_name},
+                  :app_key => V0::ApplicationController::APP_KEY
+    end
+    it "should change first name" do
+      @contact.reload.first_name.should == @new_first_name
+    end
+
+    it "should change telephone value" do
+      @contact.reload.contact_attributes.first.value.should == "12345"
+    end
+  end
+
   describe "#create" do
     it "should create a contact" do
       expect{post :create,
@@ -102,7 +120,7 @@ describe V0::ContactsController do
     describe "should create a contact with attributes (Typhoeus)" do
       before do
         post :create,
-                  "contact"=>{"contact_attributes"=>["{\"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"12345\", \"public\"=>1}"], "first_name"=>"lala"},
+                  "contact"=>{"contact_attributes_attributes"=>["{\"_type\"=>\"Telephone\", \"public\"=>nil, \"category\"=>\"f\", \"value\"=>\"1112312\"}", "{\"_type\"=>\"Email\", \"public\"=>nil, \"category\"=>\"d\", \"value\"=>\"lionel.hutz75@hotmail.com\"}"], "first_name"=>"Lionel", "last_name"=>"Hutz"},
                   :app_key => V0::ApplicationController::APP_KEY
       end
       it { assigns(:contact).should_not be_new_record }

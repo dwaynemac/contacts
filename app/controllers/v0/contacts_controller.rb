@@ -50,8 +50,8 @@ class V0::ContactsController < V0::ApplicationController
   #   :contact_id: [integer]: id of the contact created
   def create
     # Fix for Typhoeus call bug
-    if params[:contact] && params[:contact][:contact_attributes] && params[:contact][:contact_attributes].first.is_a?(String)
-      params[:contact][:contact_attributes] = params[:contact][:contact_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":").gsub(/nil/, "null"))}
+    if params[:contact] && params[:contact][:contact_attributes_attributes] && params[:contact][:contact_attributes_attributes].first.is_a?(String)
+      params[:contact][:contact_attributes_attributes] = params[:contact][:contact_attributes_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":").gsub(/nil/, "null"))}
     end
 
     @contact = @scope.create(params[:contact])
@@ -86,6 +86,12 @@ class V0::ContactsController < V0::ApplicationController
   #   :status [integer] = type of error
   def update
     @contact = @scope.find(params[:id])
+
+    # Fix for Typhoeus call bug
+    if params[:contact] && params[:contact][:contact_attributes_attributes] && params[:contact][:contact_attributes_attributes].first.is_a?(String)
+      params[:contact][:contact_attributes_attributes] = params[:contact][:contact_attributes_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":").gsub(/nil/, "null"))}
+    end
+
     if @contact.update_attributes(params[:contact])
       render :json => "OK"# , :status => :updated
     else
