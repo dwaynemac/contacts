@@ -10,8 +10,7 @@ gem 'rails', '3.1.0'
 gem "mongoid", "2.2"
 gem "bson_ext", "~> 1.3"
 
-gem 'typhoeus', '0.2.4'
-gem "logical_model", "0.2.5"
+gem "logical_model", :git =>'git@github.com:lperichon/logical_model.git'
 
 gem 'kaminari', '0.12.4'
 
