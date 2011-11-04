@@ -20,7 +20,7 @@ class V0::ContactsController < V0::ApplicationController
   #   :total [integer]: total contacts
   def index
 
-    if params[:full_text]
+    unless params[:full_text].blank?
       # full_text search
       @scope = @scope.csearch(params[:full_text])
     end

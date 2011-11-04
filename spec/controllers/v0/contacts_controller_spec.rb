@@ -21,6 +21,17 @@ describe V0::ContactsController do
         result["total"].should == 2
       end
     end
+    context "with blank :full_text" do
+      before do
+        get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => ""
+      end
+      it { should respond_with(:success) } # response.should be_success
+      it { should assign_to(:contacts) }
+      it "should show total amount of contacts" do
+        result = ActiveSupport::JSON.decode(response.body)
+        result["total"].should == 2
+      end
+    end
     context "specifying valid account and list_name" do
       before do
         account_a = Account.make(:name => "a")
