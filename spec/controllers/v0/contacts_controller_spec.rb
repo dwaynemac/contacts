@@ -10,14 +10,53 @@ describe V0::ContactsController do
   end
 
   describe "#index" do
-    before do
-      get :index, :app_key => V0::ApplicationController::APP_KEY
+    context "without params" do
+      before do
+        get :index, :app_key => V0::ApplicationController::APP_KEY
+      end
+      it { should respond_with(:success) } # response.should be_success
+      it { should assign_to(:contacts) }
+      it "should show total amount of contacts" do
+        result = ActiveSupport::JSON.decode(response.body)
+        result["total"].should == 2
+      end
     end
-    it { should respond_with(:success) } # response.should be_success
-    it { should assign_to(:contacts) }
-    it "should show total amount of contacts" do
-      result = ActiveSupport::JSON.decode(response.body)
-      result["total"].should == 2
+    context "specifying valid account and list_name" do
+      before do
+        account_a = Account.make(:name => "a")
+        account_b = Account.make(:name => "b")
+
+        3.times do
+          account_a.lists.first.contacts << Contact.make
+        end
+
+        @contact_b = Contact.make
+        account_b.lists.first.contacts << @contact_b
+
+        l = List.make(:account => account_a )
+        @contact_l = Contact.make
+        l.contacts << @contact_l
+
+        get :index, {:account_name => "a", :list_name => "a", :app_key => V0::ApplicationController::APP_KEY}
+      end
+      it { should respond_with(:success)}
+      it { should assign_to(:contacts) }
+      it "should return contacts of specified account and list" do
+        assigns(:contacts).size.should == 3
+      end
+      it "should not include contacts of account b" do
+        assigns(:contacts).should_not include(@contact_b)
+      end
+      it "should not include contacts of account a but of other lists" do
+        assigns(:contacts).should_not include(@contact_l)
+      end
+    end
+    context "specifying valid account with unexisting list_name" do
+      before do
+        Account.make(:name => "a")
+        get :index, {:account_name => "a", :list_name => "blah", :app_key => V0::ApplicationController::APP_KEY}
+      end
+      it { should respond_with(:not_found)}
     end
   end
 

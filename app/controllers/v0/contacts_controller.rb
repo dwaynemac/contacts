@@ -10,6 +10,7 @@ class V0::ContactsController < V0::ApplicationController
   #
   #  == Valid params:
   #   :account_name [string]: (account name) will scope contacts to this account (required)
+  #   :list_name [String]: scope to this list. Will be ignored if no :account_name is given.
   #   :page [integer]: will return this page (default: 1)
   #   :per_page [integer]: will paginate contacts with this amount per page (default: 10)
   #
@@ -125,13 +126,23 @@ class V0::ContactsController < V0::ApplicationController
   def set_scope
     case action_name.to_sym
       when :index, :update, :create
-        if @account && params[:list_name] && list = @account.lists.find_by(:name, params[:list_name])
+
+        list = nil
+        if params[:list_name]
+          list = List.where(account_id: @account._id, name: params[:list_name]).try(:first)
+          unless list
+            render :text => "List Not Found", :status => 404
+          end
+        end
+
+        if @account && list
           @scope = list.contacts
         elsif @account
           @scope = @account.lists.first.contacts
         else
           @scope = Contact
         end
+
       when :destroy
         @scope = Contact
       else

@@ -8,4 +8,6 @@ class List
 
   validates :name, :presence => true
   validates :account, :presence => true
+
+  validates_uniqueness_of :name, :scope => :account_id, :message => "name is already taken"
 end
