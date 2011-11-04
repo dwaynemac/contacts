@@ -3,6 +3,9 @@ class ContactAttribute
   #include Mongoid::Timestamps
 
   field :public, type: Boolean
+  field :value, type: String
+
+  validates :value, :presence => true
 
   embedded_in :contact
 

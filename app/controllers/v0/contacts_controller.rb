@@ -13,11 +13,17 @@ class V0::ContactsController < V0::ApplicationController
   #   :list_name [String]: scope to this list. Will be ignored if no :account_name is given.
   #   :page [integer]: will return this page (default: 1)
   #   :per_page [integer]: will paginate contacts with this amount per page (default: 10)
+  #   :full_text [String]: will make a full_text search with this string.
   #
   #  == Response:
   #   :collection [array]: array of contacts {:id, :name, :description, :items}
   #   :total [integer]: total contacts
   def index
+
+    if params[:full_text]
+      # full_text search
+      @scope = @scope.csearch(params[:full_text])
+    end
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
     response.headers['Content-type'] = 'application/json; charset=utf-8'
     render :json => { :collection => @contacts, :total => @contacts.count }.to_json
@@ -128,7 +134,7 @@ class V0::ContactsController < V0::ApplicationController
       when :index, :update, :create
 
         list = nil
-        if params[:list_name]
+        if @account && params[:list_name]
           list = List.where(account_id: @account._id, name: params[:list_name]).try(:first)
           unless list
             render :text => "List Not Found", :status => 404

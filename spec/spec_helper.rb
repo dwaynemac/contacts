@@ -1,48 +1,63 @@
-# This file is copied to spec/ when you run 'rails generate rspec:install'
-ENV["RAILS_ENV"] ||= 'test'
-require File.expand_path("../../config/environment", __FILE__)
-require 'rspec/rails'
-require 'mongoid-rspec'
-require 'shoulda'
+require 'rubygems'
+require 'spork'
 
-# require machinist blueprints
-require File.expand_path(File.dirname(__FILE__) + "/blueprints")
+Spork.prefork do
+  # Loading more in this block will cause your tests to run faster. However,
+  # if you change any configuration or code from libraries loaded here, you'll
+  # need to restart spork for it take effect.
 
-# Requires supporting ruby files with custom matchers and macros, etc,
-# in spec/support/ and its subdirectories.
-Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
+  # This file is copied to spec/ when you run 'rails generate rspec:install'
+  ENV["RAILS_ENV"] ||= 'test'
+  require File.expand_path("../../config/environment", __FILE__)
+  require 'rspec/rails'
+  require 'mongoid-rspec'
+  require 'shoulda'
 
-Dir[Rails.root.join("lib/**/*.rb")].each {|f| require f}
+  # require machinist blueprints
+  require File.expand_path(File.dirname(__FILE__) + "/blueprints")
 
-RSpec.configure do |config|
-  include Mongoid::Matchers
+  # Requires supporting ruby files with custom matchers and macros, etc,
+  # in spec/support/ and its subdirectories.
+  Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
 
-  # == Mock Framework
-  #
-  # If you prefer to use mocha, flexmock or RR, uncomment the appropriate line:
-  #
-  # config.mock_with :mocha
-  # config.mock_with :flexmock
-  # config.mock_with :rr
-  config.mock_with :rspec
+  Dir[Rails.root.join("lib/**/*.rb")].each {|f| require f}
 
-  # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  #config.fixture_path = "#{::Rails.root}/spec/fixtures"
+  RSpec.configure do |config|
+    include Mongoid::Matchers
 
-  # If you're not using ActiveRecord, or you'd prefer not to run each of your
-  # examples within a transaction, remove the following line or assign false
-  # instead of true.
-  #config.use_transactional_fixtures = true
+    # == Mock Framework
+    #
+    # If you prefer to use mocha, flexmock or RR, uncomment the appropriate line:
+    #
+    # config.mock_with :mocha
+    # config.mock_with :flexmock
+    # config.mock_with :rr
+    config.mock_with :rspec
 
-  config.treat_symbols_as_metadata_keys_with_true_values = true
-  config.filter_run :focus => true
-  config.run_all_when_everything_filtered = true
+    # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
+    #config.fixture_path = "#{::Rails.root}/spec/fixtures"
 
-  # Clean up all collections before each spec runs.
-  config.before do
-    Mongoid.purge!
+    # If you're not using ActiveRecord, or you'd prefer not to run each of your
+    # examples within a transaction, remove the following line or assign false
+    # instead of true.
+    #config.use_transactional_fixtures = true
 
-    padma_account = PadmaAccount.new(:name => "mockedAccount")
-    PadmaAccount.stub!(:find).and_return(padma_account)
+    config.treat_symbols_as_metadata_keys_with_true_values = true
+    config.filter_run :focus => true
+    config.run_all_when_everything_filtered = true
+
+    # Clean up all collections before each spec runs.
+    config.before do
+      Mongoid.purge!
+
+      padma_account = PadmaAccount.new(:name => "mockedAccount")
+      PadmaAccount.stub!(:find).and_return(padma_account)
+    end
   end
+
+end
+
+Spork.each_run do
+  # This code will be run each time you run your specs.
+
 end

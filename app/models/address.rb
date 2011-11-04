@@ -5,4 +5,11 @@ class Address < ContactAttribute
   field :city
   field :state
   field :country
+
+  before_save :set_value
+
+  private
+  def set_value
+    self.value = "#{address}, #{city}, #{state}, #{country} (#{postal_code})"
+  end
 end

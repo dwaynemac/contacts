@@ -42,7 +42,7 @@ describe Contact do
   describe "#create with nested attribute params" do
     before do
       @account = Account.make
-      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [{:_type => "ContactAttribute"}]))
+      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [ContactAttribute.plan]))
     end
 
     it "should set the owner on new attributes" do
@@ -53,7 +53,7 @@ describe Contact do
   describe "#save" do
     before do
       @account = Account.make
-      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [{:_type => "ContactAttribute"}]))
+      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [ContactAttribute.plan]))
       @contact.lists = []
       @contact.save
     end
@@ -62,4 +62,24 @@ describe Contact do
       @contact.lists.first.should == @account.lists.first
     end
   end
+
+  describe "mongoid_search" do
+    before do
+      account = Account.make
+
+      @first_name = Contact.make(first_name: "dwayne")
+      @first_name.contact_attributes << Telephone.new(account_id: account._id, value: "1234")
+      @first_name.save
+
+      @email = Contact.make(last_name: "mac")
+      @email.contact_attributes << Email.new(account_id: account._id, value: "dwaynemac@gmail.com")
+      @email.save
+
+      @last_name = Contact.make(first_name: "asdf", last_name: "dwayne")
+    end
+    it "should find by email" do
+      Contact.csearch("dwaynemac@gmail.com").should include(@email)
+    end
+  end
+
 end

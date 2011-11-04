@@ -9,6 +9,7 @@ gem 'rails', '3.1.0'
 
 gem "mongoid", "2.2"
 gem "bson_ext", "~> 1.3"
+gem 'mongoid_search'
 
 gem "logical_model", :git =>'git@github.com:lperichon/logical_model.git'
 
@@ -37,14 +38,16 @@ group :development, :test do
   gem "machinist"
   gem 'machinist_mongo', :require => 'machinist/mongoid'
   gem 'faker', '0.9.4'
-  gem "shoulda"
   gem "rspec-rails", "~> 2.4"
+  gem "shoulda"
   gem 'mongoid-rspec'
   gem "database_cleaner", ">= 0.6.7", :group => :test
   gem "cucumber-rails"
   gem "timecop"
 
   # Guard
+  gem 'spork', "> 0.9.0.rc"
+  gem 'guard-spork'
   gem 'guard-rspec'
 
   # guard notifications on MAC OS X

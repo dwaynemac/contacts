@@ -10,6 +10,12 @@ end
 
 ContactAttribute.blueprint do
   account { Account.make }
+  value "any-value"
+end
+
+Address.blueprint do
+  account { Account.make }
+  address "luis maria campos"
 end
 
 Account.blueprint do

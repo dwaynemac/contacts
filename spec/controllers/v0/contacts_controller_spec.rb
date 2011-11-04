@@ -58,6 +58,37 @@ describe V0::ContactsController do
       end
       it { should respond_with(:not_found)}
     end
+    describe "searches. Called with" do
+      before do
+        account = Account.make
+
+        @first_name = Contact.make(first_name: "dwayne")
+        @first_name.contact_attributes << Telephone.new(account_id: account._id, value: "1234")
+        @first_name.save
+
+        @email = Contact.make(last_name: "mac")
+        @email.contact_attributes << Email.new(account_id: account._id, value: "other@mail.com")
+        @email.contact_attributes << Email.new(account_id: account._id, value: "dwaynemac@gmail.com")
+        @email.save
+
+        @last_name = Contact.make(first_name: "asdf", last_name: "dwayne")
+      end
+      context ":full_text it will make a full text search" do
+        before do
+          get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => "dwayne"
+        end
+        specify { assigns(:contacts).size.should == 3 }
+        specify "within first_names" do
+          assigns(:contacts).should include(@first_name)
+        end
+        specify "within last_names" do
+          assigns(:contacts).should include(@last_name)
+        end
+        specify "within emails" do
+          assigns(:contacts).should include(@email)
+        end
+      end
+    end
   end
 
   describe "#show" do

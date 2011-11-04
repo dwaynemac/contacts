@@ -2,6 +2,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe ContactAttribute do
   it { should have_field(:public).of_type(Boolean) }
+  it { should have_field(:value).of_type(String) }
+  it { should validate_presence_of(:value) }
 
   it { should be_referenced_in :account }
 

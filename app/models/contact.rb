@@ -1,7 +1,12 @@
+require 'mongoid/criteria'
+
 class Contact
   include Mongoid::Document
   #include Mongoid::Timestamps
   #include Mongoid::Versioning
+
+  include Mongoid::Search
+
 
   accepts_nested_attributes_for :contact_attributes
 
@@ -26,6 +31,11 @@ class Contact
     "#{first_name} #{last_name}"
   end
 
+  # defines Contact#emails/telephones/addresses/custom_attributes/etc
+  %W(email telephone address custom_attribute).each do |k|
+    define_method(k.pluralize) { self.contact_attributes.where(_type: k.camelcase) }
+  end
+
   def as_json(options={})
     account = options.delete(:account) if options
     options.merge!({:except => :contact_attributes}) if account
@@ -33,6 +43,8 @@ class Contact
     json[:contact_attributes] = self.contact_attributes.for_account(account) if account
     json
   end
+
+  search_in :first_name, :last_name, :contact_attributes => :value
 
   protected
 
