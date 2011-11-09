@@ -61,8 +61,9 @@ class V0::ContactsController < V0::ApplicationController
 
     authorize! :create, Contact
 
-    @contact = @scope.create(params[:contact])
-
+    @contact = @scope.new(params[:contact])
+    @contact.save
+    
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
@@ -95,6 +96,11 @@ class V0::ContactsController < V0::ApplicationController
     @contact = @scope.find(params[:id])
 
     if @contact.update_attributes(params[:contact])
+      # Manually setting the avatar, because it's not updating itself automatically
+      # if !@contact.avatar.nil? && params[:contact][:avatar]
+      #   puts "el avatar es: #{params[:contact][:avatar].inspect}"
+      #   @contact.avatar.store!(params[:contact][:avatar].original_filename)
+      # end
       render :json => "OK"# , :status => :updated
     else
       render :json => { :message => "Sorry, contact not updated",
