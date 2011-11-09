@@ -35,6 +35,7 @@ gem 'kaminari', '0.12.4'
 # gem 'ruby-debug19', :require => 'ruby-debug'
 
 group :development, :test do
+  gem 'thin'
   gem "machinist"
   gem 'machinist_mongo', :require => 'machinist/mongoid'
   gem 'faker', '0.9.4'
