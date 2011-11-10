@@ -1,6 +1,7 @@
 class V0::ContactsController < V0::ApplicationController
 
   before_filter :set_scope
+  before_filter :typhoeus_bugfix, :only => [:create, :update]
 
   #  Returns list of contacts
   #
@@ -14,6 +15,7 @@ class V0::ContactsController < V0::ApplicationController
   #   :page [integer]: will return this page (default: 1)
   #   :per_page [integer]: will paginate contacts with this amount per page (default: 10)
   #   :full_text [String]: will make a full_text search with this string.
+  #   :where [Hash]:
   #
   #  == Response:
   #   :collection [array]: array of contacts {:id, :name, :description, :items}
@@ -24,6 +26,7 @@ class V0::ContactsController < V0::ApplicationController
       # full_text search
       @scope = @scope.csearch(params[:full_text])
     end
+
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
     response.headers['Content-type'] = 'application/json; charset=utf-8'
     render :json => { :collection => @contacts, :total => @contacts.count }.to_json
@@ -56,11 +59,6 @@ class V0::ContactsController < V0::ApplicationController
   #  == Response:
   #   :contact_id: [integer]: id of the contact created
   def create
-    # Fix for Typhoeus call bug
-    if params[:contact] && params[:contact][:contact_attributes_attributes] && params[:contact][:contact_attributes_attributes].first.is_a?(String)
-      params[:contact][:contact_attributes_attributes] = params[:contact][:contact_attributes_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":").gsub(/nil/, "null"))}
-    end
-
     @contact = @scope.create(params[:contact])
 
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
@@ -93,11 +91,6 @@ class V0::ContactsController < V0::ApplicationController
   #   :status [integer] = type of error
   def update
     @contact = @scope.find(params[:id])
-
-    # Fix for Typhoeus call bug
-    if params[:contact] && params[:contact][:contact_attributes_attributes] && params[:contact][:contact_attributes_attributes].first.is_a?(String)
-      params[:contact][:contact_attributes_attributes] = params[:contact][:contact_attributes_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":").gsub(/nil/, "null"))}
-    end
 
     if @contact.update_attributes(params[:contact])
       render :json => "OK"# , :status => :updated
@@ -154,5 +147,17 @@ class V0::ContactsController < V0::ApplicationController
       else
         @scope = Contact
     end
+  end
+
+  # Fix for Typhoeus call bug
+  def typhoeus_bugfix(c = nil)
+    c = params[:contact]
+
+    return if c.nil?
+    if c[:contact_attributes_attributes] && c[:contact_attributes_attributes].first.is_a?(String)
+      c[:contact_attributes_attributes] = c[:contact_attributes_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":").gsub(/nil/, "null"))}
+    end
+
+    params[:contact] = c
   end
 end
