@@ -13,6 +13,14 @@ ContactAttribute.blueprint do
   value "any-value"
 end
 
+Telephone.blueprint do
+  value "12314234"
+end
+
+Email.blueprint do
+  value { Faker::Internet.email }
+end
+
 Address.blueprint do
   account { Account.make }
   address "luis maria campos"

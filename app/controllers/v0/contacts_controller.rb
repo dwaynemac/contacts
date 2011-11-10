@@ -22,10 +22,9 @@ class V0::ContactsController < V0::ApplicationController
   #   :total [integer]: total contacts
   def index
 
-    unless params[:full_text].blank?
-      # full_text search
-      @scope = @scope.csearch(params[:full_text])
-    end
+    do_full_text_search
+
+    apply_where_conditions
 
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
     response.headers['Content-type'] = 'application/json; charset=utf-8'
@@ -150,7 +149,7 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   # Fix for Typhoeus call bug
-  def typhoeus_bugfix(c = nil)
+  def typhoeus_bugfix
     c = params[:contact]
 
     return if c.nil?
@@ -159,5 +158,27 @@ class V0::ContactsController < V0::ApplicationController
     end
 
     params[:contact] = c
+  end
+
+  def do_full_text_search
+    return if params[:full_text].blank?
+
+    @scope = @scope.csearch(params[:full_text])
+  end
+
+  def apply_where_conditions
+    return if params[:where].blank?
+
+    params[:where].each do |k,v|
+      if v.blank?
+ 	# ignore
+      elsif v.is_a?(Hash)
+        # TODO convert hash into mongdb queries. Eg: :contact_attributes => { :phone => 123} --> "contact_attributes.phone" => 123
+      elsif k.to_s.in?(%W(telephone email))
+        @scope = @scope.where({"contact_attributes._type" => k.to_s.camelize, "contact_attributes.value" => Regexp.new(v)})
+      else
+        @scope = @scope.where(k => Regexp.new(v))
+      end
+    end
   end
 end

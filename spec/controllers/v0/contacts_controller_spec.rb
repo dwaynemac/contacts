@@ -10,6 +10,7 @@ describe V0::ContactsController do
   end
 
   describe "#index" do
+
     context "without params" do
       before do
         get :index, :app_key => V0::ApplicationController::APP_KEY
@@ -21,17 +22,7 @@ describe V0::ContactsController do
         result["total"].should == 2
       end
     end
-    context "with blank :full_text" do
-      before do
-        get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => ""
-      end
-      it { should respond_with(:success) } # response.should be_success
-      it { should assign_to(:contacts) }
-      it "should show total amount of contacts" do
-        result = ActiveSupport::JSON.decode(response.body)
-        result["total"].should == 2
-      end
-    end
+
     context "specifying valid account and list_name" do
       before do
         account_a = Account.make(:name => "a")
@@ -62,6 +53,7 @@ describe V0::ContactsController do
         assigns(:contacts).should_not include(@contact_l)
       end
     end
+
     context "specifying valid account with unexisting list_name" do
       before do
         Account.make(:name => "a")
@@ -69,6 +61,7 @@ describe V0::ContactsController do
       end
       it { should respond_with(:not_found)}
     end
+
     describe "searches. Called with" do
       before do
         account = Account.make
@@ -84,6 +77,7 @@ describe V0::ContactsController do
 
         @last_name = Contact.make(first_name: "asdf", last_name: "dwayne")
       end
+
       context ":full_text it will make a full text search" do
         before do
           get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => "dwayne"
@@ -97,6 +91,66 @@ describe V0::ContactsController do
         end
         specify "within emails" do
           assigns(:contacts).should include(@email)
+        end
+      end
+
+      context "with blank :full_text" do
+        before do
+          get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => ""
+        end
+        it { should respond_with(:success) } # response.should be_success
+        it { should assign_to(:contacts) }
+        it "should show total amount of contacts" do
+          result = ActiveSupport::JSON.decode(response.body)
+          result["total"].should == 5
+        end
+      end
+
+      context ":where => " do
+        before do
+          @diff_mail = Contact.make(:first_name => "ale")
+          @diff_mail.contact_attributes << Email.make
+
+          @regex = Contact.make(:first_name => "Alejandro")
+          @regex.contact_attributes << Email.make(:value => "dwanardo@lepes.com")
+          @regex.save
+
+          @w_phone = Contact.make(:first_name => "Aleman")
+          @w_phone.contact_attributes << Email.make(:value => "dwalico@mail.com")
+          @w_phone.contact_attributes << Telephone.make(:value => "12341234")
+        end
+        context "{:email => 'dwa', :first_name => 'Ale'}" do
+          before do
+            get :index, :app_key => V0::ApplicationController::APP_KEY,
+                :where => {:email => "dwa", :first_name => "Ale"}
+          end
+          it "should build Criteria" do
+            criteria = Contact.where("contact_attributes._type" => "Email", "contact_attributes.value" => /dwa/).where("first_name" => /Ale/)
+            assigns(:contacts).selector.should == criteria.selector
+          end
+          it "should return contacts that match ALL conditions." do
+            assigns(:contacts).should include(@regex)
+          end
+          it "should not return contacts that match only some of the conditions" do
+            assigns(:contacts).should_not include(@diff_mail)
+          end
+          it "should considers conditions as regex" do
+            assigns(:contacts).should include(@regex)
+          end
+        end
+        context "{:email => 'dwa', :first_name => 'Ale', :telephone => '1234'}" do
+          before do
+            get :index, :app_key => V0::ApplicationController::APP_KEY,
+                :where => {:email => "dwa", :first_name => "Ale", :telephone => "1234"}
+          end
+          it { assigns(:contacts).count.should == 1}
+          it "should return contacts that match ALL conditions." do
+            assigns(:contacts).should include(@w_phone)
+          end
+          it "should not return contacts that match only some of the conditions" do
+            assigns(:contacts).should_not include(@regex)
+            assigns(:contacts).should_not include(@diff_mail)
+          end
         end
       end
     end
