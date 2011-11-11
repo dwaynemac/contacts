@@ -10,7 +10,7 @@ class Contact
 
   accepts_nested_attributes_for :contact_attributes
 
-  before_create :assign_owner
+  before_save :assign_owner
   before_save :update_lists_contacts
 
   embeds_many :contact_attributes, :validate => true
@@ -54,7 +54,7 @@ class Contact
     # Callbacks arent called when mass-assigning nested models.
     # Iterate over the contact_attributes and set the owner.
     if self.owner.present?
-      contact_attributes.each {|att| att.account = owner}
+      contact_attributes.each {|att| att.account = owner unless att.account.present?}
     end
   end
 
