@@ -109,7 +109,7 @@ describe V0::ContactsController do
       context ":where => " do
         before do
           @diff_mail = Contact.make(:first_name => "ale")
-          @diff_mail.contact_attributes << Email.make
+          @diff_mail.contact_attributes << Email.make(:value => "asdfasdf@asdf.com")
 
           @regex = Contact.make(:first_name => "Alejandro")
           @regex.contact_attributes << Email.make(:value => "dwanardo@lepes.com")
@@ -119,6 +119,7 @@ describe V0::ContactsController do
           @w_phone.contact_attributes << Email.make(:value => "dwalico@mail.com")
           @w_phone.contact_attributes << Telephone.make(:value => "12341234")
         end
+
         context "{:email => 'dwa', :first_name => 'Ale'}" do
           before do
             get :index, :app_key => V0::ApplicationController::APP_KEY,
@@ -138,6 +139,7 @@ describe V0::ContactsController do
             assigns(:contacts).should include(@regex)
           end
         end
+
         context "{:email => 'dwa', :first_name => 'Ale', :telephone => '1234'}" do
           before do
             get :index, :app_key => V0::ApplicationController::APP_KEY,
@@ -150,6 +152,47 @@ describe V0::ContactsController do
           it "should not return contacts that match only some of the conditions" do
             assigns(:contacts).should_not include(@regex)
             assigns(:contacts).should_not include(@diff_mail)
+          end
+        end
+
+        context "{:contact_attributes => { '_type' => 'Email', 'value' => 'dwa'}}" do
+          before do
+            get :index, :app_key => V0::ApplicationController::APP_KEY,
+                        :where => { :contact_attributes => { :_type => 'Email', :value => 'dwa' } }
+          end
+          it "should build Criteria" do
+            # TODO avoid regex in _type ?
+            criteria = Contact.where("contact_attributes._type" => /Email/, "contact_attributes.value" => /dwa/)
+            assigns(:contacts).selector.should == criteria.selector
+          end
+          it "should search contacts with email 'dwa'" do
+            [@regex,@w_phone].each do |contact|
+              assigns(:contacts).should include(contact)
+            end
+          end
+          it "should not match contacts with other mails" do
+            assigns(:contacts).should_not include(@diff_mail)
+          end
+        end
+
+        context "{ :address => 'humahuaca'}" do
+          before do
+            @addressed = Contact.make
+            @addressed.contact_attributes << Address.make(:address => "humahuaca 23")
+            @addressed.save
+
+            @city = Contact.make
+            @city.contact_attributes << Address.make(:address => "saltin", :city => "humahuaca")
+            @city.save
+
+            get :index, :app_key => V0::ApplicationController::APP_KEY,
+                        :where => { :address => "humahuac" }
+          end
+          it "should match street" do
+            assigns(:contacts).should include(@addressed)
+          end
+          it "should match city" do
+            assigns(:contacts).should include(@city)
           end
         end
       end

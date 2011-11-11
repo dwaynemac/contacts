@@ -160,25 +160,31 @@ class V0::ContactsController < V0::ApplicationController
     params[:contact] = c
   end
 
+  # TODO refactor into model
   def do_full_text_search
     return if params[:full_text].blank?
 
     @scope = @scope.csearch(params[:full_text])
   end
 
+  # TODO refactor into model
   def apply_where_conditions
     return if params[:where].blank?
 
     params[:where].each do |k,v|
       if v.blank?
- 	# ignore
+        # skip blanks
       elsif v.is_a?(Hash)
-        # TODO convert hash into mongdb queries. Eg: :contact_attributes => { :phone => 123} --> "contact_attributes.phone" => 123
-      elsif k.to_s.in?(%W(telephone email))
+        v.each do |sk, sv|
+          @scope = @scope.where("#{k}.#{sk}" => Regexp.new(sv))
+          # TODO recursive call for sub-sub-hashes
+        end
+      elsif k.to_s.in?(%W(telephone email address custom_attribute))
         @scope = @scope.where({"contact_attributes._type" => k.to_s.camelize, "contact_attributes.value" => Regexp.new(v)})
       else
         @scope = @scope.where(k => Regexp.new(v))
       end
     end
   end
+
 end
