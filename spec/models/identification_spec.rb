@@ -3,6 +3,14 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Identification do
   it { should validate_presence_of :value }
 
+  it "should always be public" do
+    @bart = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+    @bart.contact_attributes << Identification.new(:category => :dni, :value => "30366832", :public => false)
+    @bart.save
+    @bart.reload
+    @bart.contact_attributes.last.should be_public
+  end
+
   describe "should be unique" do
     before do
       @bart = Contact.make(:first_name => "Bart", :last_name => "Simpson")

@@ -6,6 +6,7 @@ class Identification < ContactAttribute
   validates :category, :presence => true, :uniqueness => {:scope => :contact}
 
   before_validation :check_value_uniqueness
+  before_save :ensure_public
 
   def check_value_uniqueness
     return if _parent.nil?
@@ -15,5 +16,11 @@ class Identification < ContactAttribute
             :taken
           )
     end
+  end
+
+  private
+
+  def ensure_public
+    self.public = true unless self.public?
   end
 end
