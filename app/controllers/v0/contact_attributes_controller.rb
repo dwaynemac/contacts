@@ -25,6 +25,7 @@ class V0::ContactAttributesController < V0::ApplicationController
     if @contact_attribute.update_attributes(params[:contact_attribute])
       render :json => "OK"# , :status => :updated
     else
+      Rails.logger.debug @contact_attribute.errors.full_messages
       render :json => { :message => "Sorry, contact attribute not updated",
        :error_codes => [],
        :errors => @contact_attribute.errors }.to_json, :status => 400
@@ -37,8 +38,8 @@ class V0::ContactAttributesController < V0::ApplicationController
   def set_scope
     case action_name.to_sym
       when :index, :update, :create
-        if @account
-          @scope = @account.lists.first.contacts
+        if @account && params[:contact_id]
+          @scope = @account.lists.first.contacts.find(params[:contact_id]).contact_attributes
         else
           @scope = ContactAttribute
         end
