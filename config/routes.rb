@@ -2,9 +2,11 @@ Contacts::Application.routes.draw do
 
   namespace 'v0' do
     resources :contacts
+    resources :contact_attributes
 
     scope "/accounts/:account_name" do
       resources :contacts
+      resources :contact_attributes
     end
   end
 
