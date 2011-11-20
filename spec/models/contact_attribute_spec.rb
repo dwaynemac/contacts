@@ -7,6 +7,18 @@ describe ContactAttribute do
 
   it { should be_referenced_in :account }
 
+  describe "as_json" do
+    before do
+      @c = Contact.make
+      @c.contact_attributes << Telephone.make
+    end
+    it "should include _type if no options are given" do
+      @c.contact_attributes.last.as_json["_type"].should_not be_nil
+    end
+    it "should consider options" do
+      @c.contact_attributes.last.as_json(exclude: [:value])[:value].should be_nil
+    end
+  end
 
   describe "readonly" do
     specify "model marked readonly should not be saved" do

@@ -15,6 +15,13 @@ class ContactAttribute
 
   before_create :assign_owner
 
+  def as_json(options={})
+    options = {} if options.nil? # avoid exception in case it was called with nil
+
+    # :_type is excluded from json by default by Mongoid
+    super(options.merge(:methods => [:_type]))
+  end
+
   # Returns ContactAttributes visible to account
   #
   # IF :include_masked is used then it can't be further chained as it will return an Array
