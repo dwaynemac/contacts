@@ -41,7 +41,7 @@ class V0::ContactsController < V0::ApplicationController
   #   :contact [Checklist]: single contact {:id, :name, :description, :items}
   def show
     @contact = @scope.find(params[:id])
-    render :json => @contact.as_json(:account => @account)
+    render :json => @contact.as_json(:account => @account, :include_masked => true)
   end
 
   #  Returns a new contact

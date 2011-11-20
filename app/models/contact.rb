@@ -32,15 +32,19 @@ class Contact
   end
 
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
+  # they all return a Criteria scoping to according _type
   %W(email telephone address custom_attribute).each do |k|
     define_method(k.pluralize) { self.contact_attributes.where(_type: k.camelcase) }
   end
 
+  # @param [Hash] options
+  # @option options [Account] account
+  # @option options [TrueClass] include_masked
   def as_json(options={})
     account = options.delete(:account) if options
     options.merge!({:except => :contact_attributes}) if account
     json = super(options)
-    json[:contact_attributes] = self.contact_attributes.for_account(account) if account
+    json[:contact_attributes] = self.contact_attributes.for_account(account, options) if account
     json
   end
 

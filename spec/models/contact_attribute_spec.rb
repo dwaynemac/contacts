@@ -8,6 +8,21 @@ describe ContactAttribute do
   it { should be_referenced_in :account }
 
 
+  describe "readonly" do
+    specify "model marked readonly should not be saved" do
+      contact = Contact.make_unsaved()
+      contact.contact_attributes << Telephone.make
+      contact.contact_attributes.last.readonly!
+      lambda{contact.save}.should raise_error("ReadOnly")
+    end
+    specify "model not-marked readonly should save normally" do
+      contact = Contact.make
+      t = Telephone.make_unsaved
+      contact.contact_attributes << t
+      contact.should be_valid
+    end
+  end
+
   describe "#for_account" do
     before do
       @empty_account = Account.make
@@ -18,17 +33,51 @@ describe ContactAttribute do
     end
 
     it "should return the attributes corresponding to the account" do
-      assert @contact.contact_attributes.for_account(@ok_account).any?
+      @contact.contact_attributes.for_account(@ok_account).should_not be_empty
     end
 
     it "should return public attributes" do
       @contact.contact_attributes.first.public = true
       @contact.save
-      assert @contact.contact_attributes.for_account(@empty_account).any?
+      @contact.contact_attributes.for_account(@empty_account).should_not be_empty
     end
 
     it "should filter the attributes corresponding other accounts" do
-      assert_empty @contact.contact_attributes.for_account @empty_account
+      @contact.contact_attributes.for_account(@empty_account).should be_empty
+    end
+
+    context "with option :include_masked" do
+      context "for phone 12345678" do
+        before do
+          @contact.contact_attributes << Telephone.make(value: "12345678", public: false, account: @ok_account)
+          @contact.save
+          @contact.reload
+        end
+
+        it "should return an array" do
+          @contact.contact_attributes.for_account(@empty_account, :include_masked => true).should be_a(Array)
+        end
+        it "should return 1234#### for non-owner accounts" do
+          attrs = @contact.contact_attributes.for_account(@empty_account, :include_masked => true)
+          attrs.should_not be_empty
+          attrs.last.should be_a(ContactAttribute)
+          attrs.last.value.should == "1234####"
+        end
+        it "should return 12345678 for owner account" do
+          attrs = @contact.contact_attributes.for_account(@ok_account, :include_masked => true)
+          attrs.should_not be_empty
+          attrs.last.value.should == "12345678"
+        end
+
+        it "should not duplicate values" do
+          @contact.contact_attributes << Telephone.make(value: "12345678", public: false, account: @empty_account)
+          @contact.save
+          @contact.reload
+          attrs = @contact.contact_attributes.for_account(@empty_account, :include_masked => true)
+          attrs.size.should == 1
+          attrs.last.value.should == "12345678"
+        end
+      end
     end
   end
 

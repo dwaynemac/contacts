@@ -203,8 +203,8 @@ describe V0::ContactsController do
     before(:each) do
       @contact = Contact.first
       @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
-      @contact.contact_attributes << ContactAttribute.make(:account => Account.make, :public => true)
-      @contact.contact_attributes << ContactAttribute.make(:account => Account.make, :public => false)
+      @contact.contact_attributes << Email.make(:account => Account.make, :public => true)
+      @contact.contact_attributes << Address.make(:account => Account.make, :public => false)
       @contact.save
     end
     describe "when unscoped" do
@@ -223,11 +223,16 @@ describe V0::ContactsController do
 
     describe "when scoped to an account" do
       before(:each) do
+        @contact.contact_attributes << Telephone.make(account: Account.make, public: false, value: "99999999")
         get :show, :id => @contact.id, :account_name => @contact.owner.name, :app_key => V0::ApplicationController::APP_KEY
       end
-      it "should include only the contact_attributes visible to that account" do
+      it "should include contact_attributes visible to that account and masked phones" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
-        result[:contact_attributes].count.should equal(2)
+        result[:contact_attributes].count.should == 3
+      end
+      it "should include masked phones" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:contact_attributes].map{|ca|ca['value']}.should include("9999####")
       end
     end
 
