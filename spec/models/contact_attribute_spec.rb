@@ -5,7 +5,7 @@ describe ContactAttribute do
   it { should have_field(:value).of_type(String) }
   it { should validate_presence_of(:value) }
 
-  it { should be_referenced_in :account }
+  it { should belong_to_related :account }
 
   describe "as_json" do
     before do

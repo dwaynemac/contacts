@@ -8,6 +8,11 @@ Contact.blueprint do
   owner { Account.make }
 end
 
+LocalStatus.blueprint do
+  account { Account.make }
+  status { :prospect }
+end
+
 ContactAttribute.blueprint do
   account { Account.make }
   value "any-value"

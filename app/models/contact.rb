@@ -2,21 +2,24 @@ require 'mongoid/criteria'
 
 class Contact
   include Mongoid::Document
-  #include Mongoid::Timestamps
+  include Mongoid::Timestamps
   #include Mongoid::Versioning
 
   include Mongoid::Search
-
 
   accepts_nested_attributes_for :contact_attributes
 
   before_save :assign_owner
   before_save :update_lists_contacts
+  before_save :set_status
 
   embeds_many :contact_attributes, :validate => true
 
   field :first_name
   field :last_name
+
+  field :status, type: Symbol
+  before_validation :set_status
 
   belongs_to :owner, :class_name => "Account"
   references_and_referenced_in_many :lists
@@ -26,6 +29,8 @@ class Contact
   validates_associated :contact_attributes
 
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
+
+  embeds_many :local_statuses
 
   def full_name
     "#{first_name} #{last_name}"
@@ -50,6 +55,11 @@ class Contact
 
   search_in :first_name, :last_name, :contact_attributes => :value
 
+  def update_status!
+    self.set_status
+    self.save
+  end
+
   protected
 
   def assign_owner
@@ -65,6 +75,16 @@ class Contact
   def update_lists_contacts
     if self.owner && self.lists.empty?
       self.lists << self.owner.lists.first
+    end
+  end
+
+  def set_status
+    distinct_statuses = local_statuses.distinct(:status)
+    [:student, :former_student, :prospect].each do |s|
+      if distinct_statuses.include?(s)
+        self.status = s
+        break
+      end
     end
   end
 end

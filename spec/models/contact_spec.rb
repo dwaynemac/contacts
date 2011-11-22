@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 
 describe Contact do
   it { should embed_many :contact_attributes }
@@ -10,6 +10,31 @@ describe Contact do
   it { should have_fields :first_name, :last_name }
 
   it { should validate_presence_of :first_name }
+
+  it { should embed_many :local_statuses }
+
+  it { should have_field(:status).of_type(Symbol)}
+
+  describe "update_status!" do
+    it "should be :student if there is any local_status :student" do
+      ls = LocalStatus.make(status: :student)
+      ls2 = LocalStatus.make(status: :prospect)
+      c = Contact.make
+      c.local_statuses << ls
+      c.local_statuses << ls2
+      c.update_status!
+      c.status.should == :student
+    end
+    it "should be :former_student if there is any local_status :former_student and no :student" do
+      c = Contact.make(local_statuses: [LocalStatus.make(status: :former_student),LocalStatus.make(status: :prospect)])
+      c.status.should == :former_student
+    end
+    it "should be :prospect if there is any local_status :prospect and no :student or :former_student" do
+      c = Contact.make(local_statuses: [LocalStatus.make(status: :prospect)])
+      c.status.should == :prospect
+    end
+  end
+
 
   describe "when scoped to a list" do
     before do
