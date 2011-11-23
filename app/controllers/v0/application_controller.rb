@@ -6,6 +6,14 @@ class V0::ApplicationController < ApplicationController
   before_filter :check_app_key
   before_filter :get_account
 
+  def current_ability
+    @current_ability ||= V0::Ability.new(@account)
+  end
+
+  rescue_from CanCan::AccessDenied do |exception|
+    render :text => "access denied", :status => 401
+  end
+
   private
 
   # verifies that app_key was given

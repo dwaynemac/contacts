@@ -58,6 +58,9 @@ class V0::ContactsController < V0::ApplicationController
   #  == Response:
   #   :contact_id: [integer]: id of the contact created
   def create
+
+    authorize! :create, Contact
+
     @contact = @scope.create(params[:contact])
 
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!

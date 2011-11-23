@@ -11,6 +11,8 @@ gem "mongoid", "2.3.3"
 gem "bson_ext", "~> 1.3"
 gem 'mongoid_search'
 
+gem 'cancan', '~> 1.6.7'
+
 gem "logical_model", :git =>'git@github.com:lperichon/logical_model.git'
 
 gem 'kaminari', '0.12.4'
