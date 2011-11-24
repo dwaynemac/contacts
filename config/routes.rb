@@ -5,8 +5,9 @@ Contacts::Application.routes.draw do
     resources :contact_attributes
 
     scope "/accounts/:account_name" do
-      resources :contacts
-      resources :contact_attributes
+      resources :contacts do
+        resources :contact_attributes
+      end
     end
   end
 

@@ -2,6 +2,13 @@ class V0::ContactAttributesController < V0::ApplicationController
 
   before_filter :set_scope
 
+  def show
+    @contact_attribute = @scope.find(params[:id])
+    respond_to do |type|
+      type.json {render :json => @contact_attribute}
+    end
+  end
+
   #  Updates specified values of a contact attribute
   #
   #  == Request:
@@ -25,7 +32,6 @@ class V0::ContactAttributesController < V0::ApplicationController
     if @contact_attribute.update_attributes(params[:contact_attribute])
       render :json => "OK"# , :status => :updated
     else
-      Rails.logger.debug @contact_attribute.errors.full_messages
       render :json => { :message => "Sorry, contact attribute not updated",
        :error_codes => [],
        :errors => @contact_attribute.errors }.to_json, :status => 400
@@ -39,7 +45,7 @@ class V0::ContactAttributesController < V0::ApplicationController
     case action_name.to_sym
       when :index, :update, :create
         if @account && params[:contact_id]
-          @scope = @account.lists.first.contacts.find(params[:contact_id]).contact_attributes
+          @scope = @account.lists.first.contacts.any_of(:_id => params[:contact_id]).first.contact_attributes
         else
           @scope = ContactAttribute
         end
