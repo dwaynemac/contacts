@@ -8,6 +8,7 @@ gem 'rails', '3.1.0'
 # gem 'sqlite3'
 
 gem "mongoid", "2.3.3"
+gem 'bson', '1.4.1' # version 1.1.1 is being required implicitly but it has been yanked
 gem "bson_ext", "~> 1.3"
 gem 'mongoid_search'
 
