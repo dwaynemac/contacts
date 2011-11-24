@@ -19,7 +19,7 @@ class ContactAttribute
     options = {} if options.nil? # avoid exception in case it was called with nil
 
     # :_type is excluded from json by default by Mongoid
-    super(options.merge(:methods => [:_type]))
+    super(options.merge(:methods => [:_type, :contact_id]))
   end
 
   # Returns ContactAttributes visible to account
@@ -77,5 +77,9 @@ class ContactAttribute
 
   def write_enabled
     raise "ReadOnly" if @readonly
+  end
+
+  def contact_id
+    contact.id
   end
 end
