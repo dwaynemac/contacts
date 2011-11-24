@@ -1,13 +1,3 @@
-GIT
-  remote: git@github.com:lperichon/logical_model.git
-  revision: 5a1029f7e656c47e2314ba2037851534682986b4
-  specs:
-    logical_model (0.2.8)
-      activemodel
-      activesupport
-      kaminari
-      typhoeus (~> 0.2.4)
-
 GEM
   remote: http://rubygems.org/
   specs:
@@ -90,6 +80,11 @@ GEM
     kaminari (0.12.4)
       rails (>= 3.0.0)
     libnotify (0.5.9)
+    logical_model (0.2.9)
+      activemodel
+      activesupport
+      kaminari
+      typhoeus (~> 0.2.4)
     machinist (1.0.6)
     machinist_mongo (1.2.0)
       machinist (~> 1.0.6)
@@ -200,7 +195,7 @@ DEPENDENCIES
   guard-spork
   kaminari (= 0.12.4)
   libnotify
-  logical_model!
+  logical_model (= 0.2.9)
   machinist
   machinist_mongo
   mongoid (= 2.3.3)
