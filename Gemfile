@@ -39,15 +39,15 @@ gem 'kaminari', '0.12.4'
 
 group :development, :test do
   gem 'thin'
-  gem "machinist"
-  gem 'machinist_mongo', :require => 'machinist/mongoid'
+  gem "machinist", '1.0.6'
+  gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
   gem 'faker', '0.9.4'
   gem "rspec-rails", "~> 2.4"
-  gem "shoulda"
-  gem 'mongoid-rspec'
+  gem "shoulda", '2.11.3'
+  gem 'mongoid-rspec', '1.4.4'
   gem "database_cleaner", ">= 0.6.7", :group => :test
-  gem "cucumber-rails"
-  gem "timecop"
+  gem "cucumber-rails", '1.2.0'
+  gem "timecop", '0.3.5'
 
   # Guard
   gem 'spork', "> 0.9.0.rc"
