@@ -175,25 +175,19 @@ describe V0::ContactsController do
           end
         end
 
-        context "{ :address => 'humahuaca'}" do
+        context "{ :value => 'salti'}" do
           before do
             @addressed = Contact.make
-            @addressed.contact_attributes << Address.make(:address => "humahuaca 23")
+            @addressed.contact_attributes << Address.make(:value => "saltin 23")
             @addressed.save
 
-            @city = Contact.make
-            @city.contact_attributes << Address.make(:address => "saltin", :city => "humahuaca")
-            @city.save
-
             get :index, :app_key => V0::ApplicationController::APP_KEY,
-                        :where => { :address => "humahuac" }
+                        :where => { :contact_attributes => {:value => "salti"} }
           end
           it "should match street" do
-            assigns(:contacts).should include(@addressed)
+            assigns(:contacts).all.should include(@addressed)
           end
-          it "should match city" do
-            assigns(:contacts).should include(@city)
-          end
+          it "should match city"
         end
       end
     end

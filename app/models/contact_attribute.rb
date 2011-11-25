@@ -5,7 +5,7 @@ class ContactAttribute
   field :public, type: Boolean
   field :value, type: String
 
-  validates :value, :presence => true, :unless => proc {self.is_a? Address}
+  validates :value, :presence => true
 
   validate :write_enabled
 

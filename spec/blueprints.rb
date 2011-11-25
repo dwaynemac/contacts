@@ -28,7 +28,7 @@ end
 
 Address.blueprint do
   account { Account.make }
-  address "luis maria campos"
+  value "luis maria campos"
 end
 
 Account.blueprint do
