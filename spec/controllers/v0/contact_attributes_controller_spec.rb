@@ -30,4 +30,17 @@ describe V0::ContactAttributesController do
       @contact.reload.contact_attributes.first.value.should == @new_value
     end
   end
+
+  describe "#create" do
+    before do
+      @contact = Contact.first
+      @telephone = "54321"
+      post :create, :account_name => @contact.owner.name, :contact_id => @contact.id, :contact_attribute => {:category => :home, :value => @telephone},
+                  :app_key => V0::ApplicationController::APP_KEY
+    end
+    it { should respond_with :success }
+    it "should create a new telephone" do
+      @contact.reload.contact_attributes.last.value.should == @telephone
+    end
+  end
 end

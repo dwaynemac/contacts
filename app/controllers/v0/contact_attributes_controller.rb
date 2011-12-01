@@ -13,7 +13,7 @@ class V0::ContactAttributesController < V0::ApplicationController
   #
   #  == Request:
   #   PUT /v0/contact_attributes/:id/
-  #   PUT /v0/accounts/:account_name/contacts/:id
+  #   PUT /v0/accounts/:account_name/contact_attributes/:id
   #
   #  == Valid params:
   #   :account_name [string]: (account name) scopes account
@@ -33,6 +33,32 @@ class V0::ContactAttributesController < V0::ApplicationController
       render :json => "OK"# , :status => :updated
     else
       render :json => { :message => "Sorry, contact attribute not updated",
+       :error_codes => [],
+       :errors => @contact_attribute.errors }.to_json, :status => 400
+    end
+  end
+
+  #  Returns a new contact attribute
+  #
+  #  == Request:
+  #   POST /v0/contact_attribute_attributes
+  #   POST /v0/accounts/:account_name/contact_attributes
+  #
+  #  == Valid params:
+  #   :account_name [string]: (account name) account which the contact will belong to
+  #
+  #  == Response:
+  #   :contact_attribute_id: [integer]: id of the contact attribute created
+  def create
+
+    authorize! :create, ContactAttribute
+
+    @contact_attribute = @scope.create(params[:contact_attribute])
+
+    if @contact_attribute.valid?
+      render :json => { :id => @contact_attribute.id }.to_json, :status => :created
+    else
+      render :json => { :message => "Sorry, contact attribute not created",
        :error_codes => [],
        :errors => @contact_attribute.errors }.to_json, :status => 400
     end
