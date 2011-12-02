@@ -50,12 +50,12 @@ class V0::ContactAttributesController < V0::ApplicationController
   #  == Response:
   #   :contact_attribute_id: [integer]: id of the contact attribute created
   def create
-
     authorize! :create, ContactAttribute
 
-    @contact_attribute = @scope.create(params[:contact_attribute])
+    @contact_attribute = @scope.new(params[:contact_attribute])
+    @contact_attribute._type = params[:contact_attribute][:_type]
 
-    if @contact_attribute.valid?
+    if @contact_attribute.save
       render :json => { :id => @contact_attribute.id }.to_json, :status => :created
     else
       render :json => { :message => "Sorry, contact attribute not created",
@@ -71,7 +71,8 @@ class V0::ContactAttributesController < V0::ApplicationController
     case action_name.to_sym
       when :index, :update, :create
         if @account && params[:contact_id]
-          @scope = @account.lists.first.contacts.any_of(:_id => params[:contact_id]).first.contact_attributes
+          @contact = @account.lists.first.contacts.any_of(:_id => params[:contact_id]).first
+          @scope = @contact.contact_attributes
         else
           @scope = ContactAttribute
         end
