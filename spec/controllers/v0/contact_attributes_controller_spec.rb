@@ -43,4 +43,34 @@ describe V0::ContactAttributesController do
       @contact.reload.contact_attributes.last.value.should == @telephone
     end
   end
+
+  describe "#delete" do
+    before do
+      @contact = Contact.first
+      @contact_attribute = @contact.contact_attributes.first
+    end
+    describe "as the owner" do
+      it "should delete a contact attribute" do
+        expect{post :destroy, :method => :delete,
+                    :id => @contact_attribute.id,
+                    :contact_id => @contact.id,
+                    :account_name => @contact.owner.name,
+                    :app_key => V0::ApplicationController::APP_KEY}.to change{@contact.reload.contact_attributes.count}.by(-1)
+      end
+    end
+    describe "as a viewer/editor" do
+      before do
+        @account = Account.make
+        @account.lists.first.contacts << @contact
+        @account.save
+      end
+      it "should not delete the contact attribute" do
+        expect{post :destroy, :method => :delete,
+                    :id => @contact_attribute.id,
+                    :contact_id => @contact.id,
+                    :account_name => @account.name,
+                    :app_key => V0::ApplicationController::APP_KEY}.not_to change{@contact.reload.contact_attributes.count}
+      end
+    end
+  end
 end

@@ -64,23 +64,33 @@ class V0::ContactAttributesController < V0::ApplicationController
     end
   end
 
+  #  Destroys the contact attribute
+  #
+  #  == Request
+  #    DELETE /v0/contact?attributes/:id
+  #    DELETE /v0/accounts/:account_name/contacts/:contact_id/contact_attributes/:id
+  #
+  #  == Valid params:
+  #  @param [String] account_name - scope to this accounts contacts
+  #  @param [String] contact_id - contact id
+  #
+  #  == Response:
+  #   :response [string]: "OK"
+  def destroy
+    @contact_attribute = @scope.find(params[:id])
+    @contact_attribute.destroy if @account && @contact_attribute.account == @account
+    render :json => "OK"
+  end
+
   private
 
   #  Sets the scope
   def set_scope
-    case action_name.to_sym
-      when :index, :update, :create
-        if @account && params[:contact_id]
-          @contact = @account.lists.first.contacts.any_of(:_id => params[:contact_id]).first
-          @scope = @contact.contact_attributes
-        else
-          @scope = ContactAttribute
-        end
-
-      when :destroy
-        @scope = ContactAttribute
-      else
-        @scope = ContactAttribute
+    if @account && params[:contact_id]
+      @contact = @account.lists.first.contacts.any_of(:_id => params[:contact_id]).first
+      @scope = @contact.contact_attributes
+    else
+      @scope = ContactAttribute
     end
   end
 
