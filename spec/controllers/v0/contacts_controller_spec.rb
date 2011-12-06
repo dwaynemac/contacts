@@ -431,8 +431,9 @@ describe V0::ContactsController do
         Contact.last.remove_avatar!
       end
     end
-    
+
     context "if it recieves image via URL" do
+      pending "avoid network connection on every spec run" do
       before(:each) do
         @image_url = "http://airbendergear.com/wp-content/uploads/2009/12/aang1.jpg"
         @account = Account.make
@@ -453,6 +454,7 @@ describe V0::ContactsController do
         after(:each) do
           Contact.last.remove_avatar!
         end
+      end
     end
     
   end

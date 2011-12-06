@@ -68,9 +68,9 @@ class V0::ContactsController < V0::ApplicationController
 
     authorize! :create, Contact
 
-    @contact = @scope.new(params[:contact])
-    @contact.save
-    
+    # use @scope.create because @scope.new; @contact.save won't correctly run callbacks
+    @contact =  @scope.create(params[:contact])
+
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
