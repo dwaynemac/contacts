@@ -21,8 +21,10 @@ class Contact
   
   mount_uploader :avatar, AvatarUploader
 
+  VALID_STATUSES = [:student, :former_student, :prospect]
   field :status, type: Symbol
   before_validation :set_status
+  validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
 
   belongs_to :owner, :class_name => "Account"
   references_and_referenced_in_many :lists
@@ -84,7 +86,7 @@ class Contact
 
   def set_status
     distinct_statuses = local_statuses.distinct(:status)
-    [:student, :former_student, :prospect].each do |s|
+    VALID_STATUSES.each do |s|
       if distinct_statuses.include?(s)
         self.status = s
         break

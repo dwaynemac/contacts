@@ -15,6 +15,14 @@ describe Contact do
 
   it { should have_field(:status).of_type(Symbol)}
 
+  %W(student former_student prospect).each do |v|
+    it { should allow_value(v).for(:status)}
+  end
+
+  %W(asdf asdf alumno ex-alumno).each do |v|
+    it { should_not allow_value(v).for(:status)}
+  end
+
   describe "update_status!" do
     it "should be :student if there is any local_status :student" do
       ls = LocalStatus.make(status: :student)
