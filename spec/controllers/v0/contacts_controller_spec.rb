@@ -10,7 +10,22 @@ describe V0::ContactsController do
   end
 
   describe "#index" do
-
+    describe "paginates" do
+      before do
+        9.times { Contact.make }
+        @isp = Contact.make(name: "in_second_page")
+      end
+      it "should return page 1" do
+        get :index, :app_key => V0::ApplicationController::APP_KEY, :page => 1
+        ActiveSupport::JSON.decode(response.body)["total"].should == 10
+        assigns(:contacts).should_not include(@isp)
+      end
+      it "should return page 2" do
+        get :index, :app_key => V0::ApplicationController::APP_KEY, :page => 2
+        ActiveSupport::JSON.decode(response.body)["total"].should == 2
+        assigns(:contacts).should include(@isp)
+      end
+    end
     context "without params" do
       before do
         get :index, :app_key => V0::ApplicationController::APP_KEY
@@ -335,7 +350,7 @@ describe V0::ContactsController do
     end
   end
 
-  describe "#create", :focus do
+  describe "#create" do
     it "should create a contact" do
       expect{post :create,
                   :contact => Contact.plan,
