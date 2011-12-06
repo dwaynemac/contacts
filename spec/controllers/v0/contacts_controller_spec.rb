@@ -256,6 +256,48 @@ describe V0::ContactsController do
     it "should change first name" do
       @contact.reload.first_name.should == @new_first_name
     end
+    context "if it recieves image" do
+      before(:each) do
+        @image = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
+        @new_image = fixture_file_upload('spec/support/robot3.jpg', 'image/jpg')
+        @new_contact = Contact.make(:avatar => @image)
+        @file_url = @new_contact.avatar.url
+        put  :update,
+             :id => @new_contact.id,
+             :contact => {:avatar => @new_image},
+             :app_key => V0::ApplicationController::APP_KEY
+      end
+      it "should replace old image with new one" do
+        @new_contact.reload
+        @new_contact.avatar.url.should_not match /.ghibli_main_logo.gif/
+      end
+      it "should store it to amazon and link it to contact" do
+        @new_contact.reload
+        @new_contact.avatar.url.should match /.robot3.jpg/
+      end
+      after(:each) do
+        Contact.last.remove_avatar!
+      end
+    end
+    context "if it has an image" do
+      before(:each) do
+        @image = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
+        @new_contact = Contact.make(:avatar => @image)
+        @file_url = @new_contact.avatar.url
+        put  :update,
+             :id => @new_contact.id,
+             :contact => {:remove_avatar => true},
+             :app_key => V0::ApplicationController::APP_KEY
+      end
+      
+      it "should be able to delete it" do
+        Contact.last.avatar.should be_blank
+      end
+      
+      after(:each) do
+        Contact.last.remove_avatar!
+      end
+    end
   end
 
   describe "#update" do
@@ -293,7 +335,7 @@ describe V0::ContactsController do
     end
   end
 
-  describe "#create" do
+  describe "#create", :focus do
     it "should create a contact" do
       expect{post :create,
                   :contact => Contact.plan,
@@ -352,6 +394,52 @@ describe V0::ContactsController do
 
       Contact.last.owner.should be_nil
     end
+    context "if it recieves image via File Upload" do
+      before(:each) do
+        @image = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
+        @account = Account.make
+        post :create,
+             :account_name => @account.name,
+             :contact => Contact.plan(:owner => nil, :avatar => @image),
+             :app_key => V0::ApplicationController::APP_KEY
+      end
+      it "should store an avatar image to the contact" do
+        Contact.last.avatar.should_not be_blank
+      end
+      it "should have a URL" do
+        Contact.last.avatar.url.should_not be_nil
+      end
+      it "should have a valid URL" do
+        Contact.last.avatar.url.should match /.ghibli_main_logo\.gif/
+      end
+      after(:each) do
+        Contact.last.remove_avatar!
+      end
+    end
+    
+    context "if it recieves image via URL" do
+      before(:each) do
+        @image_url = "http://airbendergear.com/wp-content/uploads/2009/12/aang1.jpg"
+        @account = Account.make
+        post :create,
+             :account_name => @account.name,
+             :contact => Contact.plan(:owner => nil, :remote_avatar_url => @image_url),
+             :app_key => V0::ApplicationController::APP_KEY
+           end
+       it "should store an avatar image to the contact" do
+        Contact.last.avatar.should_not be_blank
+        end
+        it "should have a URL" do
+          Contact.last.avatar.url.should_not be_nil
+        end
+        it "should have a valid URL" do
+          Contact.last.avatar.url.should match /.aang1\.jpg/
+        end
+        after(:each) do
+          Contact.last.remove_avatar!
+        end
+    end
+    
   end
 
   describe "#delete" do
@@ -374,5 +462,4 @@ describe V0::ContactsController do
       end
     end
   end
-
 end

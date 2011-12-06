@@ -18,6 +18,11 @@ gem "logical_model", '0.2.9' #:git =>'git@github.com:lperichon/logical_model.git
 
 gem 'kaminari', '0.12.4'
 
+gem 'rmagick'
+gem 'carrierwave'
+gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
+gem 'fog'
+
 # Gems used only for assets and not required
 # in production environments by default.
 #group :assets do

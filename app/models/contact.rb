@@ -17,6 +17,9 @@ class Contact
 
   field :first_name
   field :last_name
+  field :avatar
+  
+  mount_uploader :avatar, AvatarUploader
 
   field :status, type: Symbol
   before_validation :set_status
@@ -31,6 +34,7 @@ class Contact
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
 
   embeds_many :local_statuses
+  mount_uploader :avatar, AvatarUploader
 
   def full_name
     "#{first_name} #{last_name}"
