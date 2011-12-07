@@ -53,9 +53,14 @@ class Contact
   # @option options [TrueClass] include_masked
   def as_json(options={})
     account = options.delete(:account) if options
-    options.merge!({:except => :contact_attributes}) if account
+    if account
+      options.merge!({:except => [:contact_attributes, :local_statuses]})
+    end
     json = super(options)
-    json[:contact_attributes] = self.contact_attributes.for_account(account, options) if account
+    if account
+      json[:contact_attributes] = self.contact_attributes.for_account(account, options)
+      json[:local_status] = self.local_statuses.where(account_id: account._id).try(:first).try(:status)
+    end
     json
   end
 

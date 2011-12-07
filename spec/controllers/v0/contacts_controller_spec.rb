@@ -214,6 +214,12 @@ describe V0::ContactsController do
       @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
       @contact.contact_attributes << Email.make(:account => Account.make, :public => true)
       @contact.contact_attributes << Address.make(:account => Account.make, :public => false)
+
+      @contact.local_statuses << LocalStatus.make
+      @contact.local_statuses << LocalStatus.make
+      @local_status = LocalStatus.make(account: @contact.owner)
+      @contact.local_statuses << @local_status
+
       @contact.save
     end
     describe "when unscoped" do
@@ -228,6 +234,11 @@ describe V0::ContactsController do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:contact_attributes].count.should equal(3)
       end
+
+      it "should include all local_statuses" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:local_statuses].count.should == 3
+      end
     end
 
     describe "when scoped to an account" do
@@ -238,6 +249,10 @@ describe V0::ContactsController do
       it "should include contact_attributes visible to that account and masked phones" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:contact_attributes].count.should == 3
+      end
+      it "should include local_status of the account" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:local_status].should == @local_status.status.to_s
       end
       it "should include masked phones" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
@@ -433,7 +448,7 @@ describe V0::ContactsController do
     end
 
     context "if it recieves image via URL" do
-      pending "avoid network connection on every spec run" do
+      pending "SPEC implemented but marked pending to avoid network connection on every spec run" do
       before(:each) do
         @image_url = "http://airbendergear.com/wp-content/uploads/2009/12/aang1.jpg"
         @account = Account.make

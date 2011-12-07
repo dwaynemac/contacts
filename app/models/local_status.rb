@@ -11,7 +11,7 @@ class LocalStatus
 
   belongs_to :account
   validates_presence_of :account
-  validates_inclusion_of :status, in: [:student, :former_student, :prospect], allow_blank: true
+  validates_inclusion_of :status, in: Contact::VALID_STATUSES, allow_blank: true
 
   private
 
