@@ -350,8 +350,8 @@ describe V0::ContactsController do
 
   describe "local_status in update" do
     before do
-      @contact = Contact.make
       @account = Account.make
+      @contact = Contact.make(owner: @account)
       @contact.local_statuses << LocalStatus.make
       @contact.local_statuses << LocalStatus.make(account: @account)
       @contact.save
@@ -372,7 +372,7 @@ describe V0::ContactsController do
         before do
           put :update, :app_key => V0::ApplicationController::APP_KEY,
               :id => @contact.id,
-              :account_id => @account.id,
+              :account_name => @account.name,
               :contact => { :local_status => :student }
         end
         it "should change local_status for given account" do
@@ -386,9 +386,12 @@ describe V0::ContactsController do
       end
       context "of an account without local_status" do
         before do
+          account = Account.make
+          @contact.lists << account.lists.first
+          @contact.save
           put(:update, :app_key => V0::ApplicationController::APP_KEY,
               :id => @contact.id,
-              :account_id => Account.make.id,
+              :account_name => account.name,
               :contact => { :local_status => :student })
         end
         it "should create local status" do

@@ -75,7 +75,7 @@ class Contact
   def as_json(options={})
     account = options.delete(:account) if options
     if account
-      options.merge!({:except => [:contact_attributes, :local_statuses]})
+      options.merge!({:except => :contact_attributes})
     end
     json = super(options)
     if account

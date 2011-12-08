@@ -102,8 +102,8 @@ class V0::ContactsController < V0::ApplicationController
   def update
     @contact = @scope.find(params[:id])
 
-    if params[:contact][:local_status] && params[:account_id]
-      params[:contact][:local_status] = {:account_id => params[:account_id], :status => params[:contact].delete(:local_status)}
+    if params[:contact][:local_status] && @account
+      params[:contact][:local_status] = {:account_id => @account.id, :status => params[:contact].delete(:local_status)}
     end
 
     if @contact.update_attributes(params[:contact])
