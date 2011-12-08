@@ -21,6 +21,13 @@ describe LocalStatus do
     c.should_not be_valid
   end
 
+  it "should allow :student in one account" do
+    c = Contact.make
+    c.local_statuses << LocalStatus.make(status: 'student')
+    c.local_statuses << LocalStatus.make(status: 'former_student')
+    c.should be_valid
+  end
+
   specify "each account should have only one local status" do
     c = Contact.make
     a = Account.make
