@@ -34,10 +34,12 @@ class Contact
   validates_associated :contact_attributes
 
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
+  accepts_nested_attributes_for :local_statuses, :allow_destroy => true
 
   embeds_many :local_statuses
   mount_uploader :avatar, AvatarUploader
 
+  # @return [String]
   def full_name
     "#{first_name} #{last_name}"
   end
@@ -46,6 +48,25 @@ class Contact
   # they all return a Criteria scoping to according _type
   %W(email telephone address custom_attribute).each do |k|
     define_method(k.pluralize) { self.contact_attributes.where(_type: k.camelcase) }
+  end
+
+  # Setter for local_status of a certain account
+  # This allows a cleaner API for update /accounts/account_id/contacts usage
+  # @author Dwayne Macgowan
+  # @param [Hash] options
+  # @option options [String] :account_id
+  # @option options [Symbol] :status this should be a valid status
+  # @raise [ArgumentError] if :account_id is not given
+  # @return [LocalStatus]
+  def local_status=(options)
+    return unless options.is_a?(Hash)
+    ls = self.local_statuses.where(:account_id => options[:account_id]).first
+    if ls.nil?
+      self.local_statuses << LocalStatus.new(account_id: options[:account_id], status: options[:status])
+    else
+      ls.status = options[:status]
+    end
+    ls
   end
 
   # @param [Hash] options

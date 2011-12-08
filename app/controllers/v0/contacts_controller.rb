@@ -102,12 +102,19 @@ class V0::ContactsController < V0::ApplicationController
   def update
     @contact = @scope.find(params[:id])
 
+    if params[:contact][:local_status] && params[:account_id]
+      params[:contact][:local_status] = {:account_id => params[:account_id], :status => params[:contact].delete(:local_status)}
+    end
+
     if @contact.update_attributes(params[:contact])
+
+      # TODO @alex, remove this comments if no longer needed -- @dwaynemac
       # Manually setting the avatar, because it's not updating itself automatically
       # if !@contact.avatar.nil? && params[:contact][:avatar]
       #   puts "el avatar es: #{params[:contact][:avatar].inspect}"
       #   @contact.avatar.store!(params[:contact][:avatar].original_filename)
       # end
+
       render :json => "OK"# , :status => :updated
     else
       render :json => { :message => "Sorry, contact not updated",

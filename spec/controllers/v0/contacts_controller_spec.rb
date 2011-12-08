@@ -276,7 +276,7 @@ describe V0::ContactsController do
     end
   end
 
-  describe "#update" do
+  describe "image updating" do
     before do
       @contact = Contact.first
       @new_first_name = "Homer"
@@ -331,20 +331,72 @@ describe V0::ContactsController do
   end
 
   describe "#update" do
+    before do
+      @contact = Contact.first
+      @new_first_name = "Homer"
+      put :update, :id => @contact.id,
+          "contact"=>{"contact_attributes_attributes"=>["{\"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"54321\", \"public\"=>1}"]},
+                  :app_key => V0::ApplicationController::APP_KEY
+    end
+    it "should create new contact_attributes of the right type" do
+            @contact.reload
+            @contact.contact_attributes.last._type.should == "Telephone"
+    end
+    it "should add new contact_attributes" do
+      @contact.reload
+      @contact.telephones.last.value.should == "54321"
+    end
+  end
+
+  describe "local_status in update" do
+    before do
+      @contact = Contact.make
+      @account = Account.make
+      @contact.local_statuses << LocalStatus.make
+      @contact.local_statuses << LocalStatus.make(account: @account)
+      @contact.save
+    end
+    context "without :account_id" do
       before do
-        @contact = Contact.first
-        @new_first_name = "Homer"
-        put :update, :id => @contact.id, "contact"=>{"contact_attributes_attributes"=>["{\"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"54321\", \"public\"=>1}"]},
-                    :app_key => V0::ApplicationController::APP_KEY
+        put :update, :app_key => V0::ApplicationController::APP_KEY,
+            :id => @contact.id,
+            :contact => { :local_status => :student }
       end
-      it "should create new contact_attributes of the right type" do
-              @contact.reload
-              @contact.contact_attributes.last._type.should == "Telephone"
-      end
-      it "should add new contact_attributes" do
+      it "should ignore local_status if given" do
         @contact.reload
-        @contact.telephones.last.value.should == "54321"
+        @contact.local_statuses.where(account_id: @account.id).first.status.should == :prospect
       end
+    end
+    context "with :account_id" do
+      context "of an account that already has local_status" do
+        before do
+          put :update, :app_key => V0::ApplicationController::APP_KEY,
+              :id => @contact.id,
+              :account_id => @account.id,
+              :contact => { :local_status => :student }
+        end
+        it "should change local_status for given account" do
+          @contact.reload
+          @contact.local_statuses.where(account_id: @account.id).first.status.should == :student
+        end
+        it "should not create or delete local_statuses" do
+          @contact.reload
+          @contact.local_statuses.count.should == 2
+        end
+      end
+      context "of an account without local_status" do
+        before do
+          put(:update, :app_key => V0::ApplicationController::APP_KEY,
+              :id => @contact.id,
+              :account_id => Account.make.id,
+              :contact => { :local_status => :student })
+        end
+        it "should create local status" do
+          @contact.reload
+          @contact.local_statuses.count.should == 3
+        end
+      end
+    end
   end
 
   describe "#update from Typhoeus" do
