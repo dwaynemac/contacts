@@ -13,6 +13,18 @@ class LocalStatus
   validates_presence_of :account
   validates_inclusion_of :status, in: Contact::VALID_STATUSES, allow_blank: true
 
+  def account_name
+    self.account.try :name
+  end
+
+  def account_name=(name)
+    self.account = Account.where(name: name).first
+  end
+
+  def as_json(options)
+    super({methods: :account_name, except: :account_id}.merge(options||{}))
+  end
+
   private
 
   def student_at_one_account_only

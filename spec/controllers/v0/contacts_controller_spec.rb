@@ -258,6 +258,10 @@ describe V0::ContactsController do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:contact_attributes].map{|ca|ca['value']}.should include("9999####")
       end
+      it "should include all local_statuses" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:local_statuses].count.should == 3
+      end
     end
 
     describe "when scoped to an account that doesn't own the contact" do

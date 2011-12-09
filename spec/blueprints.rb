@@ -9,6 +9,7 @@ Contact.blueprint do
 end
 
 LocalStatus.blueprint do
+  contact { Contact.make }
   account { Account.make }
   status { :prospect }
 end
