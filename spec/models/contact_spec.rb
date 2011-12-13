@@ -15,6 +15,14 @@ describe Contact do
 
   it { should have_field(:status).of_type(Symbol)}
 
+  %W(student former_student prospect).each do |v|
+    it { should allow_value(v).for(:status)}
+  end
+
+  %W(asdf asdf alumno ex-alumno).each do |v|
+    it { should_not allow_value(v).for(:status)}
+  end
+
   describe "update_status!" do
     it "should be :student if there is any local_status :student" do
       ls = LocalStatus.make(status: :student)
@@ -35,6 +43,35 @@ describe Contact do
     end
   end
 
+  describe "local_status=(account_id,new_status)" do
+    before do
+      @contact = Contact.make
+      @account = Account.make
+      @contact.local_statuses << LocalStatus.make
+      @contact.local_statuses << LocalStatus.make(account: @account)
+    end
+    it "should create local_status for that account if non-existant" do
+      @contact.local_statuses.count.should == 2
+      account = Account.make
+      @contact.local_status=({account_id: account.id, status: :student})
+      @contact.save && @contact.reload
+      @contact.local_statuses.where(account_id: account.id).first.status.should == :student
+      @contact.local_statuses.count.should == 3
+    end
+    it "should change local_status for that accounts if it exists" do
+      @contact.local_status=({account_id: @account.id,status: :student})
+      @contact.save && @contact.reload
+      @contact.local_statuses.where(account_id: @account.id).first.status.should == :student
+    end
+    it "should not delete other local_statuses" do
+      @contact.local_status=({account_id: @account.id,status: :former_student})
+      expect{@contact.save}.not_to change{@contact.local_statuses.count}
+    end
+    it "should fail silently if called with a non-hash argument" do
+      @contact.local_status=(:prospect)
+      expect{@contact.save}.not_to raise_error
+    end
+  end
 
   describe "when scoped to a list" do
     before do

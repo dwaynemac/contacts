@@ -10,7 +10,22 @@ describe V0::ContactsController do
   end
 
   describe "#index" do
-
+    describe "paginates" do
+      before do
+        9.times { Contact.make }
+        @isp = Contact.make(name: "in_second_page")
+      end
+      it "should return page 1" do
+        get :index, :app_key => V0::ApplicationController::APP_KEY, :page => 1
+        ActiveSupport::JSON.decode(response.body)["total"].should == 10
+        assigns(:contacts).should_not include(@isp)
+      end
+      it "should return page 2" do
+        get :index, :app_key => V0::ApplicationController::APP_KEY, :page => 2
+        ActiveSupport::JSON.decode(response.body)["total"].should == 2
+        assigns(:contacts).should include(@isp)
+      end
+    end
     context "without params" do
       before do
         get :index, :app_key => V0::ApplicationController::APP_KEY
@@ -199,6 +214,12 @@ describe V0::ContactsController do
       @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
       @contact.contact_attributes << Email.make(:account => Account.make, :public => true)
       @contact.contact_attributes << Address.make(:account => Account.make, :public => false)
+
+      @contact.local_statuses << LocalStatus.make
+      @contact.local_statuses << LocalStatus.make
+      @local_status = LocalStatus.make(account: @contact.owner)
+      @contact.local_statuses << @local_status
+
       @contact.save
     end
     describe "when unscoped" do
@@ -213,6 +234,11 @@ describe V0::ContactsController do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:contact_attributes].count.should equal(3)
       end
+
+      it "should include all local_statuses" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:local_statuses].count.should == 3
+      end
     end
 
     describe "when scoped to an account" do
@@ -224,9 +250,17 @@ describe V0::ContactsController do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:contact_attributes].count.should == 3
       end
+      it "should include local_status of the account" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:local_status].should == @local_status.status.to_s
+      end
       it "should include masked phones" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:contact_attributes].map{|ca|ca['value']}.should include("9999####")
+      end
+      it "should include all local_statuses" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:local_statuses].count.should == 3
       end
     end
 
@@ -246,7 +280,7 @@ describe V0::ContactsController do
     end
   end
 
-  describe "#update" do
+  describe "image updating" do
     before do
       @contact = Contact.first
       @new_first_name = "Homer"
@@ -301,20 +335,75 @@ describe V0::ContactsController do
   end
 
   describe "#update" do
+    before do
+      @contact = Contact.first
+      @new_first_name = "Homer"
+      put :update, :id => @contact.id,
+          "contact"=>{"contact_attributes_attributes"=>["{\"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"54321\", \"public\"=>1}"]},
+                  :app_key => V0::ApplicationController::APP_KEY
+    end
+    it "should create new contact_attributes of the right type" do
+            @contact.reload
+            @contact.contact_attributes.last._type.should == "Telephone"
+    end
+    it "should add new contact_attributes" do
+      @contact.reload
+      @contact.telephones.last.value.should == "54321"
+    end
+  end
+
+  describe "local_status in update" do
+    before do
+      @account = Account.make
+      @contact = Contact.make(owner: @account)
+      @contact.local_statuses << LocalStatus.make
+      @contact.local_statuses << LocalStatus.make(account: @account)
+      @contact.save
+    end
+    context "without :account_id" do
       before do
-        @contact = Contact.first
-        @new_first_name = "Homer"
-        put :update, :id => @contact.id, "contact"=>{"contact_attributes_attributes"=>["{\"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"54321\", \"public\"=>1}"]},
-                    :app_key => V0::ApplicationController::APP_KEY
+        put :update, :app_key => V0::ApplicationController::APP_KEY,
+            :id => @contact.id,
+            :contact => { :local_status => :student }
       end
-      it "should create new contact_attributes of the right type" do
-              @contact.reload
-              @contact.contact_attributes.last._type.should == "Telephone"
-      end
-      it "should add new contact_attributes" do
+      it "should ignore local_status if given" do
         @contact.reload
-        @contact.telephones.last.value.should == "54321"
+        @contact.local_statuses.where(account_id: @account.id).first.status.should == :prospect
       end
+    end
+    context "with :account_id" do
+      context "of an account that already has local_status" do
+        before do
+          put :update, :app_key => V0::ApplicationController::APP_KEY,
+              :id => @contact.id,
+              :account_name => @account.name,
+              :contact => { :local_status => :student }
+        end
+        it "should change local_status for given account" do
+          @contact.reload
+          @contact.local_statuses.where(account_id: @account.id).first.status.should == :student
+        end
+        it "should not create or delete local_statuses" do
+          @contact.reload
+          @contact.local_statuses.count.should == 2
+        end
+      end
+      context "of an account without local_status" do
+        before do
+          account = Account.make
+          @contact.lists << account.lists.first
+          @contact.save
+          put(:update, :app_key => V0::ApplicationController::APP_KEY,
+              :id => @contact.id,
+              :account_name => account.name,
+              :contact => { :local_status => :student })
+        end
+        it "should create local status" do
+          @contact.reload
+          @contact.local_statuses.count.should == 3
+        end
+      end
+    end
   end
 
   describe "#update from Typhoeus" do
@@ -416,8 +505,9 @@ describe V0::ContactsController do
         Contact.last.remove_avatar!
       end
     end
-    
+
     context "if it recieves image via URL" do
+      pending "SPEC implemented but marked pending to avoid network connection on every spec run" do
       before(:each) do
         @image_url = "http://airbendergear.com/wp-content/uploads/2009/12/aang1.jpg"
         @account = Account.make
@@ -438,6 +528,7 @@ describe V0::ContactsController do
         after(:each) do
           Contact.last.remove_avatar!
         end
+      end
     end
     
   end

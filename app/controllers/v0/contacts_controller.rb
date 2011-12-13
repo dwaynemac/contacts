@@ -26,9 +26,16 @@ class V0::ContactsController < V0::ApplicationController
 
     apply_where_conditions
 
-    @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
+    # TODO when mongodb is upgraded to 2.0 in mongoHQ uncomment following line
+    # @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
+
+    # TODO when mongodb is upgraded to 2.0 in mongoHQ delete these lines
+    per_page = params[:per_page].try(:to_i) || 10
+    page = params[:page].try(:to_i) || 1
+    @contacts = @scope.skip(per_page * (page-1)).limit(per_page)
+
     response.headers['Content-type'] = 'application/json; charset=utf-8'
-    render :json => { :collection => @contacts, :total => @contacts.count }.to_json
+    render :json => { :collection => @contacts, :total => @contacts.count(true) }.to_json
   end
 
   #  Returns a contact
@@ -61,9 +68,9 @@ class V0::ContactsController < V0::ApplicationController
 
     authorize! :create, Contact
 
-    @contact = @scope.new(params[:contact])
-    @contact.save
-    
+    # use @scope.create because @scope.new; @contact.save won't correctly run callbacks
+    @contact =  @scope.create(params[:contact])
+
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
@@ -95,12 +102,19 @@ class V0::ContactsController < V0::ApplicationController
   def update
     @contact = @scope.find(params[:id])
 
+    if params[:contact][:local_status] && @account
+      params[:contact][:local_status] = {:account_id => @account.id, :status => params[:contact].delete(:local_status)}
+    end
+
     if @contact.update_attributes(params[:contact])
+
+      # TODO @alex, remove this comments if no longer needed -- @dwaynemac
       # Manually setting the avatar, because it's not updating itself automatically
       # if !@contact.avatar.nil? && params[:contact][:avatar]
       #   puts "el avatar es: #{params[:contact][:avatar].inspect}"
       #   @contact.avatar.store!(params[:contact][:avatar].original_filename)
       # end
+
       render :json => "OK"# , :status => :updated
     else
       render :json => { :message => "Sorry, contact not updated",

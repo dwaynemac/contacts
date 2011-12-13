@@ -21,8 +21,10 @@ class Contact
   
   mount_uploader :avatar, AvatarUploader
 
+  VALID_STATUSES = [:student, :former_student, :prospect]
   field :status, type: Symbol
   before_validation :set_status
+  validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
 
   belongs_to :owner, :class_name => "Account"
   references_and_referenced_in_many :lists
@@ -32,10 +34,12 @@ class Contact
   validates_associated :contact_attributes
 
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
+  accepts_nested_attributes_for :local_statuses, :allow_destroy => true
 
-  embeds_many :local_statuses
+  embeds_many :local_statuses, :validate => true
   mount_uploader :avatar, AvatarUploader
 
+  # @return [String]
   def full_name
     "#{first_name} #{last_name}"
   end
@@ -46,14 +50,38 @@ class Contact
     define_method(k.pluralize) { self.contact_attributes.where(_type: k.camelcase) }
   end
 
+  # Setter for local_status of a certain account
+  # This allows a cleaner API for update /accounts/account_id/contacts usage
+  # @author Dwayne Macgowan
+  # @param [Hash] options
+  # @option options [String] :account_id
+  # @option options [Symbol] :status this should be a valid status
+  # @raise [ArgumentError] if :account_id is not given
+  # @return [LocalStatus]
+  def local_status=(options)
+    return unless options.is_a?(Hash)
+    ls = self.local_statuses.where(:account_id => options[:account_id]).first
+    if ls.nil?
+      self.local_statuses << LocalStatus.new(account_id: options[:account_id], status: options[:status])
+    else
+      ls.status = options[:status]
+    end
+    ls
+  end
+
   # @param [Hash] options
   # @option options [Account] account
   # @option options [TrueClass] include_masked
   def as_json(options={})
     account = options.delete(:account) if options
-    options.merge!({:except => :contact_attributes}) if account
+    if account
+      options.merge!({:except => :contact_attributes})
+    end
     json = super(options)
-    json[:contact_attributes] = self.contact_attributes.for_account(account, options) if account
+    if account
+      json[:contact_attributes] = self.contact_attributes.for_account(account, options)
+      json[:local_status] = self.local_statuses.where(account_id: account._id).try(:first).try(:status)
+    end
     json
   end
 
@@ -84,7 +112,7 @@ class Contact
 
   def set_status
     distinct_statuses = local_statuses.distinct(:status)
-    [:student, :former_student, :prospect].each do |s|
+    VALID_STATUSES.each do |s|
       if distinct_statuses.include?(s)
         self.status = s
         break
