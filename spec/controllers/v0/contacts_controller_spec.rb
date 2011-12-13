@@ -335,7 +335,7 @@ describe V0::ContactsController do
     end
   end
 
-  describe "#create", :focus do
+  describe "#create" do
     it "should create a contact" do
       expect{post :create,
                   :contact => Contact.plan,
