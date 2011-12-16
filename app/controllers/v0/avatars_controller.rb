@@ -1,7 +1,7 @@
 class V0::AvatarsController < V0::ApplicationController
   def create
     contact = Contact.find(params[:contact_id])
-    contact.avatar = params[:avatar]
+    contact.avatar = params[:avatar][:file]
     if contact.save
       render :json => "OK", :status => :created
     else

@@ -8,7 +8,7 @@ describe V0::AvatarsController do
 	      @contact = Contact.make(:avatar => nil)
 	      post  :create,
 		    :contact_id => @contact.id,
-		    :avatar => @image,
+		    :avatar => {:file => @image},
 		    :app_key => V0::ApplicationController::APP_KEY
 	    end
 	    it "should set given image as avatar of given contact" do
@@ -24,7 +24,7 @@ describe V0::AvatarsController do
 	@new_image = fixture_file_upload('spec/support/robot3.jpg', 'image/jpg')
 	post  :create,
 	      :contact_id => @contact.id,
-	      :avatar => @new_image,
+	      :avatar => {:file => @new_image},
 	      :app_key => V0::ApplicationController::APP_KEY
 	end
 	it "should update the image as avatar" do
