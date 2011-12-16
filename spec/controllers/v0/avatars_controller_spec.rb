@@ -49,4 +49,8 @@ describe V0::AvatarsController do
 	  c.avatar.should be_blank
 	end
   end
+
+  after(:each) do
+    Contact.all.each(&:remove_avatar!)
+  end
 end
