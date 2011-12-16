@@ -280,16 +280,7 @@ describe V0::ContactsController do
     end
   end
 
-  describe "image updating" do
-    before do
-      @contact = Contact.first
-      @new_first_name = "Homer"
-      put :update, :id => @contact.id, :contact => {:first_name => @new_first_name},
-                  :app_key => V0::ApplicationController::APP_KEY
-    end
-    it "should change first name" do
-      @contact.reload.first_name.should == @new_first_name
-    end
+  describe "image update" do
     context "if it recieves image" do
       before(:each) do
         @image = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
@@ -313,7 +304,7 @@ describe V0::ContactsController do
         Contact.last.remove_avatar!
       end
     end
-    context "if it has an image" do
+    describe "attribute remove_avatar" do
       before(:each) do
         @image = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
         @new_contact = Contact.make(:avatar => @image)
@@ -324,7 +315,7 @@ describe V0::ContactsController do
              :app_key => V0::ApplicationController::APP_KEY
       end
       
-      it "should be able to delete it" do
+      it "should delete avatar" do
         Contact.last.avatar.should be_blank
       end
       
@@ -335,22 +326,37 @@ describe V0::ContactsController do
   end
 
   describe "#update" do
-    before do
-      @contact = Contact.first
-      @new_first_name = "Homer"
-      put :update, :id => @contact.id,
-          "contact"=>{"contact_attributes_attributes"=>["{\"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"54321\", \"public\"=>1}"]},
-                  :app_key => V0::ApplicationController::APP_KEY
+    describe "contact: {first_name: 'asdf'}" do
+      before do
+        @contact = Contact.first
+        @new_first_name = "Homer"
+        put :update, :id => @contact.id, :contact => {:first_name => @new_first_name},
+            :app_key => V0::ApplicationController::APP_KEY
+      end
+      it "should change first name" do
+        @contact.reload.first_name.should == @new_first_name
+      end
     end
-    it "should create new contact_attributes of the right type" do
-            @contact.reload
-            @contact.contact_attributes.last._type.should == "Telephone"
-    end
-    it "should add new contact_attributes" do
-      @contact.reload
-      @contact.telephones.last.value.should == "54321"
+
+    describe "contact: {contact_attributes_attributes: ['....']}" do
+      before do
+        @contact = Contact.first
+        @new_first_name = "Homer"
+        put :update, :id => @contact.id,
+            "contact"=>{"contact_attributes_attributes"=>["{\"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"54321\", \"public\"=>1}"]},
+            :app_key => V0::ApplicationController::APP_KEY
+      end
+      it "should create new contact_attributes of the right type" do
+        @contact.reload
+        @contact.contact_attributes.last._type.should == "Telephone"
+      end
+      it "should add new contact_attributes" do
+        @contact.reload
+        @contact.telephones.last.value.should == "54321"
+      end
     end
   end
+
 
   describe "local_status in update" do
     before do
