@@ -3,10 +3,11 @@ Contacts::Application.routes.draw do
   namespace 'v0' do
     resources :contacts do
       resource :avatar, :only => [:create, :destroy]
+      resources :contact_duplications, :only => :index
     end
     resources :contact_attributes
     resource :avatar, :only => [:create, :destroy]
-
+    resources :contact_duplications, :only => :index
     scope "/accounts/:account_name" do
       resources :contacts do
         resources :contact_attributes

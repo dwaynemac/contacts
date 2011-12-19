@@ -92,6 +92,14 @@ class Contact
     self.save
   end
 
+  def similar
+    contacts = Contact.where(:last_name => self.last_name)
+
+    if self.id.present?
+      contacts = contacts.excludes(:id => self.id)
+    end
+  end
+
   protected
 
   def assign_owner

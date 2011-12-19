@@ -156,4 +156,28 @@ describe Contact do
     end
   end
 
+  describe "#similar" do
+    before do
+      contact = Contact.make(first_name: "dwayne", last_name: "mac")
+    end
+
+    describe "new contact with same last name" do
+      before do
+        @contact = Contact.new(first_name: "Diego", last_name: "mac")
+      end
+
+      it { @contact.similar.should_not be_empty }
+    end
+
+    describe "existing contact with same last name" do
+      before do
+        @contact = Contact.make(first_name: "Diego", last_name: "mac")
+      end
+
+      it { @contact.similar.should_not be_empty }
+
+      it { @contact.similar.should_not include(@contact)}
+    end
+  end
+
 end
