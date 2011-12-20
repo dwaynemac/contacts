@@ -18,7 +18,7 @@ class Contact
   field :first_name
   field :last_name
   field :avatar
-  
+
   mount_uploader :avatar, AvatarUploader
 
   VALID_STATUSES = [:student, :former_student, :prospect]
@@ -38,6 +38,9 @@ class Contact
 
   embeds_many :local_statuses, :validate => true
   mount_uploader :avatar, AvatarUploader
+
+  attr_accessor :check_duplicates
+  validate :validate_duplicates, :if => :check_duplicates
 
   # @return [String]
   def full_name
@@ -108,7 +111,7 @@ class Contact
     # Callbacks arent called when mass-assigning nested models.
     # Iterate over the contact_attributes and set the owner.
     if self.owner.present?
-      contact_attributes.each {|att| att.account = owner unless att.account.present?}
+      contact_attributes.each { |att| att.account = owner unless att.account.present? }
     end
   end
 
@@ -125,6 +128,13 @@ class Contact
         self.status = s
         break
       end
+    end
+  end
+
+  def validate_duplicates
+    duplicates = self.similar
+    unless duplicates.empty?
+      self.errors[:duplicates] << "could have duplicates"
     end
   end
 end

@@ -180,4 +180,12 @@ describe Contact do
     end
   end
 
+  describe "flagged to check for duplicates" do
+    before do
+      Contact.make(first_name: "dwayne", last_name: "mac")
+      @contact = Contact.new(first_name: "Diego", last_name: "mac", :check_duplicates => true)
+    end
+
+    it { @contact.should_not be_valid }
+  end
 end
