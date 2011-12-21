@@ -80,16 +80,25 @@ class Contact
   # @option options [Account] account
   # @option options [TrueClass] include_masked
   def as_json(options={})
+    options={} if options.nil? # default set in method definition seems not to be working
     account = options.delete(:account) if options
     if account
       options.merge!({:except => :contact_attributes})
     end
-    json = super(options)
+    json = super(options.merge!({:except => :owner_id, :methods => [:owner_name]}))
     if account
       json[:contact_attributes] = self.contact_attributes.for_account(account, options)
       json[:local_status] = self.local_statuses.where(account_id: account._id).try(:first).try(:status)
     end
     json
+  end
+
+  def owner_name
+    self.owner.try :name
+  end
+
+  def owner_name=(name)
+    self.owner = Account.where(:name => name).first
   end
 
   search_in :first_name, :last_name, :contact_attributes => :value
@@ -110,7 +119,9 @@ class Contact
   protected
 
   def assign_owner
-    self.owner = lists.first.account unless lists.empty?
+    unless self.owner.present?
+      self.owner = lists.first.account unless lists.empty?
+    end
 
     # Callbacks arent called when mass-assigning nested models.
     # Iterate over the contact_attributes and set the owner.
