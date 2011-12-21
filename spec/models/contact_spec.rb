@@ -14,6 +14,8 @@ describe Contact do
   it { should embed_many :local_statuses }
 
   it { should have_field(:status).of_type(Symbol)}
+  it { should have_field(:level).of_type(String)}
+
 
   %W(student former_student prospect).each do |v|
     it { should allow_value(v).for(:status)}

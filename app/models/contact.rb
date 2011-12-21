@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'mongoid/criteria'
 
 class Contact
@@ -25,6 +26,9 @@ class Contact
   field :status, type: Symbol
   before_validation :set_status
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
+
+  VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro)
+  field :level, :type => String
 
   belongs_to :owner, :class_name => "Account"
   references_and_referenced_in_many :lists
