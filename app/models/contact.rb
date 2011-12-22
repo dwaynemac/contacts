@@ -37,7 +37,6 @@ class Contact
   accepts_nested_attributes_for :local_statuses, :allow_destroy => true
 
   embeds_many :local_statuses, :validate => true
-  mount_uploader :avatar, AvatarUploader
 
   # @return [String]
   def full_name
