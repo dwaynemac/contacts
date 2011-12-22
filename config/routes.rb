@@ -6,7 +6,6 @@ Contacts::Application.routes.draw do
     end
     resources :contact_attributes
     resource :avatar, :only => [:create, :destroy]
-
     scope "/accounts/:account_name" do
       resources :contacts do
         resources :contact_attributes

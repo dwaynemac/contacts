@@ -14,6 +14,7 @@ describe Contact do
   it { should embed_many :local_statuses }
 
   it { should have_field(:status).of_type(Symbol)}
+  it { should have_field(:level).of_type(String)}
 
   %W(student former_student prospect).each do |v|
     it { should allow_value(v).for(:status)}
@@ -21,6 +22,18 @@ describe Contact do
 
   %W(asdf asdf alumno ex-alumno).each do |v|
     it { should_not allow_value(v).for(:status)}
+  end
+
+  describe "#as_json" do
+    before do
+      @contact= Contact.make(:owner => Account.make)
+    end
+    it "should not include owner_id" do
+      @contact.as_json.should_not have_key 'owner_id'
+    end
+    it "should inclue owner_name" do
+      @contact.as_json.should have_key 'owner_name'
+    end
   end
 
   describe "update_status!" do
@@ -156,4 +169,53 @@ describe Contact do
     end
   end
 
+  describe "#similar" do
+    before do
+      contact = Contact.make(first_name: "dwayne", last_name: "mac")
+    end
+
+    describe "new contact with same last name" do
+      before do
+        @contact = Contact.new(first_name: "Diego", last_name: "mac")
+      end
+
+      it { @contact.similar.should_not be_empty }
+    end
+
+    describe "existing contact with same last name" do
+      before do
+        @contact = Contact.make(first_name: "Diego", last_name: "mac")
+      end
+
+      it { @contact.similar.should_not be_empty }
+
+      it { @contact.similar.should_not include(@contact)}
+    end
+  end
+
+  describe "flagged to check for duplicates" do
+    before do
+      Contact.make(first_name: "dwayne", last_name: "mac")
+      @contact = Contact.new(first_name: "Diego", last_name: "mac", :check_duplicates => true)
+    end
+
+    it { @contact.should_not be_valid }
+  end
+
+  describe "#owner_name" do
+    before do
+      @account = Account.make
+      @contact = Contact.make(:owner => @account)
+    end
+    it "should return owner account name" do
+      @contact.owner_name.should == @account.name
+    end
+    it "should set owner account by name" do
+      new_account = Account.make
+      @contact.owner_name = new_account.name
+      @contact.save
+      @contact = Contact.find(@contact.id)
+      @contact.owner_name.should == new_account.name
+    end
+  end
 end

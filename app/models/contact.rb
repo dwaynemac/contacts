@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'mongoid/criteria'
 
 class Contact
@@ -18,13 +19,16 @@ class Contact
   field :first_name
   field :last_name
   field :avatar
-  
+
   mount_uploader :avatar, AvatarUploader
 
   VALID_STATUSES = [:student, :former_student, :prospect]
   field :status, type: Symbol
   before_validation :set_status
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
+
+  VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro)
+  field :level, :type => String
 
   belongs_to :owner, :class_name => "Account"
   references_and_referenced_in_many :lists
@@ -37,6 +41,9 @@ class Contact
   accepts_nested_attributes_for :local_statuses, :allow_destroy => true
 
   embeds_many :local_statuses, :validate => true
+
+  attr_accessor :check_duplicates
+  validate :validate_duplicates, :if => :check_duplicates
 
   # @return [String]
   def full_name
@@ -72,16 +79,25 @@ class Contact
   # @option options [Account] account
   # @option options [TrueClass] include_masked
   def as_json(options={})
+    options={} if options.nil? # default set in method definition seems not to be working
     account = options.delete(:account) if options
     if account
       options.merge!({:except => :contact_attributes})
     end
-    json = super(options)
+    json = super(options.merge!({:except => :owner_id, :methods => [:owner_name]}))
     if account
       json[:contact_attributes] = self.contact_attributes.for_account(account, options)
       json[:local_status] = self.local_statuses.where(account_id: account._id).try(:first).try(:status)
     end
     json
+  end
+
+  def owner_name
+    self.owner.try :name
+  end
+
+  def owner_name=(name)
+    self.owner = Account.where(:name => name).first
   end
 
   search_in :first_name, :last_name, :contact_attributes => :value
@@ -91,15 +107,25 @@ class Contact
     self.save
   end
 
+  def similar
+    contacts = Contact.where(:last_name => self.last_name)
+
+    if self.id.present?
+      contacts = contacts.excludes(:id => self.id)
+    end
+  end
+
   protected
 
   def assign_owner
-    self.owner = lists.first.account unless lists.empty?
+    unless self.owner.present?
+      self.owner = lists.first.account unless lists.empty?
+    end
 
     # Callbacks arent called when mass-assigning nested models.
     # Iterate over the contact_attributes and set the owner.
     if self.owner.present?
-      contact_attributes.each {|att| att.account = owner unless att.account.present?}
+      contact_attributes.each { |att| att.account = owner unless att.account.present? }
     end
   end
 
@@ -116,6 +142,13 @@ class Contact
         self.status = s
         break
       end
+    end
+  end
+
+  def validate_duplicates
+    duplicates = self.similar
+    unless duplicates.empty?
+      self.errors[:duplicates] << "could have duplicates"
     end
   end
 end
