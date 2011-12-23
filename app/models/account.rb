@@ -13,6 +13,11 @@ class Account
 
   before_create :create_base_list
 
+  # @return [List] base_list
+  def base_list
+    self.lists.where(:name => self.name).first
+  end
+
   protected
 
   def create_base_list

@@ -33,4 +33,10 @@ describe Account do
       acc.save
       acc.reload.lists.should have_at_least(1).list
     end
+
+  specify "#base_list returns account's base list" do
+    a = Account.make
+    a.base_list.should be_a(List)
+    a.base_list.name.should == a.name
+  end
 end
