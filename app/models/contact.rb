@@ -115,6 +115,14 @@ class Contact
     end
   end
 
+  def check_duplicates= value
+    if value.is_a? String
+      @check_duplicates = value == "true"
+    else
+      @check_duplicates = value
+    end
+  end
+
   protected
 
   def assign_owner
@@ -149,6 +157,7 @@ class Contact
     duplicates = self.similar
     unless duplicates.empty?
       self.errors[:duplicates] << "could have duplicates"
+      self.errors[:possible_duplicates] = duplicates
     end
   end
 end

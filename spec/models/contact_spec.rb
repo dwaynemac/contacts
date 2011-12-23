@@ -189,7 +189,7 @@ describe Contact do
 
       it { @contact.similar.should_not be_empty }
 
-      it { @contact.similar.should_not include(@contact)}
+      it { @contact.similar.should_not include(@contact) }
     end
   end
 
@@ -200,6 +200,11 @@ describe Contact do
     end
 
     it { @contact.should_not be_valid }
+    describe "when validation is run" do
+      before { @contact.valid? }
+
+      it { @contact.possible_duplicates.should_not be_empty }
+    end
   end
 
   describe "#owner_name" do
