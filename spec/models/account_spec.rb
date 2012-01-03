@@ -7,6 +7,7 @@ describe Account do
     it { should have_many_related :owned_contacts }
 
     it { should have_many_related :lists }
+    it { should have_many_related :smart_lists }
 
     #it do
     #  Account.make
