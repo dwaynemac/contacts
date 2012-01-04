@@ -9,7 +9,7 @@ class LocalStatus
 
   validates_uniqueness_of :account_id, :scope => :contact_id
 
-  belongs_to :account
+  belongs_to_related :account
   validates_presence_of :account
   validates_inclusion_of :status, in: Contact::VALID_STATUSES, allow_blank: true
 

@@ -26,6 +26,9 @@ class Contact
   field :status, type: Symbol
   before_validation :set_status
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
+  embeds_many :local_statuses, :validate => true
+  accepts_nested_attributes_for :local_statuses, :allow_destroy => true
+
 
   VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro)
   field :level, :type => String
@@ -38,9 +41,6 @@ class Contact
   validates_associated :contact_attributes
 
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
-  accepts_nested_attributes_for :local_statuses, :allow_destroy => true
-
-  embeds_many :local_statuses, :validate => true
 
   attr_accessor :check_duplicates
   validate :validate_duplicates, :if => :check_duplicates

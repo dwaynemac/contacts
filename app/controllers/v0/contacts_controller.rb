@@ -195,7 +195,10 @@ class V0::ContactsController < V0::ApplicationController
           # TODO recursive call for sub-sub-hashes
         end
       elsif k.to_s.in?(%W(telephone email address custom_attribute))
-        @scope = @scope.where({"contact_attributes._type" => k.to_s.camelize, "contact_attributes.value" => Regexp.new(v)})
+        @scope = @scope.where(contact_attributes: { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v)}})
+      elsif k.to_s == 'local_status' && @account.present?
+        # Service Consumer asks for local_status but we must map this to HIS local_status
+        @scope = @scope.where(local_statuses: { '$elemMatch' => {account_id: @account.id, status: v}})
       else
         @scope = @scope.where(k => Regexp.new(v))
       end

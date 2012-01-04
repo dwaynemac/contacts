@@ -141,7 +141,7 @@ describe V0::ContactsController do
                 :where => {:email => "dwa", :first_name => "Ale"}
           end
           it "should build Criteria" do
-            criteria = Contact.where("contact_attributes._type" => "Email", "contact_attributes.value" => /dwa/).where("first_name" => /Ale/)
+            criteria = Contact.where(contact_attributes: { '$elemMatch' => { "_type" => "Email", "value" => /dwa/}}).where("first_name" => /Ale/)
             assigns(:contacts).selector.should == criteria.selector
           end
           it "should return contacts that match ALL conditions." do
