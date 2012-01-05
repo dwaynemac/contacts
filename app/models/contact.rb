@@ -123,6 +123,14 @@ class Contact
     end
   end
 
+  def minimum_representation
+    {
+        :_id => id,
+        :first_name => first_name,
+        :last_name => last_name
+    }
+  end
+
   protected
 
   def assign_owner
@@ -157,7 +165,7 @@ class Contact
     duplicates = self.similar
     unless duplicates.empty?
       self.errors[:duplicates] << "could have duplicates"
-      self.errors[:possible_duplicates] = duplicates
+      self.errors[:possible_duplicates] = duplicates.map {|c| c.minimum_representation}
     end
   end
 end
