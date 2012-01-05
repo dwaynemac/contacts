@@ -203,7 +203,7 @@ describe Contact do
     describe "when validation is run" do
       before { @contact.valid? }
 
-      it { @contact.possible_duplicates.should_not be_empty }
+      it { @contact.errors[:possible_duplicates].should_not be_empty }
     end
   end
 
