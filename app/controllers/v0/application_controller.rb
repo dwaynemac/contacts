@@ -1,3 +1,5 @@
+require 'padma_user'
+
 # Application Controller for v0 API
 class V0::ApplicationController < ApplicationController
 
@@ -25,13 +27,20 @@ class V0::ApplicationController < ApplicationController
 
   # will set @account if params[:account_name] is found
   # will create account if it's not mapped localy (Account checks with ACCOUNTS before creating)
+  # will set locale to users locale
   def get_account
     if params[:account_name]
       @account = Account.find_or_create_by(:name => params[:account_name])
 
       if @account.id.nil?
         render :json => "Not Found".to_json, :status => 404
-      end
+      elsif params[:user_id]
+        @user = PadmaUser.find(params[:user_id])
+
+        # set locale
+        I18n.locale = @user.try :locale
+        # TODO: check account with user
+    end
     end
   end
 end

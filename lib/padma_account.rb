@@ -5,7 +5,7 @@ class PadmaAccount < LogicalModel
   self.use_ssl = (Rails.env=="production")
 
   self.resource_path = "/v0/accounts"
-  self.attribute_keys = [:id, :name ]
+  self.attribute_keys = [:id, :name, :enabled ]
   self.use_api_key = true
   self.api_key_name = "token"
   self.api_key = "8c330b5d70f86ebfa6497c901b299b79afc6d68c60df6df0bda0180d3777eb4a5528924ac96cf58a25e599b4110da3c4b690fa29263714ec6604b6cb2d943656"
@@ -13,4 +13,12 @@ class PadmaAccount < LogicalModel
 
   TIMEOUT = 5500 # ms
   PER_PAGE = 9999
+
+  def enabled?
+    self.enabled
+  end
+
+  def users
+    PadmaUser.paginate :params => { :account_name => self.name }
+  end
 end
