@@ -34,12 +34,14 @@ class V0::ApplicationController < ApplicationController
 
       if @account.id.nil?
         render :json => "Not Found".to_json, :status => 404
-      elsif params[:user_id]
-        @user = PadmaUser.find(params[:user_id])
+      elsif params[:username]
+        @user = PadmaUser.find(params[:username])
 
         # set locale
-        I18n.locale = @user.try :locale
-        # TODO: check account with user
+        if @user
+          I18n.locale = @user.try :locale
+          # TODO: check account with user
+        end
     end
     end
   end

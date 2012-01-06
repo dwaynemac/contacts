@@ -3,3 +3,5 @@
 
 en:
   placeholder: "at least one translation is needed" # TODO remove this when other keys are added
+  errors:
+    could_have_duplicates: "Could have duplicates"
