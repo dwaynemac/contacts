@@ -1,3 +1,5 @@
 es:
   errors:
-    could_have_duplicates: "Puede tener duplicados"
+    messages:
+      invalid_format: "Formato invalido"
+      could_have_duplicates: "Puede tener duplicados"

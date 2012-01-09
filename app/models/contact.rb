@@ -164,7 +164,7 @@ class Contact
   def validate_duplicates
     duplicates = self.similar
     unless duplicates.empty?
-      self.errors[:duplicates] << I18n.t('errors.could_have_duplicates')
+      self.errors[:duplicates] << I18n.t('errors.messages.could_have_duplicates')
       self.errors[:possible_duplicates] = duplicates.map {|c| c.minimum_representation}
     end
   end
