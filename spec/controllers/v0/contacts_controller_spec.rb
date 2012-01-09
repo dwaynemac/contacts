@@ -17,12 +17,12 @@ describe V0::ContactsController do
       end
       it "should return page 1" do
         get :index, :app_key => V0::ApplicationController::APP_KEY, :page => 1
-        ActiveSupport::JSON.decode(response.body)["total"].should == 10
+        ActiveSupport::JSON.decode(response.body)["total"].should == Contact.count
         assigns(:contacts).should_not include(@isp)
       end
       it "should return page 2" do
         get :index, :app_key => V0::ApplicationController::APP_KEY, :page => 2
-        ActiveSupport::JSON.decode(response.body)["total"].should == 2
+        ActiveSupport::JSON.decode(response.body)["total"].should == Contact.count
         assigns(:contacts).should include(@isp)
       end
     end

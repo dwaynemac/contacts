@@ -26,16 +26,11 @@ class V0::ContactsController < V0::ApplicationController
 
     apply_where_conditions
 
-    # TODO when mongodb is upgraded to 2.0 in mongoHQ uncomment following line
-    # @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
-
-    # TODO when mongodb is upgraded to 2.0 in mongoHQ delete these lines
-    per_page = params[:per_page].try(:to_i) || 10
-    page = params[:page].try(:to_i) || 1
-    @contacts = @scope.skip(per_page * (page-1)).limit(per_page)
+    total = @scope.count
+    @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
 
     response.headers['Content-type'] = 'application/json; charset=utf-8'
-    render :json => { :collection => @contacts, :total => @contacts.count(true) }.to_json
+    render :json => { :collection => @contacts, :total => total}.to_json
   end
 
   #  Returns a contact
