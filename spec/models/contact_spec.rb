@@ -170,33 +170,89 @@ describe Contact do
   end
 
   describe "#similar" do
-    before do
-      contact = Contact.make(first_name: "dwayne", last_name: "mac")
-    end
-
-    describe "new contact with same last name" do
+    describe "when Homer Simpson exists" do
       before do
-        @contact = Contact.new(first_name: "Diego", last_name: "mac")
+        contact = Contact.make(first_name: "Homer", last_name: "Simpson")
       end
 
-      it { @contact.similar.should_not be_empty }
-    end
+      describe "a new contact named Marge Simpson" do
+        before do
+          @contact = Contact.new(first_name: "Marge", last_name: "Simpson")
+        end
 
-    describe "existing contact with same last name" do
-      before do
-        @contact = Contact.make(first_name: "Diego", last_name: "mac")
+        it "should not have possible duplicates" do
+          @contact.similar.should be_empty
+        end
       end
 
-      it { @contact.similar.should_not be_empty }
+      describe "a new contact with same last name and a more complete first name" do
+        before do
+          @contact = Contact.new(first_name: "Homer Jay", last_name: "Simpson")
+        end
 
-      it { @contact.similar.should_not include(@contact) }
+        it { @contact.similar.should_not be_empty }
+      end
+
+      describe "a new contact with same last name and first name" do
+        before do
+          @contact = Contact.new(first_name: "Homer", last_name: "Simpson")
+        end
+
+        it { @contact.similar.should_not be_empty }
+
+        it { @contact.similar.should_not include(@contact) }
+      end
+
+      describe "an existing contact with same last name and first name" do
+        before do
+          @contact = Contact.make(first_name: "Homer", last_name: "Simpson")
+        end
+
+        it { @contact.similar.should_not be_empty }
+
+        it { @contact.similar.should_not include(@contact) }
+      end
+    end
+
+    describe "when Homer Jay Simpson exists" do
+      before do
+        contact = Contact.make(first_name: "Homer Jay", last_name: "Simpson")
+      end
+
+      describe "a new contact with same last name and only the first name" do
+        before do
+          @contact = Contact.new(first_name: "Homer", last_name: "Simpson")
+        end
+
+        it { @contact.similar.should_not be_empty }
+      end
+
+      describe "a new contact with same last name and only the last name" do
+        before do
+          @contact = Contact.new(first_name: "Jay", last_name: "Simpson")
+        end
+
+        it { @contact.similar.should_not be_empty }
+
+        it { @contact.similar.should_not include(@contact) }
+      end
+
+      describe "a new contact with same last name and first name" do
+        before do
+          @contact = Contact.new(first_name: "Homer Jay", last_name: "Simpson")
+        end
+
+        it { @contact.similar.should_not be_empty }
+
+        it { @contact.similar.should_not include(@contact) }
+      end
     end
   end
 
   describe "flagged to check for duplicates" do
     before do
       Contact.make(first_name: "dwayne", last_name: "mac")
-      @contact = Contact.new(first_name: "Diego", last_name: "mac", :check_duplicates => true)
+      @contact = Contact.new(first_name: "dwayne", last_name: "mac", :check_duplicates => true)
     end
 
     it { @contact.should_not be_valid }

@@ -108,7 +108,13 @@ class Contact
   end
 
   def similar
-    contacts = Contact.where(:last_name => self.last_name)
+    contacts = Contact.all
+
+    self.last_name.split.each do |last_name|
+      self.first_name.split.each do |first_name|
+        contacts = contacts.any_of(:last_name => {'$regex' => ".*#{last_name}.*" }, :first_name => {'$regex' => ".*#{first_name}.*" })
+      end
+    end
 
     if self.id.present?
       contacts = contacts.excludes(:id => self.id)
