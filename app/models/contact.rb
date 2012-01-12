@@ -18,9 +18,15 @@ class Contact
 
   field :first_name
   field :last_name
-  field :avatar
 
+  field :gender
+  validates_inclusion_of :gender, in: %W(male female), allow_blank: true
+
+  field :avatar
   mount_uploader :avatar, AvatarUploader
+
+  VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro)
+  field :level, :type => String
 
   VALID_STATUSES = [:student, :former_student, :prospect]
   field :status, type: Symbol
@@ -28,10 +34,6 @@ class Contact
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
   embeds_many :local_statuses, :validate => true
   accepts_nested_attributes_for :local_statuses, :allow_destroy => true
-
-
-  VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro)
-  field :level, :type => String
 
   belongs_to :owner, :class_name => "Account"
   references_and_referenced_in_many :lists

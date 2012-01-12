@@ -7,14 +7,14 @@ describe Contact do
 
   it { should reference_and_be_referenced_in_many :lists }
 
-  it { should have_fields :first_name, :last_name }
+  it { should have_fields :first_name, :last_name, :gender }
+  it { should have_field(:status).of_type(Symbol)}
+  it { should have_field(:level).of_type(String)}
 
   it { should validate_presence_of :first_name }
 
   it { should embed_many :local_statuses }
 
-  it { should have_field(:status).of_type(Symbol)}
-  it { should have_field(:level).of_type(String)}
 
   %W(student former_student prospect).each do |v|
     it { should allow_value(v).for(:status)}
