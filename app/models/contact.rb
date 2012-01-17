@@ -19,6 +19,19 @@ class Contact
   field :first_name
   field :last_name
 
+  field :normalized_first_name
+  field :normalized_last_name
+  before_save :update_normalized_attributes
+
+  # run rake db:mongoid:create_indexes to create these indexes
+  index(
+    [
+      [ :normalized_first_name, Mongo::ASCENDING ],
+      [ :normalized_last_name, Mongo::ASCENDING ]
+    ],
+    background: true
+  )
+
   field :gender
   validates_inclusion_of :gender, in: %W(male female), allow_blank: true
 
@@ -109,12 +122,16 @@ class Contact
     self.save
   end
 
+
+  # Returns contacts that are similar to this one.
+  # @return [Array<Contact>]
   def similar
     contacts = Contact.all
 
     self.last_name.split.each do |last_name|
       self.first_name.split.each do |first_name|
-        contacts = contacts.any_of(:last_name => {'$regex' => ".*#{last_name}.*" }, :first_name => {'$regex' => ".*#{first_name}.*" })
+        contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
+                                   :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
       end
     end
 
@@ -159,6 +176,11 @@ class Contact
     if self.owner && self.lists.empty?
       self.lists << self.owner.lists.first
     end
+  end
+
+  def update_normalized_attributes
+    self.normalized_first_name = self.first_name.try :parameterize
+    self.normalized_last_name = self.last_name.try :parameterize
   end
 
   def set_status

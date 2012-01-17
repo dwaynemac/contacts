@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'spec_helper'
 
 describe Contact do
@@ -8,6 +9,7 @@ describe Contact do
   it { should reference_and_be_referenced_in_many :lists }
 
   it { should have_fields :first_name, :last_name, :gender }
+  it { should have_fields :normalized_first_name, :normalized_last_name }
   it { should have_field(:status).of_type(Symbol)}
   it { should have_field(:level).of_type(String)}
 
@@ -15,6 +17,18 @@ describe Contact do
 
   it { should embed_many :local_statuses }
 
+
+
+  %W(first_name last_name).each do |attr|
+    specify "normalized_#{attr} should be updated when #{attr} is updated" do
+      @contact = Contact.make
+      @contact.send("normalized_#{attr}").should_not be_nil
+
+      @contact.send("#{attr}=","áéíóū")
+      @contact.save
+      @contact.send("normalized_#{attr}").should == "aeiou"
+    end
+  end
 
   %W(student former_student prospect).each do |v|
     it { should allow_value(v).for(:status)}
@@ -188,6 +202,22 @@ describe Contact do
       describe "a new contact with same last name and a more complete first name" do
         before do
           @contact = Contact.new(first_name: "Homer Jay", last_name: "Simpson")
+        end
+
+        it { @contact.similar.should_not be_empty }
+      end
+
+      describe "matching should not be case sensitive" do
+        before do
+          @contact = Contact.new(first_name: "hoMer Jay", last_name: "simPson")
+        end
+
+        it { @contact.similar.should_not be_empty }
+      end
+
+      describe "matching should ignore special characters" do
+        before do
+          @contact = Contact.new(first_name: "hôMer Jáy", last_name: "simPsōn")
         end
 
         it { @contact.similar.should_not be_empty }
