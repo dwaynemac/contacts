@@ -131,6 +131,8 @@ class Contact
     end
   end
 
+  # @return [Hash] Returns the minimal representation of this contact
+  # A hash including :_id, :first_name and :last_name
   def minimum_representation
     {
         :_id => id,
