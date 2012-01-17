@@ -4,7 +4,7 @@ class Telephone < ContactAttribute
 
   before_validation :camelize_category
 
-  validates :value, :numericality => true
+  validates_format_of :value, with: /^\d[\d| |\-]{4,16}.*\d$/
 
   validate :mobile_uniqueness
 

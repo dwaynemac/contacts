@@ -417,10 +417,11 @@ describe V0::ContactsController do
   describe "#update from Typhoeus" do
     before do
       @contact = Contact.first
-      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
+      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "154636875215")
       @contact.save
       @new_first_name = "Homer"
-      put :update, :id => @contact.id, "contact"=>{"contact_attributes_attributes"=>["{\"_id\"=>\"#{@contact.contact_attributes.first._id}\", \"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"12345\", \"public\"=>1}"], "_id" => @contact.id, "first_name"=>@new_first_name},
+      put :update, :id => @contact.id,
+          "contact"=>{"contact_attributes_attributes"=>["{\"_id\"=>\"#{@contact.contact_attributes.first._id}\", \"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"123432134\", \"public\"=>1}"], "_id" => @contact.id, "first_name"=>@new_first_name},
                   :app_key => V0::ApplicationController::APP_KEY
     end
     it "should change first name" do
@@ -428,7 +429,7 @@ describe V0::ContactsController do
     end
 
     it "should change telephone value" do
-      @contact.reload.contact_attributes.first.value.should == "12345"
+      @contact.reload.contact_attributes.first.value.should == "123432134"
     end
   end
 
