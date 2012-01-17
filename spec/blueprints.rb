@@ -20,11 +20,13 @@ ContactAttribute.blueprint do
 end
 
 Telephone.blueprint do
-  value "12314234"
+  value  "8765987676"
+  category { "Home" }
 end
 
 Email.blueprint do
   value { Faker::Internet.email }
+  category { "Homer" }
 end
 
 Address.blueprint do

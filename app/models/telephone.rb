@@ -4,7 +4,8 @@ class Telephone < ContactAttribute
 
   before_validation :camelize_category
 
-  validates_format_of :value, with: /^\d[\d| |\-]{4,16}.*\d$/
+  validates_numericality_of :value, only_integer: true, greater_than: 0
+  # validates_format_of :value, with: /^\d[\d| |\-]{4,16}.*\d$/
 
   validate :mobile_uniqueness
 
@@ -19,7 +20,7 @@ class Telephone < ContactAttribute
     return unless category.to_s.camelcase == 'Mobile'
 
     r = Contact.where( 'contact_attributes._type' => 'Telephone',
-                       'contact_attributes.category' => 'Mobile',
+                       'contact_attributes.category' => /Mobile/i,
                        'contact_attributes.value' => value )
 
     errors[:value] << "mobile is not unique" if r.count > 0
