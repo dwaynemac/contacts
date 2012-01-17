@@ -50,6 +50,20 @@ describe Contact do
     end
   end
 
+  describe "#mobiles" do
+    before do
+      @con = Contact.make_unsaved
+      @con.contact_attributes << Telephone.make(category: 'Mobile')
+      @con.contact_attributes << Telephone.make(category: 'Mobile')
+      @con.contact_attributes << Telephone.make(category: 'Home')
+      @con.contact_attributes << Email.make
+      @con.save!
+    end
+    it "should return all mobiles" do
+      @con.mobiles.count.should == 2
+    end
+  end
+
   describe "update_status!" do
     it "should be :student if there is any local_status :student" do
       ls = LocalStatus.make(status: :student)
@@ -275,6 +289,37 @@ describe Contact do
         it { @contact.similar.should_not be_empty }
 
         it { @contact.similar.should_not include(@contact) }
+      end
+    end
+
+    describe "when homer@simpson.com is registered" do
+      before do
+        @homer = Contact.make(first_name: 'luis', last_name: 'lopez')
+        @homer.contact_attributes << Email.make(value: 'homer@simpson.com')
+        @homer.save!
+      end
+      it "new contact should match it by mail" do
+        c = Contact.new(first_name: 'Santiago', last_name: 'Santo')
+        c.contact_attributes << Email.make(value: 'homer@simpson.com')
+        c.similar.should include(@homer)
+      end
+    end
+
+    describe "when mobile 1540995071 is registered" do
+      before do
+        @homer = Contact.make_unsaved(first_name: 'Homero', last_name: 'Simpsonsizado')
+        @homer.contact_attributes << Telephone.make(value: '1540995071', category: 'Mobile')
+        @homer.save!
+      end
+      it "new contact should match it by mobile" do
+        c = Contact.new(first_name: 'Juan', last_name: 'Perez')
+        c.contact_attributes << Telephone.make(value: '1540995071', category: 'Mobile')
+        c.similar.should include(@homer)
+      end
+      it "new contact should not match if mobile differs" do
+        c = Contact.new(first_name: 'Bob', last_name: 'Doe')
+        c.contact_attributes << Telephone.make(value: '15443340995071', category: 'Mobile')
+        c.similar.should_not include(@homer)
       end
     end
   end

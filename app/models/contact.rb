@@ -136,10 +136,29 @@ class Contact
   def similar
     contacts = Contact.all
 
-    self.last_name.split.each do |last_name|
-      self.first_name.split.each do |first_name|
-        contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
-                                   :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+    unless self.last_name.blank?
+      self.last_name.split.each do |last_name|
+        self.first_name.split.each do |first_name|
+          contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
+                                     :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+        end
+      end
+    end
+
+    if self.new?
+      self.emails.map(&:value).each do |email|
+        contacts = contacts.any_of(contact_attributes: { '$elemMatch' => {
+                                                        '_type' => 'Email',
+                                                        'value' => email,
+        }})
+      end
+
+      self.mobiles.map(&:value).each do |mobile|
+        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+          '_type' => 'Telephone',
+          'category' => /Mobile/i,
+          'value' => mobile
+        }})
       end
     end
 
