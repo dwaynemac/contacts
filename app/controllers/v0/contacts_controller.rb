@@ -124,8 +124,16 @@ class V0::ContactsController < V0::ApplicationController
   #   :response [string]: "OK"
   def destroy
     @contact = @scope.find(params[:id])
-    @contact.destroy if @account && @contact.owner == @account
+    @contact.destroy if can?(:destroy, @contact)
     render :json => "OK"
+  end
+
+  def destroy_multiple
+    @contacts = @scope.any_in('_id' => params[:ids])
+    @contacts.each do |c|
+      c.destroy if can?(:destroy, c)
+    end
+    render json: 'OK'
   end
 
   private

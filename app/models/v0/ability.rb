@@ -19,10 +19,17 @@ class V0::Ability
     if account.nil?
       # Account not specified for this request
       can :manage, :all
+
+      cannot :destroy, Contact
     else
       # Account specified in this request
       can :manage, :all
+
+      cannot :destroy, Contact
+      can :destroy, Contact, owner: account
     end
+
+
 
   end
 end

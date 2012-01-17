@@ -2,6 +2,9 @@ Contacts::Application.routes.draw do
 
   namespace 'v0' do
     resources :contacts do
+      collection do
+        delete :destroy_multiple
+      end
       resource :avatar, :only => [:create, :destroy]
     end
     resources :contact_attributes

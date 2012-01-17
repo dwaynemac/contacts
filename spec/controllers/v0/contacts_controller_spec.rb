@@ -541,7 +541,7 @@ describe V0::ContactsController do
     
   end
 
-  describe "#delete" do
+  describe "#destroy" do
     before do
       @contact = Contact.first
     end
@@ -561,4 +561,35 @@ describe V0::ContactsController do
       end
     end
   end
+
+  describe "#destroy_multiple" do
+    before do
+      @account = Account.make
+      @contacts = []
+      3.times { @contacts << Contact.make(owner: @account) }
+    end
+    context "as the owner" do
+      it "should delete owned contacts" do
+        expect{post :destroy_multiple, :method => :delete,
+                    :ids => @contacts.map(&:_id),
+                    :account_name => @account.name,
+                    :app_key => V0::ApplicationController::APP_KEY}.to change{Contact.count}.by(-3)
+      end
+      it "should skip deletion of any not-owned contact" do
+        @contacts << Contact.make(owner: Account.make)
+        expect{post :destroy_multiple, :method => :delete,
+                    :ids => @contacts.map(&:_id),
+                    :account_name => @account.name,
+                    :app_key => V0::ApplicationController::APP_KEY}.to change{Contact.count}.by(-3)
+      end
+    end
+    context "as non-owner" do
+      it "should not delete the contacts" do
+        expect{post :destroy_multiple, :method => :delete,
+                    :ids => @contacts.map(&:_id),
+                    :app_key => V0::ApplicationController::APP_KEY}.not_to change{Contact.count}
+      end
+    end
+  end
+
 end
