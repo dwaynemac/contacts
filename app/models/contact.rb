@@ -71,6 +71,14 @@ class Contact
     define_method(k.pluralize) { self.contact_attributes.where(_type: k.camelcase) }
   end
 
+  # @return [Array<Telephone>] mobile telephones embedded in this contact
+  def mobiles
+    self.contact_attributes.where(
+      "_type" => "Telephone",
+      "category" => "Mobile"
+    )
+  end
+
   # Setter for local_status of a certain account
   # This allows a cleaner API for update /accounts/account_id/contacts usage
   # @author Dwayne Macgowan
