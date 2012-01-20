@@ -31,19 +31,23 @@ describe Telephone do
 
   specify "#masked_value" do
     @contact = Contact.make
-    @contact.contact_attributes << Telephone.new(category: :Mobile, value: "15 4099 5071")
+    @contact.contact_attributes << Telephone.new(category: :Mobile, value: "1540995071")
     @contact.contact_attributes.last.masked_value.should == "1540######"
   end
 
   describe "of 'Mobile' category should be unique" do
+    specify "ensure contact is valid" do
+      @bart.reload
+      @bart.save!
+    end
     specify "so two contacts can't have same mobile" do
       c = Contact.new(:first_name => "El", :last_name => "Barto")
       c.contact_attributes << Telephone.new(:category => :mobile, :value => "1540995071")
       c.should_not be_valid
     end
-    specify "same contact cant have duplicated mobile" do
+    specify "same contact can have duplicated mobile (they may be visible to different accounts)" do
       @bart.contact_attributes << Telephone.new(:category => :mobile, :value => "1540995071")
-      @bart.should_not be_valid
+      @bart.should be_valid
     end
     specify "so different mobile phones should be fine" do
       c = Contact.new(:first_name => "El", :last_name => "Barto")

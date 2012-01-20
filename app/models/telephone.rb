@@ -19,7 +19,8 @@ class Telephone < ContactAttribute
   def mobile_uniqueness
     return unless category.to_s.camelcase == 'Mobile'
 
-    r = Contact.where( 'contact_attributes._type' => 'Telephone',
+    r = Contact.excludes(_id: self.contact._id).where(
+                       'contact_attributes._type' => 'Telephone',
                        'contact_attributes.category' => /Mobile/i,
                        'contact_attributes.value' => value )
 
