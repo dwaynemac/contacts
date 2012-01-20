@@ -81,7 +81,7 @@ class V0::ContactsController < V0::ApplicationController
 
       render :json => { :message => "Sorry, contact not created",
        :error_codes => [],
-       :errors => @contact.errors }.to_json, :status => 400
+       :errors => @contact.deep_error_messages }.to_json, :status => 400
     end
   end
 
@@ -113,7 +113,7 @@ class V0::ContactsController < V0::ApplicationController
     else
       render :json => { :message => "Sorry, contact not updated",
        :error_codes => [],
-       :errors => @contact.errors }.to_json, :status => 400
+       :errors => @contact.deep_error_messages }.to_json, :status => 400
     end
   end
 

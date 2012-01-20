@@ -17,8 +17,6 @@ describe Contact do
 
   it { should embed_many :local_statuses }
 
-
-
   %W(first_name last_name).each do |attr|
     specify "normalized_#{attr} should be updated when #{attr} is updated" do
       @contact = Contact.make
@@ -352,6 +350,42 @@ describe Contact do
       @contact.save
       @contact = Contact.find(@contact.id)
       @contact.owner_name.should == new_account.name
+    end
+  end
+
+  describe "#deep_error_messages" do
+    before do
+      @contact = Contact.make
+    end
+    context "if base has errors" do
+      before do
+        @contact.first_name = nil
+      end
+      it "they should be included" do
+        @contact.should_not be_valid
+        @contact.deep_error_messages.keys.should include(:first_name)
+      end
+    end
+    context "if an email has invalid format" do
+      before do
+        @contact.contact_attributes << Email.make(value: 'invalid-mail')
+      end
+      it "it should show 'Email xxx is invalid'" do
+        @contact.should_not be_valid
+        @contact.deep_error_messages.should include(contact_attributes: [["invalid-mail is invalid"]])
+      end
+    end
+    context "if an email is not unique" do
+      before do
+        c = Contact.make
+        c.contact_attributes << Email.make(value: 'this@mail.com')
+        c.save!
+        @contact.contact_attributes << Email.make(value: 'this@mail.com')
+      end
+      it "it should show 'Email xxx is not unique'" do
+        @contact.should_not be_valid
+        @contact.deep_error_messages.should include(contact_attributes: [["this@mail.com is not unique"]])
+      end
     end
   end
 end

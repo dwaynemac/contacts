@@ -338,6 +338,13 @@ describe V0::ContactsController do
       end
     end
 
+    it "should call deep_error_messages for errors" do
+      Contact.any_instance.should_receive(:deep_error_messages)
+      c = Contact.make
+      put :update, id: c.id, contact: { first_name: nil },
+          app_key: V0::ApplicationController::APP_KEY
+    end
+
     #Commenting out these tests as this functionality is not being used, but they reflect the issue correctly. LP
     #
     #describe "contact: {contact_attributes_attributes: ['....']}" do
@@ -466,6 +473,13 @@ describe V0::ContactsController do
       expect{post :create,
                   :contact => Contact.plan(:first_name => ""),
                   :app_key => V0::ApplicationController::APP_KEY }.not_to change{Contact.count}
+    end
+
+    it "should use Contact#deep_error_messages" do
+      Contact.any_instance.should_receive(:deep_error_messages)
+      post :create,
+           :contact => Contact.plan(:first_name => ""),
+           :app_key => V0::ApplicationController::APP_KEY
     end
 
     describe "when scoped to an account" do

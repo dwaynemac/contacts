@@ -185,6 +185,26 @@ class Contact
     }
   end
 
+  # @return [Hash] like errors.messages but it specifies error messages for :contact_attributes
+  def deep_error_messages
+    error_messages = self.errors.messages.dup
+
+
+    if error_messages[:contact_attributes]
+      error_messages[:contact_attributes] = self.contact_attributes.reject(&:valid?).map do |c_attr|
+        c_attr.errors.messages.map do |k,v|
+          if k == :value
+            "#{c_attr.value} #{v.join(', ')}"
+          else
+            "#{k} #{c_attr.send(k)} #{v.join(', ')}"
+          end
+        end.flatten
+      end
+    end
+
+    error_messages
+  end
+
   protected
 
   def assign_owner
