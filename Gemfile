@@ -42,6 +42,11 @@ gem 'fog'
 # To use debugger
 # gem 'ruby-debug19', :require => 'ruby-debug'
 
+group :documentation do
+  gem 'yard'
+  # gem 'yard-rest-plugin' TODO current version not working
+end
+
 group :development, :test do
   gem 'thin'
   gem "machinist", '1.0.6'

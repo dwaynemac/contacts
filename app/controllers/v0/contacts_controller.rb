@@ -34,14 +34,25 @@ class V0::ContactsController < V0::ApplicationController
     render :json => { :collection => @contacts, :total => total}.to_json
   end
 
-  #  Returns a contact
+  # Returns a contact
   #
-  #  == Request:
-  #   GET /v0/contacts/:id
-  #   GET /v0/accounts/:account_name/contacts/:id
+  # @todo add support for tags :topic, :url, :argument, :example_response, :response_field
+  # @topic Contacts
+  # @url [GET] /v0/contacts/:id
+  # @url [GET] /v0/accounts/:account_name/contacts/:id
   #
-  #  == Response:
-  #   :contact [Checklist]: single contact {:id, :name, :description, :items}
+  # @argument [String] id contact_id (required)
+  # @argument [String] account_name scope search to this account. Fields will be added to response when this is sent.
+  #
+  # @example_response without account_name
+  # {id: '124365w45215', first_name: 'Dwayne', last_name: 'Macgowan'}
+  #
+  # @example_response with account_name
+  # {id: '123', first_name: 'Dwa', last_name: 'Mac', linked: true}
+  #
+  # @response_filed [TrueClass] linked (only when scoped to account)
+  #
+  # @response_field [String] first_name Contacts first name
   def show
     @contact = @scope.find(params[:id])
     render :json => @contact.as_json(:account => @account, :include_masked => true)

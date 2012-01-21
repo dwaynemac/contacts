@@ -110,7 +110,7 @@ Application Controller for v0 API
 
 </div><div id="subclasses">
   <h2>Direct Known Subclasses</h2>
-  <p class="children"><span class='object_link'><a href="ContactAttributesController.html" title="V0::ContactAttributesController (class)">ContactAttributesController</a></span>, <span class='object_link'><a href="ContactsController.html" title="V0::ContactsController (class)">ContactsController</a></span></p>
+  <p class="children"><span class='object_link'><a href="AvatarsController.html" title="V0::AvatarsController (class)">AvatarsController</a></span>, <span class='object_link'><a href="ContactAttributesController.html" title="V0::ContactAttributesController (class)">ContactAttributesController</a></span>, <span class='object_link'><a href="ContactsController.html" title="V0::ContactsController (class)">ContactsController</a></span></p>
 </div>
 
   <h2>Constant Summary</h2>
@@ -195,12 +195,12 @@ Application Controller for v0 API
       <pre class="lines">
 
 
-9
-10
-11</pre>
+11
+12
+13</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/controllers/v0/application_controller.rb', line 9</span>
+      <pre class="code"><span class="info file"># File 'app/controllers/v0/application_controller.rb', line 11</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_current_ability'>current_ability</span>
   <span class='ivar'>@current_ability</span> <span class='op'>||=</span> <span class='const'>V0</span><span class='op'>::</span><span class='const'>Ability</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='ivar'>@account</span><span class='rparen'>)</span>
@@ -215,7 +215,7 @@ Application Controller for v0 API
 </div>
     
     <div id="footer">
-  Generated on Thu Dec  8 18:18:56 2011 by 
+  Generated on Sat Jan 21 15:33:08 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.4 (ruby-1.9.2).
 </div>

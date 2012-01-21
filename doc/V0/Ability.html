@@ -192,7 +192,14 @@ A new instance of Ability
 24
 25
 26
-27</pre>
+27
+28
+29
+30
+31
+32
+33
+34</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'app/models/v0/ability.rb', line 4</span>
@@ -215,10 +222,17 @@ A new instance of Ability
   <span class='kw'>if</span> <span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
     <span class='comment'># Account not specified for this request
 </span>    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:manage</span><span class='comma'>,</span> <span class='symbol'>:all</span>
+
+    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span>
   <span class='kw'>else</span>
     <span class='comment'># Account specified in this request
 </span>    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:manage</span><span class='comma'>,</span> <span class='symbol'>:all</span>
+
+    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span>
+    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span><span class='comma'>,</span> <span class='label'>owner:</span> <span class='id identifier rubyid_account'>account</span>
   <span class='kw'>end</span>
+
+
 
 <span class='kw'>end</span></pre>
     </td>
@@ -232,7 +246,7 @@ A new instance of Ability
 </div>
     
     <div id="footer">
-  Generated on Thu Dec  8 18:18:56 2011 by 
+  Generated on Sat Jan 21 15:33:08 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.4 (ruby-1.9.2).
 </div>

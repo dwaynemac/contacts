@@ -1,3 +1,7 @@
 = Mongo
 
 Mongo DB is needed for this app. To install download from here: http://www.mongodb.org/downloads
+
+= Yard Documentation
+
+For yard documentation run `yard` in the repository and then open doc/index.html
