@@ -48,6 +48,10 @@ class Account
     contact.save
   end
 
+  def linked_to?(contact)
+    self.contacts.include?(contact)
+  end
+
   protected
 
   def create_base_list

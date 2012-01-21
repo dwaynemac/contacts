@@ -106,12 +106,16 @@ class Contact
     options={} if options.nil? # default set in method definition seems not to be working
     account = options.delete(:account) if options
     if account
+      # add these options when account specified
       options.merge!({:except => :contact_attributes})
     end
     json = super(options.merge!({:except => :owner_id, :methods => [:owner_name]}))
+
     if account
+      # add these data when account specified
       json[:contact_attributes] = self.contact_attributes.for_account(account, options)
       json[:local_status] = self.local_statuses.where(account_id: account._id).try(:first).try(:status)
+      json[:linked] = self.linked_to?(account)
     end
     json
   end
@@ -124,6 +128,11 @@ class Contact
   # @see Account#unlink
   def unlink(account)
     account.unlink(self)
+  end
+
+  # @see Account#linked_to?
+  def linked_to?(account)
+    account.linked_to?(self)
   end
 
   def owner_name

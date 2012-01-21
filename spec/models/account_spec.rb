@@ -80,16 +80,7 @@ describe Account do
     end
   end
 
-  describe "#link" do
-    let(:account){Account.make}
-    it "adds contact to account's base list" do
-      contact = Contact.make
-      account.link(contact)
-      account.base_list.contacts.should include(contact)
-    end
-  end
-
-  describe "#unlink" do
+  describe "(linking)" do
     let(:account){Account.make}
     let(:contact){Contact.make(owner: account)}
     before do
@@ -97,14 +88,35 @@ describe Account do
       account.base_list.contacts << contact
       list.contacts << contact
     end
-    it "removes contact from all account's lists" do
-      account.unlink(contact)
-      account.lists.each{|l|l.contacts.should_not include(contact)}
+
+    describe "#link" do
+      it "adds contact to account's base list" do
+        contact = Contact.make
+        account.link(contact)
+        account.base_list.contacts.should include(contact)
+      end
     end
-    it "removed all link between contact and account" do
-      account.unlink(contact)
-      account.contacts.should_not include(contact)
+
+    describe "#unlink" do
+      it "removes contact from all account's lists" do
+        account.unlink(contact)
+        account.lists.each{|l|l.contacts.should_not include(contact)}
+      end
+      it "removed all link between contact and account" do
+        account.unlink(contact)
+        account.contacts.should_not include(contact)
+      end
     end
+
+    describe "#linked_to?" do
+      it "returns true if there is relationship with the contact" do
+        account.should be_linked_to contact
+        account.unlink contact
+        account.should_not be_linked_to contact
+      end
+    end
+
   end
+
 
 end
