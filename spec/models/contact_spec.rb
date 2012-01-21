@@ -336,6 +336,29 @@ describe Contact do
     end
   end
 
+  describe "#unlink" do
+    let(:contact){Contact.make}
+    let(:account){Account.make}
+    before do
+      account.base_list.contacts << contact
+    end
+    it "should remove contact from all account's lists" do
+      contact.unlink(account)
+      contact.lists.should_not include(account.base_list)
+    end
+
+    context "if account is owner" do
+      before do
+        contact.owner = account
+        contact.save
+      end
+      it "should remove ownership" do
+        contact.unlink(account)
+        contact.owner.should be_nil
+      end
+    end
+  end
+
   describe "#owner_name" do
     before do
       @account = Account.make

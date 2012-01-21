@@ -116,6 +116,16 @@ class Contact
     json
   end
 
+  # @see Account#link
+  def link(account)
+    account.link(self)
+  end
+
+  # @see Account#unlink
+  def unlink(account)
+    account.unlink(self)
+  end
+
   def owner_name
     self.owner.try :name
   end
@@ -130,7 +140,6 @@ class Contact
     self.set_status
     self.save
   end
-
 
   # Returns contacts that are similar to this one.
   # @return [Array<Contact>]

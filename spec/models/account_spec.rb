@@ -55,12 +55,11 @@ describe Account do
     before do
       list_a = List.make(account: account)
       list_b = List.make(account: account)
-      contact = Contact.make
-      account.base_list.contacts << contact
+      @contact = Contact.make
+      account.base_list.contacts << @contact
       3.times{ account.base_list.contacts << Contact.make }
       3.times{ list_a.contacts << Contact.make }
       list_b.contacts << Contact.make
-      list_b.contacts << contact
       list_a.save!
       list_b.save!
       account.reload
@@ -71,31 +70,40 @@ describe Account do
     it "returns contacts from all account's lists" do
       account.contacts.count.should == 8
     end
+    it "returns owned contacts" do
+      Contact.make(owner: account)
+      account.contacts.count.should == 9
+    end
     it "doesnt repeat contacts" do
+      account.lists.last.contacts << @contact
       account.contacts.count.should == 8
     end
   end
 
-  describe "#link_contact" do
+  describe "#link" do
     let(:account){Account.make}
     it "adds contact to account's base list" do
       contact = Contact.make
-      account.link_contact(contact)
+      account.link(contact)
       account.base_list.contacts.should include(contact)
     end
   end
 
-  describe "#unlink_contact" do
+  describe "#unlink" do
     let(:account){Account.make}
-    let(:contact){Contact.make}
+    let(:contact){Contact.make(owner: account)}
     before do
       list = List.make(account: account)
       account.base_list.contacts << contact
       list.contacts << contact
     end
     it "removes contact from all account's lists" do
-      account.unlink_contact(contact)
+      account.unlink(contact)
       account.lists.each{|l|l.contacts.should_not include(contact)}
+    end
+    it "removed all link between contact and account" do
+      account.unlink(contact)
+      account.contacts.should_not include(contact)
     end
   end
 

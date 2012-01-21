@@ -27,18 +27,24 @@ class Account
 
   # All contacts included in a list of this account
   def contacts
-    Contact.any_in(list_ids: self.lists.map(&:_id))
+    Contact.where('$or' => [{list_ids: {'$in' => self.lists.map(&:_id)}}, {owner_id: self._id}])
   end
 
   # Adds contact to base_list
-  def link_contact(contact)
+  # @param contact [Contact]
+  # @return [TrueClass]
+  def link(contact)
     contact.lists << self.base_list
+    contact.owner = self if contact.owner.nil?
     contact.save
   end
 
   # Removed this contact from all this accounts lists
-  def unlink_contact(contact)
+  def unlink(contact)
     contact.lists = contact.lists.reject{|l|l.account == self}
+    if contact.owner == self
+      contact.owner = nil
+    end
     contact.save
   end
 

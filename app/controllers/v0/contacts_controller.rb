@@ -132,14 +132,22 @@ class V0::ContactsController < V0::ApplicationController
   #   :response [string]: "OK"
   def destroy
     @contact = @scope.find(params[:id])
-    @contact.destroy if can?(:destroy, @contact)
+    if @account
+      @contact.unlink(@account)
+    else
+      @contact.destroy if can?(:destroy, @contact)
+    end
     render :json => "OK"
   end
 
   def destroy_multiple
     @contacts = @scope.any_in('_id' => params[:ids])
     @contacts.each do |c|
-      c.destroy if can?(:destroy, c)
+      if @account
+        c.unlink(@account)
+      else
+        c.destroy if can?(:destroy, c)
+      end
     end
     render json: 'OK'
   end
@@ -163,6 +171,8 @@ class V0::ContactsController < V0::ApplicationController
         @account.present?? (@list.present?? @list.contacts : @account.contacts ) : Contact
       when :create
         @account.present?? (@list.present?? @list.contacts : @account.owned_contacts) : Contact
+      when :destroy, :destroy_multiple
+        @account.present?? @account.contacts : Contact
       else
         Contact
     end
