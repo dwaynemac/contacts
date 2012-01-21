@@ -10,9 +10,6 @@ class Contact
 
   accepts_nested_attributes_for :contact_attributes
 
-  before_save :assign_owner
-  before_save :update_lists_contacts
-  before_save :set_status
 
   embeds_many :contact_attributes, :validate => true
 
@@ -38,10 +35,11 @@ class Contact
   field :avatar
   mount_uploader :avatar, AvatarUploader
 
-  VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro)
+
+  VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro) # ordered by hierarchy (last is higher)
   field :level, :type => String
 
-  VALID_STATUSES = [:student, :former_student, :prospect]
+  VALID_STATUSES = [:student, :former_student, :prospect] # they are ordered by precedence (first has precedence)
   field :status, type: Symbol
   before_validation :set_status
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
@@ -49,7 +47,10 @@ class Contact
   accepts_nested_attributes_for :local_statuses, :allow_destroy => true
 
   belongs_to :owner, :class_name => "Account"
+  before_save :assign_owner
+
   references_and_referenced_in_many :lists
+  before_save :update_lists
 
   validates :first_name, :presence => true
 
@@ -219,9 +220,10 @@ class Contact
     end
   end
 
-  def update_lists_contacts
-    if self.owner && self.lists.empty?
-      self.lists << self.owner.lists.first
+  def update_lists
+    # always include contacts in owner's base_list
+    if self.owner && !self.lists.map(&:account).include?(self.owner)
+      self.lists << self.owner.base_list
     end
   end
 
@@ -232,6 +234,7 @@ class Contact
 
   def set_status
     distinct_statuses = local_statuses.distinct(:status)
+    # order of VALID_STATUSES is important
     VALID_STATUSES.each do |s|
       if distinct_statuses.include?(s)
         self.status = s

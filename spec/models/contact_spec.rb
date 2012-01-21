@@ -160,7 +160,7 @@ describe Contact do
     end
 
     it "should set the owners main list" do
-      @contact.lists.first.should == @account.lists.first
+      @contact.lists.first.should == @account.base_list
     end
   end
 

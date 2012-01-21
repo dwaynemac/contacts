@@ -1,5 +1,6 @@
 class V0::ContactsController < V0::ApplicationController
 
+  before_filter :set_list
   before_filter :set_scope
   before_filter :typhoeus_bugfix, :only => [:create, :update]
 
@@ -145,31 +146,25 @@ class V0::ContactsController < V0::ApplicationController
 
   private
 
+  def set_list
+    if @account && params[:list_name]
+      # request specifies account and list
+      @list = List.where(account_id: @account._id, name: params[:list_name]).try(:first)
+      unless @list
+        render :text => "List Not Found", :status => 404
+      end
+    end
+  end
+
   #  Sets the scope
   def set_scope
-    case action_name.to_sym
-      when :index, :update, :create
-
-        list = nil
-        if @account && params[:list_name]
-          list = List.where(account_id: @account._id, name: params[:list_name]).try(:first)
-          unless list
-            render :text => "List Not Found", :status => 404
-          end
-        end
-
-        if @account && list
-          @scope = list.contacts
-        elsif @account
-          @scope = @account.lists.first.contacts
-        else
-          @scope = Contact
-        end
-
-      when :destroy
-        @scope = Contact
+    @scope = case action_name.to_sym
+      when :index, :update
+        @account.present?? (@list.present?? @list.contacts : @account.contacts ) : Contact
+      when :create
+        @account.present?? (@list.present?? @list.contacts : @account.owned_contacts) : Contact
       else
-        @scope = Contact
+        Contact
     end
   end
 

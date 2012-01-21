@@ -16,7 +16,30 @@ class Account
 
   # @return [List] base_list
   def base_list
-    self.lists.where(:name => self.name).first
+    bl = self.lists.find_or_initialize_by(name: self.name)
+    # find_or_create_by generated conflicts in some situations like: contact.rb:226
+    if bl.new?
+      bl.account = self
+      bl.save!
+    end
+    bl
+  end
+
+  # All contacts included in a list of this account
+  def contacts
+    Contact.any_in(list_ids: self.lists.map(&:_id))
+  end
+
+  # Adds contact to base_list
+  def link_contact(contact)
+    contact.lists << self.base_list
+    contact.save
+  end
+
+  # Removed this contact from all this accounts lists
+  def unlink_contact(contact)
+    contact.lists = contact.lists.reject{|l|l.account == self}
+    contact.save
   end
 
   protected

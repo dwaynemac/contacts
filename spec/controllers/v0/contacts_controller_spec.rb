@@ -495,7 +495,7 @@ describe V0::ContactsController do
         Contact.last.owner.should == @account
       end
       it "should set the default list if scoped to an account" do
-        @account.lists.first.contacts.should include(assigns(:contact))
+        @account.base_list.contacts.should include(assigns(:contact))
       end
     end
 
@@ -530,7 +530,7 @@ describe V0::ContactsController do
     end
 
     context "if it recieves image via URL" do
-      pending "SPEC implemented but marked pending to avoid network connection on every spec run" do
+      #pending "SPEC implemented but marked pending to avoid network connection on every spec run" do
       before(:each) do
         @image_url = "http://airbendergear.com/wp-content/uploads/2009/12/aang1.jpg"
         @account = Account.make
@@ -551,7 +551,7 @@ describe V0::ContactsController do
         after(:each) do
           Contact.last.remove_avatar!
         end
-      end
+      #end
     end
     
   end
