@@ -440,6 +440,21 @@ describe V0::ContactsController do
     end
   end
 
+  describe "#link" do
+    let(:contact){Contact.make}
+    let(:account){Account.make}
+    before do
+      contact.should_not be_linked_to account
+      post :link, :id => contact.id,
+          :account_name => account.name,
+          :app_key => V0::ApplicationController::APP_KEY
+    end
+    it { should respond_with :success }
+    it "should link contact to :account_name" do
+      contact.should be_linked_to account
+    end
+  end
+
   describe "#create" do
     it "should create a contact" do
       expect{post :create,

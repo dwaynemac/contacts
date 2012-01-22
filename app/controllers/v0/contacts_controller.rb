@@ -129,6 +129,18 @@ class V0::ContactsController < V0::ApplicationController
     end
   end
 
+  def link
+    @contact = Contact.find(params[:id])
+    if @account && @contact.link(@account)
+      render :json => "OK"
+    else
+      render :json => {
+        :message => "Sorry, couldnt link contact",
+        :errors => @contact.deep_error_messages
+      }.to_json, :status => 400
+    end
+  end
+
   #  Destroys the contact
   #
   #  == Request

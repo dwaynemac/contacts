@@ -1,5 +1,6 @@
 class V0::ContactAttributesController < V0::ApplicationController
 
+  before_filter :get_contact
   before_filter :set_scope
 
   def show
@@ -27,6 +28,7 @@ class V0::ContactAttributesController < V0::ApplicationController
   #   :response [string] = "OK" if success or error message
   #   :status [integer] = type of error
   def update
+    authorize! :update, ContactAttribute
     @contact_attribute = @scope.find(params[:id])
 
     if @contact_attribute.update_attributes(params[:contact_attribute])
@@ -54,6 +56,7 @@ class V0::ContactAttributesController < V0::ApplicationController
 
     @contact_attribute = @scope.new(params[:contact_attribute])
     @contact_attribute._type = params[:contact_attribute][:_type]
+    @contact_attribute.account = @account
 
     if @contact_attribute.save
       render :json => { :id => @contact_attribute.id }.to_json, :status => :created
@@ -78,19 +81,22 @@ class V0::ContactAttributesController < V0::ApplicationController
   #   :response [string]: "OK"
   def destroy
     @contact_attribute = @scope.find(params[:id])
-    @contact_attribute.destroy if @account && @contact_attribute.account == @account
+    @contact_attribute.destroy if can?(:destroy, @contact_attribute)
     render :json => "OK"
   end
 
   private
 
+  def get_contact
+    @contact = @account.present?? @account.contacts.find(params[:contact_id]) : Contact.find(params[:contact_id])
+  end
+
   #  Sets the scope
   def set_scope
-    if @account && params[:contact_id]
-      @contact = @account.lists.first.contacts.any_of(:_id => params[:contact_id]).first
-      @scope = @contact.contact_attributes
+    @scope = if @account && params[:contact_id]
+      @contact.contact_attributes
     else
-      @scope = ContactAttribute
+      @contact.contact_attributes
     end
   end
 

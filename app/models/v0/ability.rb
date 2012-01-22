@@ -21,12 +21,27 @@ class V0::Ability
       can :manage, :all
 
       cannot :destroy, Contact
+      cannot :destroy, ContactAttribute
     else
       # Account specified in this request
       can :manage, :all
 
+      # Contact
       cannot :destroy, Contact
       can :destroy, Contact, owner: account
+
+      # ContactAttribute
+      cannot :manage, ContactAttribute
+      can :read, ContactAttribute do |ca|
+        # TODO refactor from block into argument so we can use ContactAttribute#accesible_by(account)
+        ca.public? || ca.account == account
+      end
+      can [:update, :destroy], ContactAttribute, account: account
+      can :create, ContactAttribute do |ca|
+        ca.contact.linked_to?(account)
+      end
+
+
     end
 
 

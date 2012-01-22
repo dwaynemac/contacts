@@ -47,7 +47,7 @@ class Contact
   accepts_nested_attributes_for :local_statuses, :allow_destroy => true
 
   belongs_to :owner, :class_name => "Account"
-  before_save :assign_owner
+  before_validation :assign_owner
 
   references_and_referenced_in_many :lists
   before_save :update_lists
@@ -109,6 +109,7 @@ class Contact
       # add these options when account specified
       options.merge!({:except => :contact_attributes})
     end
+
     json = super(options.merge!({:except => :owner_id, :methods => [:owner_name]}))
 
     if account

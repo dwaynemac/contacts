@@ -13,7 +13,7 @@ class ContactAttribute
 
   referenced_in :account
 
-  before_create :assign_owner
+  before_save :assign_owner
 
   def as_json(options={})
     options = {} if options.nil? # avoid exception in case it was called with nil
@@ -40,7 +40,7 @@ class ContactAttribute
       # get attributes
       attrs = self.any_of({account_id: account.id},{public: true},{_type: "Telephone"})
 
-      # remove repeated telephones
+      # remove repeated telephones keeping owned version
       value_counts = self.any_of({account_id: account.id},{public: true},{_type: "Telephone"}).only(:value).aggregate
       repeated_values = value_counts.map{|k,v| k if v>1}
       attrs_without_repetition = attrs.reject{|a| a.is_a?(Telephone) && a.value.in?(repeated_values) && a.account_id!=account.id}
@@ -48,9 +48,7 @@ class ContactAttribute
       # mask non-public phones not belonging to given account
       attrs_without_repetition.map do |a|
         if a.is_a?(Telephone) && !a.public? && a.account_id!=account.id
-          a.value = a.masked_value
-          a.readonly!
-          a
+          a.mask_value!
         else
           a
         end
@@ -58,6 +56,12 @@ class ContactAttribute
     else
       any_of({account_id: account.id}, { public: true})
     end
+  end
+
+  def mask_value!
+    self.value = self.masked_value
+    self.readonly!
+    self
   end
 
   # TODO refactor readonly functionality to a Module and include it here
@@ -72,7 +76,7 @@ class ContactAttribute
   protected
 
   def assign_owner
-    self.account = contact.owner if self.account.blank? && contact.owner.present?
+    self.account = self.contact.owner if self.account.blank? && self.contact.owner.present?
   end
 
   def write_enabled

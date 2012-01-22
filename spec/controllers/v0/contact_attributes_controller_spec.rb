@@ -35,14 +35,34 @@ describe V0::ContactAttributesController do
   end
 
   describe "#create" do
-    before do
-      @telephone = "5432154"
-      post :create, :account_name => @contact.owner.name, :contact_id => @contact.id, :contact_attribute => {:category => :home, :value => @telephone},
-                  :app_key => V0::ApplicationController::APP_KEY
+    context "called by contact owner" do
+      before do
+        @telephone = "5432154"
+        post :create, :account_name => @contact.owner.name, :contact_id => @contact.id, :contact_attribute => {:category => :home, :value => @telephone},
+             :app_key => V0::ApplicationController::APP_KEY
+      end
+      it { should respond_with :created }
+      it "should create a new telephone" do
+        @contact.reload.contact_attributes.last.value.should == @telephone
+      end
+      it "should assign attribute to account" do
+        @contact.reload.contact_attributes.last.account.should == @contact.owner
+      end
     end
-    it { should respond_with :created }
-    it "should create a new telephone" do
-      @contact.reload.contact_attributes.last.value.should == @telephone
+    context "called by other account" do
+      let(:other_account){Account.make}
+      before do
+        @telephone = "5432154"
+        post :create, :account_name => other_account.name, :contact_id => @contact.id, :contact_attribute => {:category => :home, :value => @telephone},
+             :app_key => V0::ApplicationController::APP_KEY
+      end
+      it { should respond_with :created }
+      it "should create a new telephone" do
+        @contact.reload.contact_attributes.last.value.should == @telephone
+      end
+      it "should assign attribute to account" do
+        @contact.reload.contact_attributes.last.account.should == other_account
+      end
     end
   end
 
