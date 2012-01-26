@@ -571,7 +571,7 @@ describe V0::ContactsController do
     
   end
 
-  describe "#destroy", :focus do
+  describe "#destroy" do
     before do
       @account = Account.make
       @contact = Contact.make(owner: @account)
@@ -603,7 +603,7 @@ describe V0::ContactsController do
     end
   end
 
-  describe "#destroy_multiple", :focus do
+  describe "#destroy_multiple" do
     before do
       @account = Account.make
       @contacts = []

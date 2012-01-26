@@ -349,12 +349,12 @@ describe Contact do
 
     context "if account is owner" do
       before do
-        contact.owner = account
-        contact.save
+        @account = Account.make
+        @contact = Contact.make owner: @account
       end
       it "should remove ownership" do
-        contact.unlink(account)
-        contact.owner.should be_nil
+        @contact.unlink(@account)
+        @contact.owner.should be_nil
       end
     end
   end

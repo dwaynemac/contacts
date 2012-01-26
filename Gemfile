@@ -14,9 +14,9 @@ gem 'mongoid_search'
 
 gem 'cancan', '~> 1.6.7'
 
-gem "logical_model", '0.2.9' #:git =>'git@github.com:lperichon/logical_model.git'
+gem "logical_model", '0.2.15'
 
-gem 'kaminari', '0.12.4'
+gem 'kaminari', '~> 0.13'
 
 gem 'rmagick'
 gem 'carrierwave'

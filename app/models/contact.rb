@@ -68,7 +68,7 @@ class Contact
 
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
   # they all return a Criteria scoping to according _type
-  %W(email telephone address custom_attribute).each do |k|
+  %W(email telephone address custom_attribute date_attribute).each do |k|
     define_method(k.pluralize) { self.contact_attributes.where(_type: k.camelcase) }
   end
 

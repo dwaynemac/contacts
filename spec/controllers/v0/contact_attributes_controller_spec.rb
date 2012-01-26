@@ -36,17 +36,41 @@ describe V0::ContactAttributesController do
 
   describe "#create" do
     context "called by contact owner" do
-      before do
-        @telephone = "5432154"
-        post :create, :account_name => @contact.owner.name, :contact_id => @contact.id, :contact_attribute => {:category => :home, :value => @telephone},
-             :app_key => V0::ApplicationController::APP_KEY
+      context "sending :category, :value" do
+        before do
+          @telephone = "5432154"
+          post :create, :account_name => @contact.owner.name, :contact_id => @contact.id,
+               :contact_attribute => {:category => :home, :value => @telephone},
+               :app_key => V0::ApplicationController::APP_KEY
+        end
+        it { should respond_with :created }
+        it "should create a new telephone" do
+          @contact.reload.contact_attributes.last.value.should == @telephone
+        end
+        it "should assign attribute to account" do
+          @contact.reload.contact_attributes.last.account.should == @contact.owner
+        end
       end
-      it { should respond_with :created }
-      it "should create a new telephone" do
-        @contact.reload.contact_attributes.last.value.should == @telephone
-      end
-      it "should assign attribute to account" do
-        @contact.reload.contact_attributes.last.account.should == @contact.owner
+      context "sending :year, :month, :day, :category" do
+        before do
+          post :create, :account_name => @contact.owner.name, :contact_id => @contact.id,
+               :contact_attribute => {
+                 '_type' => 'DateAttribute',
+                 :value => 'basura',
+                 :category => 'birth_date',
+                 :year => '2010',
+                 :month => '1',
+                 :day => '1'},
+               :app_key => V0::ApplicationController::APP_KEY
+        end
+        it { should respond_with :created }
+        it "should create a new date_attribute" do
+          @contact.reload.contact_attributes.last.should be_a DateAttribute
+          @contact.contact_attributes.last.date.should == Date.civil(2010,1,1)
+        end
+        it "should assign attribute to account" do
+          @contact.reload.contact_attributes.last.account.should == @contact.owner
+        end
       end
     end
     context "called by other account" do
