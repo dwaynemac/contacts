@@ -11,6 +11,7 @@ class DateAttribute < ContactAttribute
 
   validate :valid_date
 
+  before_validation :to_integer
   before_validation :set_value
 
   def date
@@ -19,6 +20,12 @@ class DateAttribute < ContactAttribute
   end
 
   private
+
+  def to_integer
+    year  = year.try :to_i
+    month = month.try :to_i
+    day   = day.try :to_i
+  end
 
   def set_value
     y = year.blank?? 0 : year.to_i
