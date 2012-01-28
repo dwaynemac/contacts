@@ -49,5 +49,6 @@ module Contacts
       g.fixture_replacement :machinist
     end
 
+    config.mongoid.observers = :history_observer
   end
 end

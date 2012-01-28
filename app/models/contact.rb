@@ -10,8 +10,10 @@ class Contact
 
   accepts_nested_attributes_for :contact_attributes
 
-
   embeds_many :contact_attributes, :validate => true
+
+
+  has_many :history_entries, as: 'historiable', dependent: :delete
 
   field :first_name
   field :last_name
@@ -20,6 +22,8 @@ class Contact
   field :normalized_last_name
   before_save :update_normalized_attributes
 
+=begin
+  TODO study better what this does
   # run rake db:mongoid:create_indexes to create these indexes
   index(
     [
@@ -28,6 +32,7 @@ class Contact
     ],
     background: true
   )
+=end
 
   field :gender
   validates_inclusion_of :gender, in: %W(male female), allow_blank: true
