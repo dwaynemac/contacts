@@ -75,22 +75,15 @@ class V0::ContactsController < V0::ApplicationController
 
     authorize! :create, Contact
 
-    # use @scope.create because @scope.new; @contact.save won't correctly run callbacks
-    @contact =  @scope.create(params[:contact])
+    @contact =  @scope.new(params[:contact])
 
 
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
-    if @contact.valid?
+    if @contact.save
       render :json => { :id => @contact.id }.to_json, :status => :created
     else
-      if @contact.persisted?
-        # it was created but after creation it was found invalid
-        # TODO FIXME this should not be necessary
-        @contact.destroy
-      end
-
       render :json => { :message => "Sorry, contact not created",
        :error_codes => [],
        :errors => @contact.deep_error_messages }.to_json, :status => 400
