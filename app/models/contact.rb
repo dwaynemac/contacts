@@ -144,7 +144,7 @@ class Contact
     self.owner = Account.where(:name => name).first
   end
 
-  search_in :first_name, :last_name, :contact_attributes => :value
+  search_in :first_name, :last_name, {:contact_attributes => :value }, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml")}
 
   def update_status!
     self.set_status
