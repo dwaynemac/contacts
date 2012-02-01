@@ -6,7 +6,7 @@
 <title>
   Class: V0::Ability
   
-    &mdash; Documentation by YARD 0.7.4
+    &mdash; Documentation by YARD 0.7.5
   
 </title>
 
@@ -98,10 +98,10 @@
 
 
 
-  
 
 
-  
+
+
 
   
     <h2>
@@ -199,7 +199,22 @@ A new instance of Ability
 31
 32
 33
-34</pre>
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'app/models/v0/ability.rb', line 4</span>
@@ -224,12 +239,27 @@ A new instance of Ability
 </span>    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:manage</span><span class='comma'>,</span> <span class='symbol'>:all</span>
 
     <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span>
+    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span>
   <span class='kw'>else</span>
     <span class='comment'># Account specified in this request
 </span>    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:manage</span><span class='comma'>,</span> <span class='symbol'>:all</span>
 
-    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span>
+    <span class='comment'># Contact
+</span>    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span>
     <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span><span class='comma'>,</span> <span class='label'>owner:</span> <span class='id identifier rubyid_account'>account</span>
+
+    <span class='comment'># ContactAttribute
+</span>    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:manage</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span>
+    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:read</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_ca'>ca</span><span class='op'>|</span>
+      <span class='comment'># TODO refactor from block into argument so we can use ContactAttribute#accesible_by(account)
+</span>      <span class='id identifier rubyid_ca'>ca</span><span class='period'>.</span><span class='id identifier rubyid_public?'>public?</span> <span class='op'>||</span> <span class='id identifier rubyid_ca'>ca</span><span class='period'>.</span><span class='id identifier rubyid_account'>account</span> <span class='op'>==</span> <span class='id identifier rubyid_account'>account</span>
+    <span class='kw'>end</span>
+    <span class='id identifier rubyid_can'>can</span> <span class='lbracket'>[</span><span class='symbol'>:update</span><span class='comma'>,</span> <span class='symbol'>:destroy</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span><span class='comma'>,</span> <span class='label'>account:</span> <span class='id identifier rubyid_account'>account</span>
+    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:create</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_ca'>ca</span><span class='op'>|</span>
+      <span class='id identifier rubyid_ca'>ca</span><span class='period'>.</span><span class='id identifier rubyid_contact'>contact</span><span class='period'>.</span><span class='id identifier rubyid_linked_to?'>linked_to?</span><span class='lparen'>(</span><span class='id identifier rubyid_account'>account</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+
+
   <span class='kw'>end</span>
 
 
@@ -246,9 +276,9 @@ A new instance of Ability
 </div>
     
     <div id="footer">
-  Generated on Sat Jan 21 15:33:08 2012 by 
+  Generated on Wed Feb  1 03:42:09 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.4 (ruby-1.9.2).
+  0.7.5 (ruby-1.9.2).
 </div>
 
   </body>

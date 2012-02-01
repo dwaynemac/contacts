@@ -1,3 +1,7 @@
+# Stores history in changes to attributes
+#
+# NOTE: LocalStatus#status changes are stored on a special way:
+#   They are considered in the history as local_status_for_AccountName of object Contact
 class HistoryEntry
   include Mongoid::Document
 

@@ -6,7 +6,7 @@
 <title>
   Class: ContactAttribute
   
-    &mdash; Documentation by YARD 0.7.4
+    &mdash; Documentation by YARD 0.7.5
   
 </title>
 
@@ -98,14 +98,14 @@
 
 <div id="subclasses">
   <h2>Direct Known Subclasses</h2>
-  <p class="children"><span class='object_link'><a href="Address.html" title="Address (class)">Address</a></span>, <span class='object_link'><a href="CustomAttribute.html" title="CustomAttribute (class)">CustomAttribute</a></span>, <span class='object_link'><a href="Email.html" title="Email (class)">Email</a></span>, <span class='object_link'><a href="Identification.html" title="Identification (class)">Identification</a></span>, <span class='object_link'><a href="Telephone.html" title="Telephone (class)">Telephone</a></span></p>
+  <p class="children"><span class='object_link'><a href="Address.html" title="Address (class)">Address</a></span>, <span class='object_link'><a href="CustomAttribute.html" title="CustomAttribute (class)">CustomAttribute</a></span>, <span class='object_link'><a href="DateAttribute.html" title="DateAttribute (class)">DateAttribute</a></span>, <span class='object_link'><a href="Email.html" title="Email (class)">Email</a></span>, <span class='object_link'><a href="Identification.html" title="Identification (class)">Identification</a></span>, <span class='object_link'><a href="Telephone.html" title="Telephone (class)">Telephone</a></span></p>
 </div>
 
 
-  
 
 
-  
+
+
 
   
     <h2>
@@ -152,6 +152,27 @@ Returns ContactAttributes visible to account.
   <span class="summary_signature">
     
       <a href="#as_json-instance_method" title="#as_json (instance method)">- (Object) <strong>as_json</strong>(options = {}) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#mask_value%21-instance_method" title="#mask_value! (instance method)">- (Object) <strong>mask_value!</strong> </a>
     
 
     
@@ -243,14 +264,14 @@ will return an Array
 <p>
 if :include_masked is used
 </p>
-<pre class="code">
+<pre class="code ruby"><code>
    <span class='ivar'>@return</span> <span class='lbracket'>[</span><span class='const'>Array</span><span class='rbracket'>]</span>
-</pre>
+</code></pre>
 <p>
 else
 </p>
-<pre class="code">
-   <span class='ivar'>@return</span> <span class='lbracket'>[</span><span class='const'>Criteria</span><span class='rbracket'>]</span></pre>
+<pre class="code ruby"><code>
+   <span class='ivar'>@return</span> <span class='lbracket'>[</span><span class='const'>Criteria</span><span class='rbracket'>]</span></code></pre>
 
 
   </div>
@@ -337,9 +358,7 @@ a customizable set of options
 56
 57
 58
-59
-60
-61</pre>
+59</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'app/models/contact_attribute.rb', line 37</span>
@@ -350,7 +369,7 @@ a customizable set of options
     <span class='comment'># get attributes
 </span>    <span class='id identifier rubyid_attrs'>attrs</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_any_of'>any_of</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='label'>account_id:</span> <span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rbrace'>}</span><span class='comma'>,</span><span class='lbrace'>{</span><span class='label'>public:</span> <span class='kw'>true</span><span class='rbrace'>}</span><span class='comma'>,</span><span class='lbrace'>{</span><span class='label'>_type:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Telephone</span><span class='tstring_end'>&quot;</span></span><span class='rbrace'>}</span><span class='rparen'>)</span>
 
-    <span class='comment'># remove repeated telephones
+    <span class='comment'># remove repeated telephones keeping owned version
 </span>    <span class='id identifier rubyid_value_counts'>value_counts</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_any_of'>any_of</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='label'>account_id:</span> <span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rbrace'>}</span><span class='comma'>,</span><span class='lbrace'>{</span><span class='label'>public:</span> <span class='kw'>true</span><span class='rbrace'>}</span><span class='comma'>,</span><span class='lbrace'>{</span><span class='label'>_type:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Telephone</span><span class='tstring_end'>&quot;</span></span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_only'>only</span><span class='lparen'>(</span><span class='symbol'>:value</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_aggregate'>aggregate</span>
     <span class='id identifier rubyid_repeated_values'>repeated_values</span> <span class='op'>=</span> <span class='id identifier rubyid_value_counts'>value_counts</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_k'>k</span> <span class='kw'>if</span> <span class='id identifier rubyid_v'>v</span><span class='op'>&gt;</span><span class='int'>1</span><span class='rbrace'>}</span>
     <span class='id identifier rubyid_attrs_without_repetition'>attrs_without_repetition</span> <span class='op'>=</span> <span class='id identifier rubyid_attrs'>attrs</span><span class='period'>.</span><span class='id identifier rubyid_reject'>reject</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_a'>a</span><span class='op'>|</span> <span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Telephone</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_in?'>in?</span><span class='lparen'>(</span><span class='id identifier rubyid_repeated_values'>repeated_values</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_account_id'>account_id</span><span class='op'>!=</span><span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rbrace'>}</span>
@@ -358,9 +377,7 @@ a customizable set of options
     <span class='comment'># mask non-public phones not belonging to given account
 </span>    <span class='id identifier rubyid_attrs_without_repetition'>attrs_without_repetition</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_a'>a</span><span class='op'>|</span>
       <span class='kw'>if</span> <span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Telephone</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_public?'>public?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_account_id'>account_id</span><span class='op'>!=</span><span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span>
-        <span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_value'>value</span> <span class='op'>=</span> <span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_masked_value'>masked_value</span>
-        <span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_readonly!'>readonly!</span>
-        <span class='id identifier rubyid_a'>a</span>
+        <span class='id identifier rubyid_a'>a</span><span class='period'>.</span><span class='id identifier rubyid_mask_value!'>mask_value!</span>
       <span class='kw'>else</span>
         <span class='id identifier rubyid_a'>a</span>
       <span class='kw'>end</span>
@@ -415,6 +432,38 @@ a customizable set of options
 </div>
     
       <div class="method_details ">
+  <p class="signature " id="mask_value!-instance_method">
+  
+    - (<tt>Object</tt>) <strong>mask_value!</strong> 
+  
+
+  
+</p><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+61
+62
+63
+64
+65</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'app/models/contact_attribute.rb', line 61</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_mask_value!'>mask_value!</span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_value'>value</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_masked_value'>masked_value</span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_readonly!'>readonly!</span>
+  <span class='kw'>self</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
   <p class="signature " id="readonly!-instance_method">
   
     - (<tt>Object</tt>) <strong>readonly!</strong> 
@@ -439,12 +488,12 @@ TODO refactor readonly functionality to a Module and include it here
       <pre class="lines">
 
 
-64
-65
-66</pre>
+68
+69
+70</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact_attribute.rb', line 64</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact_attribute.rb', line 68</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_readonly!'>readonly!</span>
   <span class='ivar'>@readonly</span> <span class='op'>=</span> <span class='kw'>true</span>
@@ -489,12 +538,12 @@ TODO refactor readonly functionality to a Module and include it here
       <pre class="lines">
 
 
-68
-69
-70</pre>
+72
+73
+74</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact_attribute.rb', line 68</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact_attribute.rb', line 72</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_readonly?'>readonly?</span>
   <span class='ivar'>@readonly</span>
@@ -509,9 +558,9 @@ TODO refactor readonly functionality to a Module and include it here
 </div>
     
     <div id="footer">
-  Generated on Sat Jan 21 15:33:08 2012 by 
+  Generated on Wed Feb  1 03:42:09 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.4 (ruby-1.9.2).
+  0.7.5 (ruby-1.9.2).
 </div>
 
   </body>

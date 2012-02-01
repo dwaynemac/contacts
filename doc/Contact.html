@@ -6,7 +6,7 @@
 <title>
   Class: Contact
   
-    &mdash; Documentation by YARD 0.7.4
+    &mdash; Documentation by YARD 0.7.5
   
 </title>
 
@@ -139,9 +139,8 @@ they are ordered by precedence (first has precedence)
   
 
 
-  
-  
-  
+
+
   <h2>Instance Attribute Summary <small>(<a href="#" class="summary_toggle">collapse</a>)</small></h2>
   <ul class="summary">
     
@@ -176,9 +175,6 @@ Returns the value of attribute check_duplicates.
 
 
 
-  
-  
-  
 
   
     <h2>
@@ -516,12 +512,12 @@ Returns the value of attribute check_duplicates
       <pre class="lines">
 
 
-61
-62
-63</pre>
+69
+70
+71</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 61</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 69</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_check_duplicates'>check_duplicates</span>
   <span class='ivar'>@check_duplicates</span>
@@ -604,26 +600,27 @@ Returns the value of attribute check_duplicates
       <pre class="lines">
 
 
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121</pre>
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 105</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 123</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_as_json'>as_json</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='op'>=</span><span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_options'>options</span><span class='op'>=</span><span class='lbrace'>{</span><span class='rbrace'>}</span> <span class='kw'>if</span> <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='comment'># default set in method definition seems not to be working
@@ -632,6 +629,7 @@ Returns the value of attribute check_duplicates
     <span class='comment'># add these options when account specified
 </span>    <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_merge!'>merge!</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='symbol'>:except</span> <span class='op'>=&gt;</span> <span class='symbol'>:contact_attributes</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='kw'>end</span>
+
   <span class='id identifier rubyid_json'>json</span> <span class='op'>=</span> <span class='kw'>super</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_merge!'>merge!</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='symbol'>:except</span> <span class='op'>=&gt;</span> <span class='symbol'>:owner_id</span><span class='comma'>,</span> <span class='symbol'>:methods</span> <span class='op'>=&gt;</span> <span class='lbracket'>[</span><span class='symbol'>:owner_name</span><span class='rbracket'>]</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='rparen'>)</span>
 
   <span class='kw'>if</span> <span class='id identifier rubyid_account'>account</span>
@@ -693,27 +691,27 @@ like errors.messages but it specifies error messages for
       <pre class="lines">
 
 
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
-218
-219
-220
-221
-222
-223
-224
-225</pre>
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 208</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 227</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_deep_error_messages'>deep_error_messages</span>
   <span class='id identifier rubyid_error_messages'>error_messages</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_errors'>errors</span><span class='period'>.</span><span class='id identifier rubyid_messages'>messages</span><span class='period'>.</span><span class='id identifier rubyid_dup'>dup</span>
@@ -773,12 +771,12 @@ like errors.messages but it specifies error messages for
       <pre class="lines">
 
 
-65
-66
-67</pre>
+73
+74
+75</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 65</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 73</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_full_name'>full_name</span>
   <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_first_name'>first_name</span><span class='rbrace'>}</span><span class='tstring_content'> </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_last_name'>last_name</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span>
@@ -817,12 +815,12 @@ like errors.messages but it specifies error messages for
       <pre class="lines">
 
 
-124
-125
-126</pre>
+143
+144
+145</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 124</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 143</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_link'>link</span><span class='lparen'>(</span><span class='id identifier rubyid_account'>account</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_link'>link</span><span class='lparen'>(</span><span class='kw'>self</span><span class='rparen'>)</span>
@@ -874,12 +872,12 @@ like errors.messages but it specifies error messages for
       <pre class="lines">
 
 
-134
-135
-136</pre>
+153
+154
+155</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 134</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 153</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_linked_to?'>linked_to?</span><span class='lparen'>(</span><span class='id identifier rubyid_account'>account</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_linked_to?'>linked_to?</span><span class='lparen'>(</span><span class='kw'>self</span><span class='rparen'>)</span>
@@ -907,7 +905,22 @@ update /accounts/account_id/contacts usage
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  
+  <div class="examples">
+    <h3>Examples:</h3>
+    
+      <h4><div class='inline'><p>
+@contact.local_status = account_id: acc.id, status: :student
+</p>
+</div></h4>
+      <pre class="example code"></pre>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code"><span class='id identifier rubyid_params'>params</span><span class='lbracket'>[</span><span class='symbol'>:contact</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:local_status</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='symbol'>:account_id</span> <span class='op'>=&gt;</span> <span class='ivar'>@account</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='comma'>,</span> <span class='symbol'>:status</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_params'>params</span><span class='lbracket'>[</span><span class='symbol'>:contact</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='symbol'>:local_status</span><span class='rparen'>)</span><span class='rbrace'>}</span>
+<span class='ivar'>@contact</span><span class='period'>.</span><span class='id identifier rubyid_update_attributes'>update_attributes</span><span class='lparen'>(</span><span class='id identifier rubyid_params'>params</span><span class='lbracket'>[</span><span class='symbol'>:contact</span><span class='rbracket'>]</span><span class='rparen'>)</span></pre>
+    
+  </div>
+<h3>Parameters:</h3>
 <ul class="param">
   
     <li>
@@ -1009,25 +1022,25 @@ Dwayne Macgowan
       <pre class="lines">
 
 
-91
-92
-93
-94
-95
-96
-97
-98
-99
-100</pre>
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 91</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 106</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_local_status='>local_status=</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>unless</span> <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Hash</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_ls'>ls</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_local_statuses'>local_statuses</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='symbol'>:account_id</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:account_id</span><span class='rbracket'>]</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_ls'>ls</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
-    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_local_statuses'>local_statuses</span> <span class='op'>&lt;&lt;</span> <span class='const'>LocalStatus</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='label'>account_id:</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:account_id</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>status:</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:status</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_local_statuses'>local_statuses</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='label'>account_id:</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:account_id</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>status:</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:status</span><span class='rbracket'>]</span><span class='rparen'>)</span>
   <span class='kw'>else</span>
     <span class='id identifier rubyid_ls'>ls</span><span class='period'>.</span><span class='id identifier rubyid_status'>status</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:status</span><span class='rbracket'>]</span>
   <span class='kw'>end</span>
@@ -1082,16 +1095,16 @@ Returns the minimal representation of this contact
       <pre class="lines">
 
 
-199
-200
-201
-202
-203
-204
-205</pre>
+218
+219
+220
+221
+222
+223
+224</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 199</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 218</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_minimum_representation'>minimum_representation</span>
   <span class='lbrace'>{</span>
@@ -1149,15 +1162,15 @@ mobile telephones embedded in this contact
       <pre class="lines">
 
 
-76
-77
-78
-79
-80
-81</pre>
+84
+85
+86
+87
+88
+89</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 76</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 84</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_mobiles'>mobiles</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_contact_attributes'>contact_attributes</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span>
@@ -1183,12 +1196,12 @@ mobile telephones embedded in this contact
       <pre class="lines">
 
 
-138
-139
-140</pre>
+157
+158
+159</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 138</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 157</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_owner_name'>owner_name</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_owner'>owner</span><span class='period'>.</span><span class='id identifier rubyid_try'>try</span> <span class='symbol'>:name</span>
@@ -1211,12 +1224,12 @@ mobile telephones embedded in this contact
       <pre class="lines">
 
 
-142
-143
-144</pre>
+161
+162
+163</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 142</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 161</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_owner_name='>owner_name=</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_owner'>owner</span> <span class='op'>=</span> <span class='const'>Account</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='symbol'>:name</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span>
@@ -1264,25 +1277,6 @@ Returns contacts that are similar to this one.
       <pre class="lines">
 
 
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
-165
-166
-167
-168
-169
-170
-171
-172
-173
 174
 175
 176
@@ -1296,10 +1290,29 @@ Returns contacts that are similar to this one.
 184
 185
 186
-187</pre>
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 155</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 174</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_similar'>similar</span>
   <span class='id identifier rubyid_contacts'>contacts</span> <span class='op'>=</span> <span class='const'>Contact</span><span class='period'>.</span><span class='id identifier rubyid_all'>all</span>
@@ -1368,12 +1381,12 @@ Returns contacts that are similar to this one.
       <pre class="lines">
 
 
-129
-130
-131</pre>
+148
+149
+150</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 129</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 148</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='id identifier rubyid_account'>account</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='kw'>self</span><span class='rparen'>)</span>
@@ -1396,13 +1409,13 @@ Returns contacts that are similar to this one.
       <pre class="lines">
 
 
-148
-149
-150
-151</pre>
+167
+168
+169
+170</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 148</span>
+      <pre class="code"><span class="info file"># File 'app/models/contact.rb', line 167</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_update_status!'>update_status!</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_set_status'>set_status</span>
@@ -1418,9 +1431,9 @@ Returns contacts that are similar to this one.
 </div>
     
     <div id="footer">
-  Generated on Sat Jan 21 15:33:08 2012 by 
+  Generated on Wed Feb  1 03:42:09 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.4 (ruby-1.9.2).
+  0.7.5 (ruby-1.9.2).
 </div>
 
   </body>
