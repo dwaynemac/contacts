@@ -73,9 +73,19 @@ describe V0::ContactAttributesController do
         end
       end
     end
-    context "called by other account" do
+    context "called by un-linked account" do
       let(:other_account){Account.make}
       before do
+        @telephone = "5432154"
+        post :create, :account_name => other_account.name, :contact_id => @contact.id, :contact_attribute => {:category => :home, :value => @telephone},
+             :app_key => V0::ApplicationController::APP_KEY
+      end
+      it { should respond_with :missing }
+    end
+    context "called by linked, non-owner account" do
+      let(:other_account){Account.make}
+      before do
+        other_account.link(@contact)
         @telephone = "5432154"
         post :create, :account_name => other_account.name, :contact_id => @contact.id, :contact_attribute => {:category => :home, :value => @telephone},
              :app_key => V0::ApplicationController::APP_KEY
