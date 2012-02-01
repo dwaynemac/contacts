@@ -411,4 +411,45 @@ describe Contact do
       end
     end
   end
+
+  describe "History" do
+    let(:contact) { Contact.make(level: Contact::VALID_LEVELS[2], status: :student) }
+    it "should record level changes" do
+      expect{contact.update_attribute(:level, Contact::VALID_LEVELS[3])}.to change{contact.history_entries.count}
+      contact.history_entries.last.old_value.should == Contact::VALID_LEVELS[2]
+      contact.history_entries.last.changed_at.should be_within(1.second).of(Time.now)
+    end
+    it "should record status changes" do
+      expect{ contact.update_attribute(:status, :former_student) }.to change{contact.history_entries.count}.by(1)
+      contact.history_entries.last.old_value.should == :student
+      contact.history_entries.last.changed_at.should be_within(1.second).of(Time.now)
+    end
+    it "should record local_status changes" do
+      account = Account.make
+
+      # tal vez esto puede ser un HistoryEntry de LocalStatus, no de Contact.
+      # y contact.history_entries debería incluir los "hijos"
+
+      x = contact.history_entries.count
+      global_x = HistoryEntry.count
+
+      contact.local_status={account_id: account.id, status: :prospect}
+      contact.save
+      contact.reload
+      contact.history_entries.count.should == x+2 # .local_status(:nil -> :prospect)
+      HistoryEntry.count.should == global_x+2
+
+      y = contact.history_entries.count
+      global_y = HistoryEntry.count
+
+      # updating embedded local_status wont trigger local_status after_save
+      contact.local_status=({account_id: account.id, status: :former_student})
+      contact.save
+      contact.reload
+      contact.history_entries.count.should == y+2 # .status(:student -> :former_student) and .local_status(:prospect -> :former_student)
+      HistoryEntry.count.should == global_y+2
+    end
+  end
+
+
 end

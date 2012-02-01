@@ -48,7 +48,5 @@ module Contacts
     config.generators do |g|
       g.fixture_replacement :machinist
     end
-
-    config.mongoid.observers = :history_observer
   end
 end

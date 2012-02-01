@@ -13,7 +13,9 @@ class Contact
   embeds_many :contact_attributes, :validate => true
 
 
+
   has_many :history_entries, as: 'historiable', dependent: :delete
+  after_save :keep_history_of_changes
 
   field :first_name
   field :last_name
@@ -48,6 +50,7 @@ class Contact
   field :status, type: Symbol
   before_validation :set_status
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
+
   embeds_many :local_statuses, :validate => true
   accepts_nested_attributes_for :local_statuses, :allow_destroy => true
 
@@ -92,17 +95,27 @@ class Contact
   # @option options [String] :account_id
   # @option options [Symbol] :status this should be a valid status
   # @raise [ArgumentError] if :account_id is not given
+  #
+  # @example @contact.local_status = account_id: acc.id, status: :student
+  #
+  # @example
+  #   params[:contact][:local_status] = {:account_id => @account.id, :status => params[:contact].delete(:local_status)}
+  #   @contact.update_attributes(params[:contact])
+  #
   # @return [LocalStatus]
   def local_status=(options)
     return unless options.is_a?(Hash)
     ls = self.local_statuses.where(:account_id => options[:account_id]).first
     if ls.nil?
-      self.local_statuses << LocalStatus.new(account_id: options[:account_id], status: options[:status])
+      self.local_statuses.new(account_id: options[:account_id], status: options[:status])
     else
       ls.status = options[:status]
     end
     ls
   end
+
+  # TODO define logical attribute #local_status_for_#{account_name} using method missing
+
 
   # @param [Hash] options
   # @option options [Account] account
@@ -264,6 +277,28 @@ class Contact
         self.status = s
         break
       end
+    end
+  end
+
+  def keep_history_of_changes
+    return if self.new_record?
+
+    # level and global_status
+    %W(level status).each do |att|
+      if self.send("#{att}_changed?")
+        self.history_entries.create(attribute: att,
+                                    changed_at: Time.zone.now.to_time,
+                                    old_value: self.changes[att][0])
+      end
+    end
+
+    # saving contact wont trigget local_status after_save
+    # so we record history here
+    self.local_statuses.select{|ls|ls.status_changed?}.each do |ls|
+      self.history_entries.create(
+        attribute: "local_status_for_#{ls.account_name}",
+        changed_at: Time.zone.now.to_time,
+        old_value: ls.changes['status'][0])
     end
   end
 
