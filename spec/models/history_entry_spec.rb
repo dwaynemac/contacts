@@ -65,7 +65,7 @@ describe HistoryEntry do
       res.should_not include(s._id)
     end
 
-    it "should returns elements without history entries that currently match expected attribute" do
+    it "should returns elements without history entries after specified date that currently match expected attribute" do
       s = Contact.make(status: :student)
       s.history_entries.create(attribute: :status, old_value: :former_student,  changed_at: 1.month.ago.to_time)
 
@@ -78,8 +78,10 @@ describe HistoryEntry do
     it "should scope to account if specified" do
       account = Account.make
       cs = Contact.make(status: :student, owner: account)
+      account.link(cs) # this shouldn't be necessary
       other_account = Account.make
       other_acc_cs = Contact.make(status: :student, owner: other_account)
+      other_account.link(other_acc_cs)
 
       fs = Contact.make(status: :former_student, owner: account)
       fs.history_entries.create(attribute: :status, old_value: :student, changed_at: 3.weeks.ago.to_time)
@@ -87,6 +89,7 @@ describe HistoryEntry do
       ofs.history_entries.create(attribute: :status, old_value: :student,changed_at: 3.weeks.ago.to_time)
 
       res = HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact', account_name: account.name)
+
       res.should include(cs._id)
       res.should include(fs._id)
       res.should_not include(other_acc_cs._id)

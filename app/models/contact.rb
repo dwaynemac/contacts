@@ -10,9 +10,7 @@ class Contact
 
   accepts_nested_attributes_for :contact_attributes
 
-  embeds_many :contact_attributes, :validate => true
-
-
+  embeds_many :contact_attributes, :validate => true, :cascade_callbacks => true
 
   has_many :history_entries, as: 'historiable', dependent: :delete
   after_save :keep_history_of_changes
@@ -51,7 +49,7 @@ class Contact
   before_validation :set_status
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
 
-  embeds_many :local_statuses, :validate => true
+  embeds_many :local_statuses, :validate => true, :cascade_callbacks => true
   accepts_nested_attributes_for :local_statuses, :allow_destroy => true
 
   belongs_to :owner, :class_name => "Account"
@@ -246,12 +244,23 @@ class Contact
   protected
 
   def assign_owner
-    unless self.owner.present?
-      self.owner = lists.first.account unless lists.empty?
+
+    case self.status
+      when :student
+        self.owner = self.local_statuses.where(status: :student).first.try :account
+      when :former_student
+        unless owner.present?
+          self.owner = self.local_statuses.where(status: :former_student).first.try :account
+        end
+      else
+        unless self.owner.present?
+          self.owner = lists.first.account unless lists.empty?
+        end
     end
 
     # Callbacks arent called when mass-assigning nested models.
     # Iterate over the contact_attributes and set the owner.
+    # TODO cascade_callbacks should make this un-necessary
     if self.owner.present?
       contact_attributes.each { |att| att.account = owner unless att.account.present? }
     end
@@ -281,8 +290,6 @@ class Contact
   end
 
   def keep_history_of_changes
-    return if self.new_record?
-
     # level and global_status
     %W(level status).each do |att|
       if self.send("#{att}_changed?")
@@ -291,15 +298,7 @@ class Contact
                                     old_value: self.changes[att][0])
       end
     end
-
-    # saving contact wont trigget local_status after_save
-    # so we record history here
-    self.local_statuses.select{|ls|ls.status_changed?}.each do |ls|
-      self.history_entries.create(
-        attribute: "local_status_for_#{ls.account_name}",
-        changed_at: Time.zone.now.to_time,
-        old_value: ls.changes['status'][0])
-    end
+    # local_status are tracked in LocalStatus model
   end
 
   def validate_duplicates

@@ -38,7 +38,6 @@ class LocalStatus
   end
 
   def keep_history_of_changes
-    return if self.new_record?
 
     if self.status_changed?
       self.contact.history_entries.create(

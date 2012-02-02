@@ -151,19 +151,6 @@ describe Contact do
     end
   end
 
-  describe "#save" do
-    before do
-      @account = Account.make
-      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [ContactAttribute.plan()]))
-      @contact.lists = []
-      @contact.save
-    end
-
-    it "should set the owners main list" do
-      @contact.lists.first.should == @account.base_list
-    end
-  end
-
   describe "#save with nested attribute params" do
       before do
         @account = Account.make
@@ -433,6 +420,7 @@ describe Contact do
       x = contact.history_entries.count
       global_x = HistoryEntry.count
 
+
       contact.local_status={account_id: account.id, status: :prospect}
       contact.save
       contact.reload
@@ -451,5 +439,27 @@ describe Contact do
     end
   end
 
+  describe "owner auto assignment" do
+    before do
+      @account = Account.make
+      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [ContactAttribute.plan()]))
+      @contact.lists = []
+      @contact.save
+    end
+
+    it "on save a contact without status should set the owners main list" do
+      @contact.lists.first.should == @account.base_list
+    end
+
+    example "if contact is a student, account where it is student should own it" do
+      new_acc = Account.make
+      @contact.local_status={account_id: new_acc.id, status: :student}
+      @contact.save
+      @contact.reload
+      @contact.status.should == :student
+      @contact.owner.should == new_acc
+    end
+
+  end
 
 end
