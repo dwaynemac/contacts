@@ -75,6 +75,18 @@ describe HistoryEntry do
       res.should include(cs._id)
     end
 
+    it "should not include this object" do
+      s = Contact.make(status: :student)
+      s.history_entries.delete_all
+      s.history_entries.should == []
+      s.history_entries.create(attribute: :status, old_value: :prospect,  changed_at: 1.month.ago.to_time)
+      s.history_entries.create(attribute: :status, old_value: :former_student,  changed_at: 20.days.ago.to_time)
+      s.history_entries.count.should == 2
+
+      res = HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact')
+      res.should_not include(s)
+    end
+
     it "should scope to account if specified" do
       account = Account.make
       cs = Contact.make(status: :student, owner: account)
