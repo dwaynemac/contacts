@@ -241,6 +241,57 @@ class Contact
     error_messages
   end
 
+  # This is same as #where but will make some transformations on selector.
+  # All first level value will be converted to Regular expressions
+  #
+  # @param [Hash] selector
+  # @option selector :telephone
+  # @option selector :email
+  # @option selector :address
+  # @option selector :custom_attribute
+  # @option selector :local_status
+  # @option selector :birth_day
+  #
+  # @return [Mongoid::Criteria]
+  def self.api_where(selector = nil)
+    return self if selector.nil?
+
+    new_selector = {'$and' => []}
+
+    selector.each do |k,v|
+      if v.blank?
+        # skip blanks
+      elsif k.to_s.in?(%W(telephone email address custom_attribute))
+        new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v.to_s)}}}
+      elsif k.to_s == 'contact_attributes'
+        new_selector['$and'] << {k => v}
+      elsif k.to_s == 'birth_day'
+        v = {day: v.day, month: v.month, year: v.year} if v.is_a?(Date)
+
+        %W(day month year).each{|k|v.delete(k) if v[k].blank?}
+        v = v.merge({'_type' => 'DateAttribute',category: 'birth_day'})
+
+        new_selector['$and'] << {:contact_attributes => {'$elemMatch' => v}}
+      elsif k.to_s == 'local_status' && @account.present?
+        # Service Consumer asks for local_status but we must map this to HIS local_status
+        new_selector[:local_statuses] = { '$elemMatch' => {account_id: @account.id, status: v}}
+      elsif v.is_a?(String)
+        new_selector[k] = Regexp.new(v)
+      else
+        new_selector[k] = v
+      end
+    end
+
+    if new_selector['$and'].empty?
+      new_selector.delete('$and')
+    elsif new_selector['$and'].size == 1
+      aux = new_selector.delete('$and')[0]
+      new_selector = new_selector.merge(aux)
+    end
+
+    where(new_selector)
+  end
+
   protected
 
   def assign_owner

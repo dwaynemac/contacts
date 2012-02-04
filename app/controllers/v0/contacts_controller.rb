@@ -16,16 +16,15 @@ class V0::ContactsController < V0::ApplicationController
   #   :page [integer]: will return this page (default: 1)
   #   :per_page [integer]: will paginate contacts with this amount per page (default: 10)
   #   :full_text [String]: will make a full_text search with this string.
-  #   :where [Hash]:
+  #   :where [Hash]: Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status
   #
   #  == Response:
   #   :collection [array]: array of contacts {:id, :name, :description, :items}
   #   :total [integer]: total contacts
   def index
 
-    do_full_text_search
-
-    apply_where_conditions
+    @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
+    @scope = @scope.api_where(params[:where])   if params[:where].present?
 
     total = @scope.count
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
@@ -204,36 +203,6 @@ class V0::ContactsController < V0::ApplicationController
     end
 
     params[:contact] = c
-  end
-
-  # TODO refactor into model
-  def do_full_text_search
-    return if params[:full_text].blank?
-
-    @scope = @scope.csearch(params[:full_text])
-  end
-
-  # TODO refactor into model
-  def apply_where_conditions
-    return if params[:where].blank?
-
-    params[:where].each do |k,v|
-      if v.blank?
-        # skip blanks
-      elsif v.is_a?(Hash)
-        v.each do |sk, sv|
-          @scope = @scope.where("#{k}.#{sk}" => Regexp.new(sv))
-          # TODO recursive call for sub-sub-hashes
-        end
-      elsif k.to_s.in?(%W(telephone email address custom_attribute))
-        @scope = @scope.where(contact_attributes: { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v)}})
-      elsif k.to_s == 'local_status' && @account.present?
-        # Service Consumer asks for local_status but we must map this to HIS local_status
-        @scope = @scope.where(local_statuses: { '$elemMatch' => {account_id: @account.id, status: v}})
-      else
-        @scope = @scope.where(k => Regexp.new(v))
-      end
-    end
   end
 
 end

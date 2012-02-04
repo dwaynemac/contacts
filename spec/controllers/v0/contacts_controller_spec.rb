@@ -170,26 +170,6 @@ describe V0::ContactsController do
           end
         end
 
-        context "{:contact_attributes => { '_type' => 'Email', 'value' => 'dwa'}}" do
-          before do
-            get :index, :app_key => V0::ApplicationController::APP_KEY,
-                        :where => { :contact_attributes => { :_type => 'Email', :value => 'dwa' } }
-          end
-          it "should build Criteria" do
-            # TODO avoid regex in _type ?
-            criteria = Contact.where("contact_attributes._type" => /Email/, "contact_attributes.value" => /dwa/)
-            assigns(:contacts).selector.should == criteria.selector
-          end
-          it "should search contacts with email 'dwa'" do
-            [@regex,@w_phone].each do |contact|
-              assigns(:contacts).should include(contact)
-            end
-          end
-          it "should not match contacts with other mails" do
-            assigns(:contacts).should_not include(@diff_mail)
-          end
-        end
-
         context "{ :value => 'salti'}" do
           before do
             @addressed = Contact.make

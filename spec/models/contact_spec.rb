@@ -36,6 +36,26 @@ describe Contact do
     it { should_not allow_value(v).for(:status)}
   end
 
+  describe "#api_where" do
+    context "{:email => 'dwa', :first_name => 'Ale'}" do
+      let(:selector){{:email => "dwa", :first_name => "Ale"}}
+      it "should be analog to .where(contact_attributes: { '$elemMatch' => { '_type' => 'Email', 'value' => /dwa/}}).where('first_name' => /Ale/)" do
+        Contact.api_where(selector).selector.should == {
+          :first_name =>/Ale/,
+          :contact_attributes=>{"$elemMatch"=>{"_type"=>"Email", "value"=>/dwa/}}
+        }
+      end
+    end
+    context "email: 'dwa', telephone: '1234'" do
+      let(:sel){{email: 'dwa', telephone: '1234'}}
+      it "should build an $and" do
+        Contact.api_where(sel).selector.should == {'$and' => [{:contact_attributes => {'$elemMatch' => {'_type' => 'Email','value' => /dwa/}}},
+                                                              {:contact_attributes => {'$elemMatch' => {'_type' => 'Telephone','value' => /1234/}}}
+                                                             ]}
+      end
+    end
+  end
+
   describe "#as_json" do
     before do
       @contact= Contact.make(:owner => Account.make)
