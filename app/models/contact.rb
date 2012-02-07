@@ -259,26 +259,25 @@ class Contact
     new_selector = {'$and' => []}
 
     selector.each do |k,v|
-      if v.blank?
-        # skip blanks
-      elsif k.to_s.in?(%W(telephone email address custom_attribute))
-        new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v.to_s)}}}
-      elsif k.to_s == 'contact_attributes'
-        new_selector['$and'] << {k => v}
-      elsif k.to_s == 'birth_day'
-        v = {day: v.day, month: v.month, year: v.year} if v.is_a?(Date)
-
-        %W(day month year).each{|k|v.delete(k) if v[k].blank?}
-        v = v.merge({'_type' => 'DateAttribute',category: 'birth_day'})
-
-        new_selector['$and'] << {:contact_attributes => {'$elemMatch' => v}}
-      elsif k.to_s == 'local_status' && @account.present?
-        # Service Consumer asks for local_status but we must map this to HIS local_status
-        new_selector[:local_statuses] = { '$elemMatch' => {account_id: @account.id, status: v}}
-      elsif v.is_a?(String)
-        new_selector[k] = Regexp.new(v)
-      else
-        new_selector[k] = v
+      unless v.blank?
+        case k.to_s
+          when 'telephone', 'email', 'address', 'custom_attribute'
+            new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v.to_s)}}}
+          when 'contact_attributes'
+            new_selector['$and'] << {k => v}
+          when 'date_attributes'
+            v.each do |sv|
+              new_selector['$and'] << DateAttribute.convert_selector(sv)
+            end
+          when 'date_attribute'
+            new_selector['$and'] << DateAttribute.convert_selector(v)
+          when 'local_status'
+            if @account.present?
+              new_selector[:local_statuses] = { '$elemMatch' => {account_id: @account.id, status: v}}
+            end
+          else
+            new_selector[k] = v.is_a?(String)? Regexp.new(v) : v
+        end
       end
     end
 

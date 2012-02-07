@@ -19,6 +19,21 @@ class DateAttribute < ContactAttribute
     Date.civil(y.to_i,month.to_i,day.to_i) if Date.valid_civil?(y,month.to_i,day.to_i)
   end
 
+  # Converts a DateAttribute selector to a ContactAttribute selector
+  # @param [Hash/Date] selector
+  # @return [Hash] new_selector
+  # @example
+  #     DateAttribute.convert_selector({day: 1, month:2, year: 2000})
+  #     returns: { :contact_attributes => { '$elemMatch' => {day: 1, month: 2, year: 2000, "_type"=>"DateAttribute"}}}
+  def self.convert_selector(selector)
+    selector = {day: selector.day, month: selector.month, year: selector.year} if selector.is_a?(Date)
+
+    %W(day month year).each{|k|selector.delete(k) if selector[k].blank?}
+    selector = selector.merge({'_type' => 'DateAttribute'})
+
+    {:contact_attributes => {'$elemMatch' => selector}}
+  end
+
   private
 
   def to_integer
