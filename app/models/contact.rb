@@ -278,7 +278,7 @@ class Contact
               new_selector[:local_statuses] = { '$elemMatch' => {account_id: @account.id, status: v}}
             end
           else
-            new_selector[k] = v.is_a?(String)? Regexp.new(v) : v
+            new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
         end
       end
     end
