@@ -267,10 +267,12 @@ class Contact
             new_selector['$and'] << {k => v}
           when 'date_attributes'
             v.each do |sv|
-              new_selector['$and'] << DateAttribute.convert_selector(sv)
+              aux = DateAttribute.convert_selector(sv)
+              new_selector['$and'] << aux unless aux.nil?
             end
           when 'date_attribute'
-            new_selector['$and'] << DateAttribute.convert_selector(v)
+            aux = DateAttribute.convert_selector(v)
+            new_selector['$and'] << aux unless aux.nil?
           when 'local_status'
             if @account.present?
               new_selector[:local_statuses] = { '$elemMatch' => {account_id: @account.id, status: v}}
