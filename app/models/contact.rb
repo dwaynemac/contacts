@@ -262,7 +262,7 @@ class Contact
       unless v.blank?
         case k.to_s
           when 'telephone', 'email', 'address', 'custom_attribute'
-            new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v.to_s)}}}
+            new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}}
           when 'contact_attributes'
             new_selector['$and'] << {k => v}
           when 'date_attributes'

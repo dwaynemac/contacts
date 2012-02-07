@@ -31,7 +31,7 @@ describe DateAttribute do
   describe "#convert_selector" do
     context "DateAttribute.convert_selector({day: 1, month:2, year: 2000})" do
       it "should return { :contact_attributes => { '$elemMatch' => {day: 1, month: 2, year: 2000, '_type'=>'DateAttribute'}}}" do
-        DateAttribute.convert_selector({day: 1, month:2, year: 2000}).should == { :contact_attributes => { '$elemMatch' => {day: 1, month: 2, year: 2000, "_type"=>"DateAttribute"}}}
+        DateAttribute.convert_selector({day: 1, month:2, year: 2000}).should == { :contact_attributes => { '$elemMatch' => {'day' => 1, 'month' => 2, 'year' => 2000, "_type"=>"DateAttribute"}}}
       end
     end
   end

@@ -28,6 +28,7 @@ class DateAttribute < ContactAttribute
   #     returns: { :contact_attributes => { '$elemMatch' => {day: 1, month: 2, year: 2000, "_type"=>"DateAttribute"}}}
   def self.convert_selector(selector)
     selector = {day: selector.day, month: selector.month, year: selector.year} if selector.is_a?(Date)
+    selector.stringify_keys!
 
     i = 0
     %W(day month year).each do |k|

@@ -141,8 +141,10 @@ describe V0::ContactsController do
                 :where => {:email => "dwa", :first_name => "Ale"}
           end
           it "should build Criteria" do
-            criteria = Contact.where(contact_attributes: { '$elemMatch' => { "_type" => "Email", "value" => /dwa/}}).where("first_name" => /Ale/)
-            assigns(:contacts).selector.should == criteria.selector
+            assigns(:contacts).selector.should == {
+              "first_name" => /Ale/i,
+              contact_attributes: { '$elemMatch' => { "_type" => "Email", "value" => /dwa/i}}
+              }
           end
           it "should return contacts that match ALL conditions." do
             assigns(:contacts).should include(@regex)
@@ -180,7 +182,7 @@ describe V0::ContactsController do
                         :where => { :contact_attributes => {:value => "salti"} }
           end
           it "should match street" do
-            assigns(:contacts).all.should include(@addressed)
+            assigns(:contacts).to_a.should include(@addressed)
           end
           it "should match city"
         end
