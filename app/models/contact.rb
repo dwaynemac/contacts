@@ -263,6 +263,14 @@ class Contact
         case k.to_s
           when 'telephone', 'email', 'address', 'custom_attribute'
             new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v.to_s)}}}
+          when 'country'
+            new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => "Address", "country" => Regexp.new(v.to_s)}}}
+          when 'state'
+            new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => "Address", "state" => Regexp.new(v.to_s)}}}
+          when 'city'
+            new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => "Address", "city" => Regexp.new(v.to_s)}}}
+          when 'postal_code'
+            new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => "Address", "postal_code" => Regexp.new(v.to_s)}}}
           when 'contact_attributes'
             new_selector['$and'] << {k => v}
           when 'date_attributes'
