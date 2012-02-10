@@ -8,6 +8,12 @@ Contact.blueprint do
   owner { Account.make }
 end
 
+LocalUniqueAttribute.blueprint do
+  contact { Contact.make }
+  account { Account.make }
+  value "a-value"
+end
+
 LocalStatus.blueprint do
   contact { Contact.make }
   account { Account.make }

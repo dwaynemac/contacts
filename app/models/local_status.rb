@@ -29,6 +29,7 @@ class LocalStatus
 
   private
 
+  # A contact can have :student status in only one account
   def student_at_one_account_only
     return if contact.nil? || status.blank? || !(status == :student)
 

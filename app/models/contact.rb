@@ -4,13 +4,11 @@ require 'mongoid/criteria'
 class Contact
   include Mongoid::Document
   include Mongoid::Timestamps
-  #include Mongoid::Versioning
-
   include Mongoid::Search
 
-  accepts_nested_attributes_for :contact_attributes
-
   embeds_many :contact_attributes, :validate => true, :cascade_callbacks => true
+  validates_associated :contact_attributes
+  accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
 
   has_many :history_entries, as: 'historiable', dependent: :delete
   after_save :keep_history_of_changes
@@ -22,24 +20,11 @@ class Contact
   field :normalized_last_name
   before_save :update_normalized_attributes
 
-=begin
-  TODO study better what this does
-  # run rake db:mongoid:create_indexes to create these indexes
-  index(
-    [
-      [ :normalized_first_name, Mongo::ASCENDING ],
-      [ :normalized_last_name, Mongo::ASCENDING ]
-    ],
-    background: true
-  )
-=end
-
   field :gender
   validates_inclusion_of :gender, in: %W(male female), allow_blank: true
 
   field :avatar
   mount_uploader :avatar, AvatarUploader
-
 
   VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro) # ordered by hierarchy (last is higher)
   field :level, :type => String
@@ -59,10 +44,6 @@ class Contact
   before_save :update_lists
 
   validates :first_name, :presence => true
-
-  validates_associated :contact_attributes
-
-  accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
 
   attr_accessor :check_duplicates
   validate :validate_duplicates, :if => :check_duplicates
@@ -112,8 +93,50 @@ class Contact
     ls
   end
 
-  # TODO define logical attribute #local_status_for_#{account_name} using method missing
+  # @method local_xxx_for_yyy=(value)
+  # @param value
+  # Sets xxx local_unique_attribute on account yyy with value :value
+  # @param method_sym [Symbol]
+  # @param arguments
+  # @param block
+  def method_missing(method_sym, *arguments, &block)
 
+    # local_unique_attribute reader for an account
+    if method_sym.to_s =~ /^local_(.+)_for_(.+[^=])$/
+      a = Account.where(name: $2).first
+      if a.nil?
+        return nil
+      else
+        return self.contact_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first.try :value
+      end
+
+    # local_unique_attribute setter for an account
+    elsif method_sym.to_s =~ /^local_(.+)_for_(.+)=$/
+      a = Account.where(name: $2).first
+      if a.nil?
+        raise 'account not found'
+      else
+        lua = self.contact_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first
+        if lua.nil?
+          self.contact_attributes << $1.camelcase.constantize.new(account: a, value: arguments.first)
+        else
+          lua.value = arguments.first
+        end
+        return
+      end
+
+    else
+      super
+    end
+  end
+
+  def respond_to?(method_sym, include_private = false)
+    if method_sym.to_s =~ /^local_(.+)_for_(.+)=?$/
+      true
+    else
+      super
+    end
+  end
 
   # @param [Hash] options
   # @option options [Account] account
@@ -362,4 +385,5 @@ class Contact
       self.errors[:possible_duplicates] = duplicates.map {|c| c.minimum_representation}
     end
   end
+
 end

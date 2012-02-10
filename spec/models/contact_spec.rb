@@ -2,7 +2,6 @@
 require 'spec_helper'
 
 describe Contact do
-  it { should embed_many :contact_attributes }
 
   it { should belong_to_related :owner }
 
@@ -14,6 +13,8 @@ describe Contact do
   it { should have_field(:level).of_type(String)}
 
   it { should validate_presence_of :first_name }
+
+  it { should embed_many :contact_attributes }
 
   it { should embed_many :local_statuses }
 
@@ -129,6 +130,42 @@ describe Contact do
     it "should fail silently if called with a non-hash argument" do
       @contact.local_status=(:prospect)
       expect{@contact.save}.not_to raise_error
+    end
+  end
+
+  describe "#local_xxx_for_yyy" do
+    before do
+      class Xxx < LocalUniqueAttribute; end
+      @contact = Contact.make
+    end
+    it "should return local_xxx for account named yyy" do
+      c = @contact
+      a = Account.make(name: 'yyy')
+      lua = LocalUniqueAttribute.new(account: a, value: 'thevalue')
+      lua._type = 'Xxx'
+      c.contact_attributes << lua
+      c.save!
+      c.reload
+      c.local_xxx_for_yyy.should == 'thevalue'
+    end
+    it "should create local_status for that account if non-existant" do
+      x = @contact.contact_attributes.count
+      account = Account.make(name: 'accname')
+      @contact.local_xxx_for_accname=('new value')
+      @contact.save! && @contact.reload
+      @contact.contact_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value'
+      @contact.contact_attributes.count.should == x+1
+    end
+    it "should change local_status for that accounts if it exists" do
+      account = Account.make(name: 'accname')
+      @contact.local_xxx_for_accname=('new value')
+      @contact.save! && @contact.reload
+      @contact.contact_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value'
+      x = @contact.contact_attributes.count
+      @contact.local_xxx_for_accname=('new value 2')
+      @contact.save! && @contact.reload
+      @contact.contact_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value 2'
+      @contact.contact_attributes.count.should == x
     end
   end
 
