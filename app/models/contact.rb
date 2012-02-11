@@ -100,14 +100,14 @@ class Contact
     ls
   end
 
-  # @method local_xxx_for_yyy=(value)
+  # @method xxx_for_yyy=(value)
   # @param value
   # Sets xxx local_unique_attribute on account yyy with value :value
-  # @example Contact#local_coefficient_for_belgrano=Coefficient::PMENOS
+  # @example Contact#coefficient_for_belgrano=Coefficient::PMENOS
   def method_missing(method_sym, *arguments, &block)
 
     # local_unique_attribute reader for an account
-    if method_sym.to_s =~ /^local_(.+)_for_(.+[^=])$/
+    if method_sym.to_s =~ /^(.+)_for_(.+[^=])$/
       a = Account.where(name: $2).first
       if a.nil?
         return nil
@@ -116,7 +116,7 @@ class Contact
       end
 
     # local_unique_attribute setter for an account
-    elsif method_sym.to_s =~ /^local_(.+)_for_(.+)=$/
+    elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
       a = Account.where(name: $2).first
       if a.nil?
         raise 'account not found'
@@ -136,7 +136,7 @@ class Contact
   end
 
   def respond_to?(method_sym, include_private = false)
-    if method_sym.to_s =~ /^local_(.+)_for_(.+)=?$/
+    if method_sym.to_s =~ /^(.+)_for_(.+)=?$/
       true
     else
       super

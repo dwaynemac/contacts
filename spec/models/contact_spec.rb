@@ -133,7 +133,7 @@ describe Contact do
     end
   end
 
-  describe "#local_xxx_for_yyy" do
+  describe "#xxx_for_yyy" do
     before do
       class Xxx < LocalUniqueAttribute; end
       @contact = Contact.make
@@ -147,13 +147,13 @@ describe Contact do
       c.contact_attributes << lua
       c.save!
       c.reload
-      c.local_xxx_for_yyy.should == 'thevalue'
+      c.xxx_for_yyy.should == 'thevalue'
     end
 
     it "should create local_xxx for that account if non-existant" do
       x = @contact.contact_attributes.count
       account = Account.make(name: 'accname')
-      @contact.local_xxx_for_accname=('new value')
+      @contact.xxx_for_accname=('new value')
       @contact.save! && @contact.reload
       @contact.local_unique_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value'
       @contact.local_unique_attributes.count.should == x+1
@@ -161,11 +161,11 @@ describe Contact do
 
     it "should change local_xxx for that accounts if it exists" do
       account = Account.make(name: 'accname')
-      @contact.local_xxx_for_accname=('new value')
+      @contact.xxx_for_accname=('new value')
       @contact.save! && @contact.reload
       @contact.local_unique_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value'
       x = @contact.local_unique_attributes.count
-      @contact.local_xxx_for_accname=('new value 2')
+      @contact.xxx_for_accname=('new value 2')
       @contact.save! && @contact.reload
       @contact.local_unique_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value 2'
       @contact.local_unique_attributes.count.should == x
