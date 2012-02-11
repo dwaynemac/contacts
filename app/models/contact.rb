@@ -57,27 +57,21 @@ class Contact
     "#{first_name} #{last_name}"
   end
 
-  # todo refactor into ContactAttribute as a scope and delegate these there
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
   # they all return a Criteria scoping to according _type
   %W(email telephone address custom_attribute date_attribute).each do |k|
-    define_method(k.pluralize) { self.contact_attributes.where(_type: k.camelcase) }
+    delegate k.pluralize, to: :contact_attributes
   end
 
-  # todo refactor into LocalUniqueAttribute as a scope and delegate these there
+  # @return [Array<Telephone>] mobile telephones embedded in this contact
+  def mobiles
+    self.telephones.mobiles
+  end
+
   # defines Contact#coefficients/...
   # they all return a Criteria scoping to according _type
   %W(coefficient).each do |lua|
-    define_method(lua.pluralize){ self.local_unique_attributes.where(_type: lua.camelcase) }
-  end
-
-  # todo refactor into ContactAttribute as a scope and delegate this there
-  # @return [Array<Telephone>] mobile telephones embedded in this contact
-  def mobiles
-    self.contact_attributes.where(
-      "_type" => "Telephone",
-      "category" => "Mobile"
-    )
+    delegate lua.pluralize, to: :local_unique_attributes
   end
 
   # Setter for local_status of a certain account

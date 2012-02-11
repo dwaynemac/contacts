@@ -26,6 +26,11 @@ class ContactAttribute
     super({:methods => [:_type, :contact_id]}.merge(options))
   end
 
+  %W(email telephone address custom_attribute date_attribute).each do |k|
+    scope k.pluralize, where( _type: k.camelcase )
+  end
+  scope :mobiles, where(_type: 'Telephone', category: 'Mobile' )
+
   # Returns ContactAttributes visible to account
   #
   # IF :include_masked is used then it can't be further chained as it will return an Array

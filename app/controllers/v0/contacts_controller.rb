@@ -35,7 +35,7 @@ class V0::ContactsController < V0::ApplicationController
 
   # Returns a contact
   #
-  # @todo add support for tags :topic, :url, :argument, :example_response, :response_field
+  # @todo YARD: add support for tags :topic, :url, :argument, :example_response, :response_field
   # @topic Contacts
   # @url [GET] /v0/contacts/:id
   # @url [GET] /v0/accounts/:account_name/contacts/:id

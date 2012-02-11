@@ -14,6 +14,8 @@ class Telephone < ContactAttribute
     string.gsub(/[^\d]/,"").gsub(/^(\d{4}).*/,'\1')+string.gsub(/[^\d]/,"").gsub(/^\d{4}/,"").gsub(/\d/,"#")
   end
 
+  scope :mobiles, where( category: 'Mobile' )
+
   private
 
   def mobile_uniqueness
