@@ -2,6 +2,7 @@ class LocalStatus
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  include AccountNameAccessor
 
   field :status, type: Symbol
   validate :student_at_one_account_only
@@ -14,14 +15,6 @@ class LocalStatus
   validates_inclusion_of :status, in: Contact::VALID_STATUSES, allow_blank: true
 
   after_save :keep_history_of_changes
-
-  def account_name
-    self.account.try :name
-  end
-
-  def account_name=(name)
-    self.account = Account.where(name: name).first
-  end
 
   def as_json(options)
     super({methods: :account_name, except: :account_id}.merge(options||{}))
