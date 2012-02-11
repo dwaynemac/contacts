@@ -1,5 +1,6 @@
 class LocalUniqueAttribute
   include Mongoid::Document
+  include Mongoid::Timestamps
   include AccountNameAccessor
 
   field :value
@@ -12,7 +13,7 @@ class LocalUniqueAttribute
   validates_presence_of :account
   validates_uniqueness_of :account_id, scope: [:contact_id, '_type']  # scope: :contact_id might not be needed since it's embedded
 
-  %W(coefficient).each do |lua|
+  %W(coefficient local_status).each do |lua|
     scope lua.pluralize, where: { _type: lua.camelcase }
   end
 

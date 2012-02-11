@@ -109,7 +109,7 @@ class V0::ContactsController < V0::ApplicationController
     @contact = @scope.find(params[:id])
 
     if params[:contact][:local_status] && @account
-      params[:contact][:local_status] = {:account_id => @account.id, :status => params[:contact].delete(:local_status)}
+      params[:contact]["local_status_for_#{@account.name}"] = params[:contact].delete(:local_status)
     end
 
     if @contact.update_attributes(params[:contact])

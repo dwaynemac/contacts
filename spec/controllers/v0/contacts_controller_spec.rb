@@ -197,10 +197,10 @@ describe V0::ContactsController do
       @contact.contact_attributes << Email.make(:account => Account.make, :public => true)
       @contact.contact_attributes << Address.make(:account => Account.make, :public => false)
 
-      @contact.local_statuses << LocalStatus.make
-      @contact.local_statuses << LocalStatus.make
+      @contact.local_unique_attributes <<  LocalStatus.make
+      @contact.local_unique_attributes <<  LocalStatus.make
       @local_status = LocalStatus.make(account: @contact.owner)
-      @contact.local_statuses << @local_status
+      @contact.local_unique_attributes <<  @local_status
 
       @contact.save
     end
@@ -353,8 +353,8 @@ describe V0::ContactsController do
     before do
       @account = Account.make
       @contact = Contact.make(owner: @account)
-      @contact.local_statuses << LocalStatus.make
-      @contact.local_statuses << LocalStatus.make(account: @account)
+      @contact.local_unique_attributes <<  LocalStatus.make
+      @contact.local_unique_attributes <<  LocalStatus.make(account: @account)
       @contact.save
     end
     context "without :account_id" do

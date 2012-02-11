@@ -15,8 +15,7 @@ describe Contact do
   it { should validate_presence_of :first_name }
 
   it { should embed_many :contact_attributes }
-
-  it { should embed_many :local_statuses }
+  it { should embed_many :local_unique_attributes }
 
   %W(first_name last_name).each do |attr|
     specify "normalized_#{attr} should be updated when #{attr} is updated" do
@@ -85,20 +84,20 @@ describe Contact do
 
   describe "update_status!" do
     it "should be :student if there is any local_status :student" do
-      ls = LocalStatus.make(status: :student)
-      ls2 = LocalStatus.make(status: :prospect)
+      ls = LocalStatus.make(value: :student)
+      ls2 = LocalStatus.make(value: :prospect)
       c = Contact.make
-      c.local_statuses << ls
-      c.local_statuses << ls2
+      c.local_unique_attributes << ls
+      c.local_unique_attributes << ls2
       c.update_status!
       c.status.should == :student
     end
     it "should be :former_student if there is any local_status :former_student and no :student" do
-      c = Contact.make(local_statuses: [LocalStatus.make(status: :former_student),LocalStatus.make(status: :prospect)])
+      c = Contact.make(local_unique_attributes: [LocalStatus.make(value: :former_student),LocalStatus.make(value: :prospect)])
       c.status.should == :former_student
     end
     it "should be :prospect if there is any local_status :prospect and no :student or :former_student" do
-      c = Contact.make(local_statuses: [LocalStatus.make(status: :prospect)])
+      c = Contact.make(local_unique_attributes: [LocalStatus.make(value: :prospect)])
       c.status.should == :prospect
     end
   end
@@ -107,8 +106,8 @@ describe Contact do
     before do
       @contact = Contact.make
       @account = Account.make
-      @contact.local_statuses << LocalStatus.make
-      @contact.local_statuses << LocalStatus.make(account: @account)
+      @contact.local_unique_attributes << LocalStatus.make
+      @contact.local_unique_attributes << LocalStatus.make(account: @account)
     end
     it "should create local_status for that account if non-existant" do
       @contact.local_statuses.count.should == 2

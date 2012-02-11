@@ -4,7 +4,9 @@ require 'mongoid/criteria'
 class Contact
   include Mongoid::Document
   include Mongoid::Timestamps
+
   include Mongoid::Search
+  search_in :first_name, :last_name, {:contact_attributes => :value }, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml")}
 
   embeds_many :contact_attributes, :validate => true, :cascade_callbacks => true
   validates_associated :contact_attributes
@@ -34,12 +36,10 @@ class Contact
   field :level, :type => String
 
   VALID_STATUSES = [:student, :former_student, :prospect] # they are ordered by precedence (first has precedence)
+
   field :status, type: Symbol
   before_validation :set_status
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
-
-  embeds_many :local_statuses, :validate => true, :cascade_callbacks => true
-  accepts_nested_attributes_for :local_statuses, :allow_destroy => true
 
   belongs_to :owner, :class_name => "Account"
   before_validation :assign_owner
@@ -70,14 +70,14 @@ class Contact
 
   # defines Contact#coefficients/...
   # they all return a Criteria scoping to according _type
-  %W(coefficient).each do |lua|
+  %W(coefficient local_status).each do |lua|
     delegate lua.pluralize, to: :local_unique_attributes
   end
 
   # Setter for local_status of a certain account
   # This allows a cleaner API for update /accounts/account_id/contacts usage
   # @author Dwayne Macgowan
-  # @param [Hash] options
+  # @param options [Hash]
   # @option options [String] :account_id
   # @option options [Symbol] :status this should be a valid status
   # @raise [ArgumentError] if :account_id is not given
@@ -93,7 +93,8 @@ class Contact
     return unless options.is_a?(Hash)
     ls = self.local_statuses.where(:account_id => options[:account_id]).first
     if ls.nil?
-      self.local_statuses.new(account_id: options[:account_id], status: options[:status])
+      ls = LocalStatus.new(account_id: options[:account_id], value: options[:status])
+      self.local_unique_attributes << ls
     else
       ls.status = options[:status]
     end
@@ -130,6 +131,7 @@ class Contact
         return
       end
 
+
     else
       super
     end
@@ -154,7 +156,7 @@ class Contact
       options.merge!({:except => :contact_attributes})
     end
 
-    json = super(options.merge!({:except => :owner_id, :methods => [:owner_name]}))
+    json = super(options.merge!({:except => :owner_id, :methods => [:owner_name, :local_statuses]}))
 
     if account
       # add these data when account specified
@@ -188,7 +190,6 @@ class Contact
     self.owner = Account.where(:name => name).first
   end
 
-  search_in :first_name, :last_name, {:contact_attributes => :value }, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml")}
 
   def update_status!
     self.set_status
@@ -305,8 +306,9 @@ class Contact
             new_selector['$and'] << aux unless aux.nil?
           when 'local_status'
             if @account.present?
-              new_selector[:local_statuses] = { '$elemMatch' => {account_id: @account.id, status: v}}
+              new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: 'LocalStatus', value: v, account_id: @account.id}}
             end
+          # todo add when /(xxx)_for_(yyy)/ case
           else
             new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
         end
@@ -329,10 +331,10 @@ class Contact
 
     case self.status
       when :student
-        self.owner = self.local_statuses.where(status: :student).first.try :account
+        self.owner = self.local_statuses.where(value: :student).first.try :account
       when :former_student
         unless owner.present?
-          self.owner = self.local_statuses.where(status: :former_student).first.try :account
+          self.owner = self.local_statuses.where(value: :former_student).first.try :account
         end
       else
         unless self.owner.present?
@@ -361,7 +363,7 @@ class Contact
   end
 
   def set_status
-    distinct_statuses = local_statuses.distinct(:status)
+    distinct_statuses = local_statuses.distinct(:value)
     # order of VALID_STATUSES is important
     VALID_STATUSES.each do |s|
       if distinct_statuses.include?(s)
