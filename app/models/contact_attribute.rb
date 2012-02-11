@@ -1,13 +1,11 @@
 class ContactAttribute
   include Mongoid::Document
-  #include Mongoid::Timestamps
+  include ReadOnly
 
   field :public, type: Boolean
   field :value, type: String
 
   validates :value, :presence => true
-
-  validate :write_enabled
 
   embedded_in :contact
 
@@ -70,24 +68,12 @@ class ContactAttribute
     self
   end
 
-  # TODO refactor readonly functionality to a Module and include it here
-  def readonly!
-    @readonly = true
-  end
-
-  def readonly?
-    @readonly
-  end
-
   protected
 
   def assign_owner
     self.account = self.contact.owner if self.account.blank? && self.contact.owner.present?
   end
 
-  def write_enabled
-    raise "ReadOnly" if @readonly
-  end
 
   def contact_id
     contact.id
