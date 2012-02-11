@@ -108,7 +108,7 @@ describe HistoryEntry do
       res.should_not include(ofs._id)
     end
 
-    it "should no raise exception when there are no records" do
+    it "should not raise exception when there are no records" do
       expect{HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago)}.not_to raise_error
     end
   end

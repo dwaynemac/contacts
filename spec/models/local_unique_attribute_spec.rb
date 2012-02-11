@@ -18,15 +18,6 @@ describe LocalUniqueAttribute do
     invalid.should be_invalid
   end
 
-  it { should have_field(:public).of_type(Boolean) }
-  it "should be always private" do
-    lua = LocalUniqueAttribute.make()
-    lua.should_not be_public
-    lua.public = true
-    lua.save
-    lua.should_not be_public
-  end
-
   describe "account_name" do
     before do
       @account = Account.make

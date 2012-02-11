@@ -74,7 +74,6 @@ class ContactAttribute
     self.account = self.contact.owner if self.account.blank? && self.contact.owner.present?
   end
 
-
   def contact_id
     contact.id
   end

@@ -1,34 +1,24 @@
-class LocalUniqueAttribute < ContactAttribute
+class LocalUniqueAttribute
+  include Mongoid::Document
+  include AccountNameAccessor
+
+  field :value
+
+  validates :value, :presence => true
+
+  embedded_in :contact
+  referenced_in :account
 
   validates_presence_of :account
-  validates_uniqueness_of :account_id, scope: [:contact_id, '_type']
-
-  before_validation :never_public
-
-  # @return [String] account name
-  def account_name
-    self.account.try :name
-  end
-
-  # Sets account by name
-  # won't create account if inexistant
-  def account_name=(name)
-    self.account = Account.where(name: name).first
-  end
+  validates_uniqueness_of :account_id, scope: [:contact_id, '_type']  # scope: :contact_id might not be needed since it's embedded
 
   # Override as_json to change :account_id for :account_name
   def as_json(options)
-    super({methods: [:account_name], except: :account_id}.merge(options||{}))
+    super({methods: [:_type, :account_name], except: :account_id}.merge(options||{}))
   end
 
   def public?
     false
-  end
-
-  private
-  def never_public
-    self.public = false
-    return true
   end
 
 end

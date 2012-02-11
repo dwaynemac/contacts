@@ -138,6 +138,7 @@ describe Contact do
       class Xxx < LocalUniqueAttribute; end
       @contact = Contact.make
     end
+
     it "should return local_xxx for account named yyy" do
       c = @contact
       a = Account.make(name: 'yyy')
@@ -148,24 +149,26 @@ describe Contact do
       c.reload
       c.local_xxx_for_yyy.should == 'thevalue'
     end
-    it "should create local_status for that account if non-existant" do
+
+    it "should create local_xxx for that account if non-existant" do
       x = @contact.contact_attributes.count
       account = Account.make(name: 'accname')
       @contact.local_xxx_for_accname=('new value')
       @contact.save! && @contact.reload
-      @contact.contact_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value'
-      @contact.contact_attributes.count.should == x+1
+      @contact.local_unique_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value'
+      @contact.local_unique_attributes.count.should == x+1
     end
-    it "should change local_status for that accounts if it exists" do
+
+    it "should change local_xxx for that accounts if it exists" do
       account = Account.make(name: 'accname')
       @contact.local_xxx_for_accname=('new value')
       @contact.save! && @contact.reload
-      @contact.contact_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value'
-      x = @contact.contact_attributes.count
+      @contact.local_unique_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value'
+      x = @contact.local_unique_attributes.count
       @contact.local_xxx_for_accname=('new value 2')
       @contact.save! && @contact.reload
-      @contact.contact_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value 2'
-      @contact.contact_attributes.count.should == x
+      @contact.local_unique_attributes.where('_type' => 'Xxx', account_id: account.id).first.try(:value).should == 'new value 2'
+      @contact.local_unique_attributes.count.should == x
     end
   end
 

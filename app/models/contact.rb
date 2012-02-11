@@ -10,6 +10,10 @@ class Contact
   validates_associated :contact_attributes
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
 
+  embeds_many :local_unique_attributes, validate: true, cascade_callbacks: true
+  validates_associated :local_unique_attributes
+  accepts_nested_attributes_for :local_unique_attributes, allow_destroy: true
+
   has_many :history_entries, as: 'historiable', dependent: :delete
   after_save :keep_history_of_changes
 
@@ -53,12 +57,21 @@ class Contact
     "#{first_name} #{last_name}"
   end
 
+  # todo refactor into ContactAttribute as a scope and delegate these there
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
   # they all return a Criteria scoping to according _type
   %W(email telephone address custom_attribute date_attribute).each do |k|
     define_method(k.pluralize) { self.contact_attributes.where(_type: k.camelcase) }
   end
 
+  # todo refactor into LocalUniqueAttribute as a scope and delegate these there
+  # defines Contact#coefficients/...
+  # they all return a Criteria scoping to according _type
+  %W(coefficient).each do |lua|
+    define_method(lua.pluralize){ self.local_unique_attributes.where(_type: lua.camelcase) }
+  end
+
+  # todo refactor into ContactAttribute as a scope and delegate this there
   # @return [Array<Telephone>] mobile telephones embedded in this contact
   def mobiles
     self.contact_attributes.where(
@@ -107,7 +120,7 @@ class Contact
       if a.nil?
         return nil
       else
-        return self.contact_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first.try :value
+        return self.local_unique_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first.try :value
       end
 
     # local_unique_attribute setter for an account
@@ -116,9 +129,9 @@ class Contact
       if a.nil?
         raise 'account not found'
       else
-        lua = self.contact_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first
+        lua = self.local_unique_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first
         if lua.nil?
-          self.contact_attributes << $1.camelcase.constantize.new(account: a, value: arguments.first)
+          self.local_unique_attributes << $1.camelcase.constantize.new(account: a, value: arguments.first)
         else
           lua.value = arguments.first
         end
@@ -248,7 +261,7 @@ class Contact
   def deep_error_messages
     error_messages = self.errors.messages.dup
 
-
+    # todo include here local_unique_attributes errors
     if error_messages[:contact_attributes]
       error_messages[:contact_attributes] = self.contact_attributes.reject(&:valid?).map do |c_attr|
         c_attr.errors.messages.map do |k,v|
