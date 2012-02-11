@@ -103,9 +103,7 @@ class Contact
   # @method local_xxx_for_yyy=(value)
   # @param value
   # Sets xxx local_unique_attribute on account yyy with value :value
-  # @param method_sym [Symbol]
-  # @param arguments
-  # @param block
+  # @example Contact#local_coefficient_for_belgrano=Coefficient::PMENOS
   def method_missing(method_sym, *arguments, &block)
 
     # local_unique_attribute reader for an account

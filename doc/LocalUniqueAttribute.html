@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>
-  Class: LocalStatus
+  Class: LocalUniqueAttribute
   
     &mdash; Documentation by YARD 0.7.5
   
@@ -36,7 +36,7 @@
     <a href="_index.html">Index (L)</a> &raquo; 
     
     
-    <span class="title">LocalStatus</span>
+    <span class="title">LocalUniqueAttribute</span>
   
   
   <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
@@ -56,7 +56,7 @@
     
     <iframe id="search_frame"></iframe>
     
-    <div id="content"><h1>Class: LocalStatus
+    <div id="content"><h1>Class: LocalUniqueAttribute
   
   
   
@@ -71,7 +71,7 @@
         <ul class="fullTree">
           <li>Object</li>
           
-            <li class="next">LocalStatus</li>
+            <li class="next">LocalUniqueAttribute</li>
           
         </ul>
         <a href="#" class="inheritanceTree">show all</a>
@@ -84,18 +84,22 @@
   
     
       <dt class="r2">Includes:</dt>
-      <dd class="r2"><span class='object_link'><a href="AccountNameAccessor.html" title="AccountNameAccessor (module)">AccountNameAccessor</a></span>, Mongoid::Document, Mongoid::Timestamps</dd>
+      <dd class="r2"><span class='object_link'><a href="AccountNameAccessor.html" title="AccountNameAccessor (module)">AccountNameAccessor</a></span>, Mongoid::Document</dd>
       
     
   
   
   
     <dt class="r1 last">Defined in:</dt>
-    <dd class="r1 last">app/models/local_status.rb</dd>
+    <dd class="r1 last">app/models/local_unique_attribute.rb</dd>
   
 </dl>
 <div class="clear"></div>
 
+<div id="subclasses">
+  <h2>Direct Known Subclasses</h2>
+  <p class="children"><span class='object_link'><a href="Coefficient.html" title="Coefficient (class)">Coefficient</a></span></p>
+</div>
 
 
 
@@ -115,6 +119,30 @@
   <span class="summary_signature">
     
       <a href="#as_json-instance_method" title="#as_json (instance method)">- (Object) <strong>as_json</strong>(options) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Override as_json to change :account_id for :account_name.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#public%3F-instance_method" title="#public? (instance method)">- (Boolean) <strong>public?</strong> </a>
     
 
     
@@ -147,7 +175,6 @@
   <p class="inherited"><span class='object_link'><a href="AccountNameAccessor.html#account_name-instance_method" title="AccountNameAccessor#account_name (method)">#account_name</a></span>, <span class='object_link'><a href="AccountNameAccessor.html#account_name%3D-instance_method" title="AccountNameAccessor#account_name= (method)">#account_name=</a></span></p>
 
   
-  
 
   <div id="instance_method_details" class="method_details_list">
     <h2>Instance Method Details</h2>
@@ -160,21 +187,83 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Override as_json to change :account_id for :account_name
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-19
 20
-21</pre>
+21
+22</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'app/models/local_status.rb', line 19</span>
+      <pre class="code"><span class="info file"># File 'app/models/local_unique_attribute.rb', line 20</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_as_json'>as_json</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
-  <span class='kw'>super</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='label'>methods:</span> <span class='symbol'>:account_name</span><span class='comma'>,</span> <span class='label'>except:</span> <span class='symbol'>:account_id</span><span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='op'>||</span><span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='rparen'>)</span>
+  <span class='kw'>super</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='label'>methods:</span> <span class='lbracket'>[</span><span class='symbol'>:_type</span><span class='comma'>,</span> <span class='symbol'>:account_name</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>except:</span> <span class='symbol'>:account_id</span><span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='op'>||</span><span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="public?-instance_method">
+  
+    - (<tt>Boolean</tt>) <strong>public?</strong> 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+24
+25
+26</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'app/models/local_unique_attribute.rb', line 24</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_public?'>public?</span>
+  <span class='kw'>false</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
