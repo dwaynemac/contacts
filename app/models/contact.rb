@@ -65,7 +65,7 @@ class Contact
 
   # @return [Array<Telephone>] mobile telephones embedded in this contact
   def mobiles
-    self.telephones.mobiles
+    self.contact_attributes.telephones.mobiles
   end
 
   # defines Contact#coefficients/...
@@ -145,6 +145,10 @@ class Contact
     end
   end
 
+  def coefficients_counts
+    Coefficient::VALID_VALUES.map{ |vv| {vv => self.coefficients.where(value: vv).count} }.inject(:merge)
+  end
+
   # @param [Hash] options
   # @option options [Account] account
   # @option options [TrueClass] include_masked
@@ -153,15 +157,17 @@ class Contact
     account = options.delete(:account) if options
     if account
       # add these options when account specified
-      options.merge!({:except => :contact_attributes})
+      options.merge!({:except => [:contact_attributes, :local_unique_attributes]})
     end
 
-    json = super(options.merge!({:except => :owner_id, :methods => [:owner_name, :local_statuses]}))
+    json = super(options.merge!({:except => :owner_id, :methods => [:owner_name, :local_statuses, :coefficients_counts]}))
 
     if account
       # add these data when account specified
       json[:contact_attributes] = self.contact_attributes.for_account(account, options)
-      json[:local_status] = self.local_statuses.where(account_id: account._id).try(:first).try(:status)
+      %w{local_status coefficient}.each do |local_attribute|
+        json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
+      end
       json[:linked] = self.linked_to?(account)
     end
     json

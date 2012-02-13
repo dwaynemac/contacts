@@ -2,7 +2,8 @@ class V0::ContactsController < V0::ApplicationController
 
   before_filter :set_list
   before_filter :set_scope
-  before_filter :typhoeus_bugfix, :only => [:create, :update]
+  before_filter :convert_local_attributes, only: [:create, :update]
+  before_filter :typhoeus_bugfix, only: [:create, :update]
 
   #  Returns list of contacts
   #
@@ -76,7 +77,6 @@ class V0::ContactsController < V0::ApplicationController
 
     @contact =  @scope.new(params[:contact])
 
-
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
@@ -107,10 +107,6 @@ class V0::ContactsController < V0::ApplicationController
   #   :status [integer] = type of error
   def update
     @contact = @scope.find(params[:id])
-
-    if params[:contact][:local_status] && @account
-      params[:contact]["local_status_for_#{@account.name}"] = params[:contact].delete(:local_status)
-    end
 
     if @contact.update_attributes(params[:contact])
       render :json => "OK"# , :status => :updated
@@ -168,6 +164,22 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   private
+
+  # Converts
+  #   local_status -> local_status_for_CurrentAccountName
+  #   coefficient  -> coefficient_for_CurrentAccountName
+  def convert_local_attributes
+    %w(local_status coefficient).each do |la|
+      if @account
+        if params[:contact][la]
+          params[:contact]["#{la}_for_#{@account.name}"] = params[:contact].delete(la)
+        end
+      else
+        params[:contact].delete(la)
+      end
+    end
+  end
+
 
   def set_list
     if @account && params[:list_name]

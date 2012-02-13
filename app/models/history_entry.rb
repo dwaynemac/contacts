@@ -69,7 +69,7 @@ class HistoryEntry
 
     # first DB hit
     res = self.collection.map_reduce(map_js,reduce_js,query: conds,out: 'oldest_date')
-    res = filter_post_map_reduce(res,options)
+    res = filter_post_map_reduce(res,options) # TODO refactor to a finalize function in the mapreduce?
     res = res.to_a.map{|rdoc| rdoc['_id']['historiable_id'] }
 
     add_elements_without_history(res,options)

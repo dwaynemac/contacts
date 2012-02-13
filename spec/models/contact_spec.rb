@@ -66,6 +66,37 @@ describe Contact do
     it "should inclue owner_name" do
       @contact.as_json.should have_key 'owner_name'
     end
+    it "should include :coefficients_counts key" do
+      @contact.as_json.should have_key 'coefficients_counts'
+    end
+    context "account specified" do
+      subject { @contact.as_json(account: Account.first)}
+      it { should have_key 'coefficient'}
+    end
+    context "account not specified" do
+      subject { @contact.as_json}
+      it { should_not have_key 'coefficient' }
+    end
+  end
+
+  describe "#coefficients_counts" do
+    it "should return all coeficients, even if zero" do
+      subj = Contact.make.coefficients_counts
+      Coefficient::VALID_VALUES.each do |vv|
+        subj.should have_key(vv)
+      end
+    end
+    it "should count coefficients grouping by value" do
+      c = Contact.make
+      3.times { c.local_unique_attributes << Coefficient.new(value: 'fp', account: Account.make) }
+      2.times { c.local_unique_attributes << Coefficient.new(value: 'perfil', account: Account.make) }
+      5.times { c.local_unique_attributes << Coefficient.new(value: 'pmas', account: Account.make) }
+
+      c.coefficients_counts['fp'].should == 3
+      c.coefficients_counts['pmenos'].should == 0
+      c.coefficients_counts['perfil'].should == 2
+      c.coefficients_counts['pmas'].should == 5
+    end
   end
 
   describe "#mobiles" do
