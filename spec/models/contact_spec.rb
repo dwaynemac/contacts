@@ -54,6 +54,16 @@ describe Contact do
                                                              ]}
       end
     end
+    context "{local_status: 'student'}, account" do
+      it "should return local_unique_attribute criteria" do
+        account = Account.make
+        Contact.api_where({local_status: 'student'}, account.id).selector.should == {
+          local_unique_attributes: {
+            '$elemMatch' => {_type: 'LocalStatus', value: 'student', account_id: account.id}
+          }
+        }
+      end
+    end
   end
 
   describe "#as_json" do

@@ -74,7 +74,7 @@ class Contact
     delegate lua.pluralize, to: :local_unique_attributes
   end
 
-  # Setter for local_status of a certain account
+  # Setter for local_status of a certain account_id
   # This allows a cleaner API for update /accounts/account_id/contacts usage
   # @author Dwayne Macgowan
   # @param options [Hash]
@@ -85,7 +85,7 @@ class Contact
   # @example @contact.local_status = account_id: acc.id, status: :student
   #
   # @example
-  #   params[:contact][:local_status] = {:account_id => @account.id, :status => params[:contact].delete(:local_status)}
+  #   params[:contact][:local_status] = {:account_id => @account_id.id, :status => params[:contact].delete(:local_status)}
   #   @contact.update_attributes(params[:contact])
   #
   # @return [LocalStatus]
@@ -103,11 +103,11 @@ class Contact
 
   # @method xxx_for_yyy=(value)
   # @param value
-  # Sets xxx local_unique_attribute on account yyy with value :value
+  # Sets xxx local_unique_attribute on account_id yyy with value :value
   # @example Contact#coefficient_for_belgrano=Coefficient::PMENOS
   def method_missing(method_sym, *arguments, &block)
 
-    # local_unique_attribute reader for an account
+    # local_unique_attribute reader for an account_id
     if method_sym.to_s =~ /^(.+)_for_(.+[^=])$/
       a = Account.where(name: $2).first
       if a.nil?
@@ -116,11 +116,11 @@ class Contact
         return self.local_unique_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first.try :value
       end
 
-    # local_unique_attribute setter for an account
+    # local_unique_attribute setter for an account_id
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
       a = Account.where(name: $2).first
       if a.nil?
-        raise 'account not found'
+        raise 'account_id not found'
       else
         lua = self.local_unique_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first
         if lua.nil?
@@ -150,20 +150,20 @@ class Contact
   end
 
   # @param [Hash] options
-  # @option options [Account] account
+  # @option options [Account] account_id
   # @option options [TrueClass] include_masked
   def as_json(options={})
     options={} if options.nil? # default set in method definition seems not to be working
     account = options.delete(:account) if options
     if account
-      # add these options when account specified
+      # add these options when account_id specified
       options.merge!({:except => [:contact_attributes, :local_unique_attributes]})
     end
 
     json = super(options.merge!({:except => :owner_id, :methods => [:owner_name, :local_statuses, :coefficients_counts]}))
 
     if account
-      # add these data when account specified
+      # add these data when account_id specified
       json[:contact_attributes] = self.contact_attributes.for_account(account, options)
       %w{local_status coefficient}.each do |local_attribute|
         json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
@@ -281,16 +281,17 @@ class Contact
   # This is same as #where but will make some transformations on selector.
   # All first level value will be converted to Regular expressions
   #
-  # @param [Hash] selector
+  # @param selector   [ Hash ]      query
+  # @param account_id    [ BSON / String ] account id with wich to interpret local attributes
   # @option selector :telephone
   # @option selector :email
   # @option selector :address
   # @option selector :custom_attribute
-  # @option selector :local_status
+  # @option selector :local_status      only considered if account_id is specified
   # @option selector :birth_day
   #
   # @return [Mongoid::Criteria]
-  def self.api_where(selector = nil)
+  def self.api_where(selector = nil, account_id = nil)
     return self if selector.nil?
 
     new_selector = {'$and' => []}
@@ -313,8 +314,8 @@ class Contact
             aux = DateAttribute.convert_selector(v)
             new_selector['$and'] << aux unless aux.nil?
           when 'local_status'
-            if @account.present?
-              new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: 'LocalStatus', value: v, account_id: @account.id}}
+            if account_id.present?
+              new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: 'LocalStatus', value: v, account_id: account_id}}
             end
           # todo add when /(xxx)_for_(yyy)/ case
           else
