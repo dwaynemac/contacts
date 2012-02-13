@@ -5,8 +5,6 @@ class LocalUniqueAttribute
 
   field :value
 
-  validates :value, :presence => true
-
   embedded_in :contact
   referenced_in :account
 

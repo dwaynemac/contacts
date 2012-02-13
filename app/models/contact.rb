@@ -261,15 +261,17 @@ class Contact
     error_messages = self.errors.messages.dup
 
     # todo include here local_unique_attributes errors
-    if error_messages[:contact_attributes]
-      error_messages[:contact_attributes] = self.contact_attributes.reject(&:valid?).map do |c_attr|
-        c_attr.errors.messages.map do |k,v|
-          if k == :value
-            "#{c_attr.value} #{v.join(', ')}"
-          else
-            "#{k} #{c_attr.send(k)} #{v.join(', ')}"
-          end
-        end.flatten
+    [:contact_attributes, :local_unique_attributes].each do |k|
+      if error_messages[k]
+        error_messages[k] = self.send(k).reject(&:valid?).map do |obj|
+          obj.errors.messages.map do |attr,messages|
+            if attr == :value
+              "#{obj.value} #{messages.join(', ')}"
+            else
+              "#{attr} #{obj.send(attr)} #{messages.join(', ')}"
+            end
+          end.flatten
+        end
       end
     end
 
