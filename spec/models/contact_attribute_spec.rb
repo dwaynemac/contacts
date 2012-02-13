@@ -18,6 +18,9 @@ describe ContactAttribute do
     it "should consider options" do
       @c.contact_attributes.last.as_json(exclude: [:value])[:value].should be_nil
     end
+    it "should show account_name" do
+      @c.contact_attributes.last.as_json.should have_key 'account_name'
+    end
   end
 
   describe "readonly" do

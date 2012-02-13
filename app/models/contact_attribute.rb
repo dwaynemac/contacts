@@ -1,6 +1,7 @@
 class ContactAttribute
   include Mongoid::Document
   include ReadOnly
+  include AccountNameAccessor
 
   field :public, type: Boolean
   field :value, type: String
@@ -13,17 +14,16 @@ class ContactAttribute
 
   before_save :assign_owner
 
+  # - replaces :account_id with :account_name
+  # - adds :_type, :contact_id
+  #
   # @param options [Hash]
   def as_json(options={})
-    if options.nil?
-      # avoid exception in case it was called with nil
-      options = {}
-    elsif options[:methods].present?
-      # :_type is excluded from json by default by Mongoid
-      options[:methods] += [:_type, :contact_id]
-    end
+    options = {} if options.nil?
+    options[:methods] = [:_type, :contact_id, :account_name] + ( options[:methods].try(:to_a) || [])
+    options[:except]  = [:account_id] + ( options[:except].try(:to_a) || [])
 
-    super({:methods => [:_type, :contact_id]}.merge(options))
+    super(options)
   end
 
   %W(email telephone address custom_attribute date_attribute).each do |k|
