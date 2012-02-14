@@ -36,6 +36,53 @@ describe Contact do
     it { should_not allow_value(v).for(:status)}
   end
 
+  describe "#_keywords" do
+    it "should be updated when contact is created" do
+      c = Contact.make_unsaved(first_name: 'dwayne', last_name: 'macg')
+      c.save
+      c._keywords.should include('dwayne')
+      c._keywords.should include('macg')
+    end
+    it "should be updated when a new attribute is added" do
+      c = Contact.make
+      c.contact_attributes << Email.make(value: 'dwaynemac@gmail.com')
+      c.save
+      c._keywords.should include('dwaynemac')
+      c._keywords.should include('gmail')
+    end
+    it "should be updated when an attribute is deleted" do
+      c = Contact.make
+      c.contact_attributes << Email.make(value: 'dwaynemac@gmail.com')
+      c.save
+      c._keywords.should include('dwaynemac')
+      c.contact_attributes.last.destroy
+      c.save
+      c._keywords.should_not include 'dwaynemac'
+    end
+    it "should be updated when an attribute is updated" do
+      c = Contact.make
+      c.contact_attributes << Email.make(value: 'dwaynemac@gmail.com')
+      c.save
+      c._keywords.should include('dwaynemac')
+      e = c.contact_attributes.last
+      e.value = 'newmail@gm.com'
+      e.save # saving child probably fails to update _keywords
+      c.reload
+      c._keywords.should include 'newmail'
+      c._keywords.should_not include 'dwaynenemac'
+    end
+    it "should ignore words: com net org ar br pt" do
+      c = Contact.make
+      %w(com net org ar br pt).each do |k|
+        c.contact_attributes << Email.make(value: "dwaynemac@gmail.#{k}")
+        c.save
+        c._keywords.should include('dwaynemac')
+        c._keywords.should include('gmail')
+        c._keywords.should_not include k
+      end
+    end
+  end
+
   describe "#api_where" do
     context "{:email => 'dwa', :first_name => 'Ale'}" do
       let(:selector){{:email => "dwa", :first_name => "Ale"}}
