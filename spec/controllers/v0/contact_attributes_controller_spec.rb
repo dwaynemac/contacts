@@ -23,6 +23,9 @@ describe V0::ContactAttributesController do
       it "should change the value" do
         @contact.reload.contact_attributes.first.value.should == @new_value
       end
+      it "should update contact _keywords" do
+        @contact.reload._keywords.should include(@new_value)
+      end
     end
     context "without app_key" do
       before do
@@ -97,6 +100,9 @@ describe V0::ContactAttributesController do
       it "should assign attribute to account" do
         @contact.reload.contact_attributes.last.account.should == other_account
       end
+      it "should update contact _keywords" do
+        @contact.reload._keywords.should include(@telephone)
+      end
     end
   end
 
@@ -111,6 +117,14 @@ describe V0::ContactAttributesController do
                     :contact_id => @contact.id,
                     :account_name => @contact.owner.name,
                     :app_key => V0::ApplicationController::APP_KEY}.to change{@contact.reload.contact_attributes.count}.by(-1)
+      end
+      it "should remove value from _keywords" do
+        post :destroy, :method => :delete,
+             :id => @contact_attribute.id,
+             :contact_id => @contact.id,
+             :account_name => @contact.owner.name,
+             :app_key => V0::ApplicationController::APP_KEY
+        @contact.reload._keywords.should_not include(@contact_attribute.value)
       end
     end
     describe "as a viewer/editor" do

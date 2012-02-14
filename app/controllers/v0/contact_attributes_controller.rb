@@ -32,6 +32,7 @@ class V0::ContactAttributesController < V0::ApplicationController
     @contact_attribute = @scope.find(params[:id])
 
     if @contact_attribute.update_attributes(params[:contact_attribute])
+      @contact.index_keywords!
       render :json => "OK"# , :status => :updated
     else
       render :json => { :message => "Sorry, contact attribute not updated",
@@ -59,6 +60,7 @@ class V0::ContactAttributesController < V0::ApplicationController
     @contact_attribute.account = @account
 
     if @contact_attribute.save
+      @contact.index_keywords!
       render :json => { :id => @contact_attribute.id }.to_json, :status => :created
     else
       render :json => { :message => "Sorry, contact attribute not created",
@@ -81,7 +83,11 @@ class V0::ContactAttributesController < V0::ApplicationController
   #   :response [string]: "OK"
   def destroy
     @contact_attribute = @scope.find(params[:id])
-    @contact_attribute.destroy if can?(:destroy, @contact_attribute)
+    if can?(:destroy, @contact_attribute)
+      if @contact_attribute.destroy
+        @contact.index_keywords!
+      end
+    end
     render :json => "OK"
   end
 

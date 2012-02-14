@@ -16,6 +16,10 @@ class V0::ApplicationController < ApplicationController
     render :text => "access denied", :status => 401
   end
 
+  rescue_from Mongoid::Errors::DocumentNotFound do |exception|
+    render text: '404 Not found', status: 404
+  end
+
   private
 
   # verifies that app_key was given
