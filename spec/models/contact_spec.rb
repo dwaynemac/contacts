@@ -59,18 +59,6 @@ describe Contact do
       c.save
       c._keywords.should_not include 'dwaynemac'
     end
-    it "should be updated when an attribute is updated" do
-      c = Contact.make
-      c.contact_attributes << Email.make(value: 'dwaynemac@gmail.com')
-      c.save
-      c._keywords.should include('dwaynemac')
-      e = c.contact_attributes.last
-      e.value = 'newmail@gm.com'
-      e.save # saving child probably fails to update _keywords
-      c.reload
-      c._keywords.should include 'newmail'
-      c._keywords.should_not include 'dwaynenemac'
-    end
     it "should ignore words: com net org ar br pt" do
       c = Contact.make
       %w(com net org ar br pt).each do |k|
@@ -129,6 +117,7 @@ describe Contact do
     context "account specified" do
       subject { @contact.as_json(account: Account.first)}
       it { should have_key 'coefficient'}
+
     end
     context "account not specified" do
       subject { @contact.as_json}

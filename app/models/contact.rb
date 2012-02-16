@@ -108,7 +108,7 @@ class Contact
   def method_missing(method_sym, *arguments, &block)
 
     # local_unique_attribute reader for an account_id
-    if method_sym.to_s =~ /^(.+)_for_(.+[^=])$/
+    if method_sym.to_s =~ /^(.+)_for_([^=]+)$/
       a = Account.where(name: $2).first
       if a.nil?
         return nil
@@ -152,15 +152,18 @@ class Contact
   # @param [Hash] options
   # @option options [Account] account_id
   # @option options [TrueClass] include_masked
-  def as_json(options={})
-    options={} if options.nil? # default set in method definition seems not to be working
-    account = options.delete(:account) if options
+  def as_json(options = nil)
+    options ||= {}
+
+    account = options[:account]
     if account
       # add these options when account_id specified
-      options.merge!({:except => [:contact_attributes, :local_unique_attributes]})
+      options = options.merge({:except => [:contact_attributes, :local_unique_attributes]})
     end
 
-    json = super(options.merge!({:except => :owner_id, :methods => [:owner_name, :local_statuses, :coefficients_counts]}))
+    options = options.merge({:except => :owner_id, :methods => [:owner_name, :local_statuses, :coefficients_counts]})
+
+    json = super options
 
     if account
       # add these data when account_id specified

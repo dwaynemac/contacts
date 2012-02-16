@@ -64,6 +64,9 @@ describe V0::ContactsController do
       it "should not include contacts of account b" do
         assigns(:contacts).should_not include(@contact_b)
       end
+      it "should not include contact_attributes of account b" do
+        @response.body
+      end
       it "should not include contacts of account a but of other lists" do
         assigns(:contacts).should_not include(@contact_l)
       end
