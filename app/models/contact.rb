@@ -316,11 +316,17 @@ class Contact
           when 'date_attribute'
             aux = DateAttribute.convert_selector(v)
             new_selector['$and'] << aux unless aux.nil?
-          when 'local_status'
+          when 'local_status', 'coefficient'
             if account_id.present?
-              new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: 'LocalStatus', value: v, account_id: account_id}}
+              new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: k.to_s.camelcase, value: v, account_id: account_id}}
             end
-          # todo add when /(xxx)_for_(yyy)/ case
+          when /^(.+)_for_([^=]+)$/
+            local_attribute = $1
+            account_name    = $2
+            a = Account.where(name: account_name).first
+            if a
+              new_selector['$and'] << {:local_unique_attributes => {'$elemMatch' => {_type: local_attribute.to_s.camelcase, value: v, account_id: a.id}}}
+            end
           else
             new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
         end

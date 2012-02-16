@@ -99,6 +99,34 @@ describe Contact do
         }
       end
     end
+    context "{coefficient: 'perfil'}, account" do
+      it "should return local_unique_attribute criteria" do
+        account = Account.make
+        Contact.api_where({coefficient: 'perfil'}, account.id).selector.should == {
+          local_unique_attributes: {
+            '$elemMatch' => {_type: 'Coefficient', value: 'perfil', account_id: account.id}
+          }
+        }
+      end
+    end
+    context "{coefficient_for_belgrano: 'pmas'}" do
+      it "should return local_unique_attribute criteria inside $and if there are other criterias" do
+        account = Account.make(name: 'belgrano')
+        Contact.api_where({email: 'asdf', coefficient_for_belgrano: 'pmas'}).selector.should == {
+          '$and' => [
+            {contact_attributes: {'$elemMatch' => {'_type' => 'Email', 'value' => /asdf/i}}},
+            {local_unique_attributes: {'$elemMatch' => {_type: 'Coefficient', value: 'pmas', account_id: account.id}}}
+          ]
+        }
+      end
+      it "should return local_unique_attribute criteria if there are no other criterias" do
+        account = Account.make(name: 'belgrano')
+        Contact.api_where({coefficient_for_belgrano: 'pmas'}).selector.should == {local_unique_attributes: {
+            '$elemMatch' => {_type: 'Coefficient', value: 'pmas', account_id: account.id}
+          }
+        }
+      end
+    end
   end
 
   describe "#as_json" do
