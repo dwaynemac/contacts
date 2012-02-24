@@ -7,3 +7,5 @@ tmp/
 .rvmrc
 .project
 *.swp
+doc/
+.yardoc/
