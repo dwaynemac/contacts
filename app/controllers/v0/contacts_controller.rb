@@ -1,5 +1,5 @@
+##
 # @url  /v0/contacts
-
 # @topic Contacts
 class V0::ContactsController < V0::ApplicationController
 
@@ -9,25 +9,32 @@ class V0::ContactsController < V0::ApplicationController
   before_filter :typhoeus_bugfix, only: [:create, :update]
 
   ##
-  #  Returns list of contacts
-  #
-  #  == Request:
-  #   GET /v0/contacts
-  #   GET /v0/accounts/:account_name/contacts
-  #
-  #  == Valid params:
-  #   :account_name [string]: (account name) will scope contacts to this account (required)
-  #   :list_name [String]: scope to this list. Will be ignored if no :account_name is given.
-  #   :page [integer]: will return this page (default: 1)
-  #   :per_page [integer]: will paginate contacts with this amount per page (default: 10)
-  #   :full_text [String]: will make a full_text search with this string.
-  #   :where [Hash]: Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status
-  #
-  #  == Response:
-  #   :collection [array]: array of contacts {:id, :name, :description, :items}
-  #   :total [integer]: total contacts
+  # Returns list of contacts in JSON
   #
   # @url [GET] /v0/contacts
+  # @url [GET] /v0/accounts/:account_name/contacts
+  #
+  # @optional_argument account_name [String] will scope contacts to this account
+  # @optional_argument list_name [String] scope to this list. Will be ignored if no :account_name is given.
+  # @optional_argument page [Integer] will return this page (default: 1)
+  # @optional_argument per_page [Integer] will paginate contacts with this amount per page (default: 10)
+  # @optional_argument full_text [String] will make a full_text search with this string.
+  # @optional_argument where [Hash] Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status
+  #
+  # @example_response
+  #   {
+  #     collection: [
+  #       {
+  #         _id: 1234,
+  #         name: ...
+  #       }
+  #     ]
+  #     total: 1
+  #   }
+  #
+  # @response_field collection [Array <Contact>] corresponding to chosen :page
+  # @response_field total [Integer] total amount of contacts in query. (includes all pages.)
+  #
   def index
 
     @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
