@@ -6,7 +6,7 @@
 <title>
   Class: DateAttribute
   
-    &mdash; Documentation by YARD 0.7.5
+    &mdash; Contacts's API
   
 </title>
 
@@ -23,6 +23,8 @@
 
   <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
 
+  <script type="text/javascript" charset="utf-8" src="js/rest_plugin.js"></script>
+
 
   </head>
   <body>
@@ -31,344 +33,40 @@
     </script>
     
     <div id="header">
-      <div id="menu">
-  
-    <a href="_index.html">Index (D)</a> &raquo; 
-    
-    
-    <span class="title">DateAttribute</span>
-  
-  
-  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+      <div id="search">
+  <!-- <a id="topic_list_link" href="#">Topic List</a> -->
+  <a id="resource_list_link" href="#">Resource List</a>
+  <a id="file_list_link" href="#">File List</a>
 </div>
 
-      <div id="search">
-  
-    <a id="class_list_link" href="#">Class List</a>
-  
-    <a id="method_list_link" href="#">Method List</a>
-  
-    <a id="file_list_link" href="#">File List</a>
-  
-</div>
-      <div class="clear"></div>
     </div>
     
     <iframe id="search_frame"></iframe>
     
-    <div id="content"><h1>Class: DateAttribute
-  
-  
-  
-</h1>
-
-<dl class="box">
-  
-    <dt class="r1">Inherits:</dt>
-    <dd class="r1">
-      <span class="inheritName"><span class='object_link'><a href="ContactAttribute.html" title="ContactAttribute (class)">ContactAttribute</a></span></span>
-      
-        <ul class="fullTree">
-          <li>Object</li>
-          
-            <li class="next"><span class='object_link'><a href="ContactAttribute.html" title="ContactAttribute (class)">ContactAttribute</a></span></li>
-          
-            <li class="next">DateAttribute</li>
-          
-        </ul>
-        <a href="#" class="inheritanceTree">show all</a>
-      
-      </dd>
+    <div id="content"><div class="service">
+  <h1>
     
-  
-  
-    
-  
-    
+  </h1>
   
   
   
-    <dt class="r2 last">Defined in:</dt>
-    <dd class="r2 last">app/models/date_attribute.rb</dd>
-  
-</dl>
-<div class="clear"></div>
-
-
-
-
-
-
-
-
-  
-    <h2>
-      Class Method Summary
-      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
-    </h2>
-
-    <ul class="summary">
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#convert_selector-class_method" title="convert_selector (class method)">+ (Hash, NilClass) <strong>convert_selector</strong>(selector) </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>
-Converts a DateAttribute selector to a ContactAttribute selector.
-</p>
-</div></span>
-  
-</li>
-
-      
-    </ul>
-  
-    <h2>
-      Instance Method Summary
-      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
-    </h2>
-
-    <ul class="summary">
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#date-instance_method" title="#date (instance method)">- (Object) <strong>date</strong> </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'></div></span>
-  
-</li>
-
-      
-    </ul>
-  
-
-
-  
-  
-  
-  
-  
-  
-  
-  <h3 class="inherited">Methods inherited from <span class='object_link'><a href="ContactAttribute.html" title="ContactAttribute (class)">ContactAttribute</a></span></h3>
-  <p class="inherited"><span class='object_link'><a href="ContactAttribute.html#as_json-instance_method" title="ContactAttribute#as_json (method)">#as_json</a></span>, <span class='object_link'><a href="ContactAttribute.html#for_account-class_method" title="ContactAttribute.for_account (method)">for_account</a></span>, <span class='object_link'><a href="ContactAttribute.html#mask_value%21-instance_method" title="ContactAttribute#mask_value! (method)">#mask_value!</a></span></p>
-
-  
-  
-  
-  
-  
-  
-  
-  <h3 class="inherited">Methods included from <span class='object_link'><a href="ReadOnly.html" title="ReadOnly (module)">ReadOnly</a></span></h3>
-  <p class="inherited"><span class='object_link'><a href="ReadOnly.html#included-class_method" title="ReadOnly.included (method)">included</a></span>, <span class='object_link'><a href="ReadOnly.html#readonly%21-instance_method" title="ReadOnly#readonly! (method)">#readonly!</a></span>, <span class='object_link'><a href="ReadOnly.html#readonly%3F-instance_method" title="ReadOnly#readonly? (method)">#readonly?</a></span></p>
-
-  
-
-  <div id="class_method_details" class="method_details_list">
-    <h2>Class Method Details</h2>
-    
-    
-      <div class="method_details first">
-  <p class="signature first" id="convert_selector-class_method">
-  
-    + (<tt>Hash</tt>, <tt>NilClass</tt>) <strong>convert_selector</strong>(selector) 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>
-Converts a DateAttribute selector to a ContactAttribute selector
-</p>
-
-
-  </div>
 </div>
-<div class="tags">
-  
-  <div class="examples">
-    <h3>Examples:</h3>
-    
-      <h4><div class='inline'></div></h4>
-      <pre class="example code">DateAttribute.convert_selector({day: 1, month:2, year: 2000})
-returns: { :contact_attributes =&gt; { '$elemMatch' =&gt; {day: 1, month: 2, year: 2000, &quot;_type&quot;=&gt;&quot;DateAttribute&quot;}}}</pre>
-    
-  </div>
-<h3>Parameters:</h3>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>selector</span>
-      
-      
-        <span class='type'>(<tt>Hash/Date</tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Hash</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>
-new_selector if day, month or year found
-</p>
-</div>
-      
-    </li>
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>NilClass</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>
-if day, month <b>and</b> year were blank
-</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
 
 
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'app/models/date_attribute.rb', line 29</span>
-
-<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_convert_selector'>convert_selector</span><span class='lparen'>(</span><span class='id identifier rubyid_selector'>selector</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_selector'>selector</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='label'>day:</span> <span class='id identifier rubyid_selector'>selector</span><span class='period'>.</span><span class='id identifier rubyid_day'>day</span><span class='comma'>,</span> <span class='label'>month:</span> <span class='id identifier rubyid_selector'>selector</span><span class='period'>.</span><span class='id identifier rubyid_month'>month</span><span class='comma'>,</span> <span class='label'>year:</span> <span class='id identifier rubyid_selector'>selector</span><span class='period'>.</span><span class='id identifier rubyid_year'>year</span><span class='rbrace'>}</span> <span class='kw'>if</span> <span class='id identifier rubyid_selector'>selector</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Date</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_selector'>selector</span><span class='period'>.</span><span class='id identifier rubyid_stringify_keys!'>stringify_keys!</span>
-
-  <span class='id identifier rubyid_i'>i</span> <span class='op'>=</span> <span class='int'>0</span>
-  <span class='words_beg'>%W(</span><span class='tstring_content'>day</span><span class='words_sep'> </span><span class='tstring_content'>month</span><span class='words_sep'> </span><span class='tstring_content'>year</span><span class='words_sep'>)</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='op'>|</span>
-    <span class='kw'>if</span> <span class='id identifier rubyid_selector'>selector</span><span class='lbracket'>[</span><span class='id identifier rubyid_k'>k</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_blank?'>blank?</span>
-      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
-      <span class='id identifier rubyid_selector'>selector</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='id identifier rubyid_k'>k</span><span class='rparen'>)</span>
-    <span class='kw'>end</span>
-  <span class='kw'>end</span>
-
-  <span class='kw'>if</span> <span class='id identifier rubyid_i'>i</span><span class='op'>==</span><span class='int'>3</span>
-    <span class='kw'>nil</span>
-  <span class='kw'>else</span>
-    <span class='id identifier rubyid_selector'>selector</span> <span class='op'>=</span> <span class='id identifier rubyid_selector'>selector</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>_type</span><span class='tstring_end'>'</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>DateAttribute</span><span class='tstring_end'>'</span></span><span class='rbrace'>}</span><span class='rparen'>)</span>
-
-    <span class='lbrace'>{</span><span class='symbol'>:contact_attributes</span> <span class='op'>=&gt;</span> <span class='lbrace'>{</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>$elemMatch</span><span class='tstring_end'>'</span></span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_selector'>selector</span><span class='rbrace'>}</span><span class='rbrace'>}</span>
-  <span class='kw'>end</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-  </div>
-
-  <div id="instance_method_details" class="method_details_list">
-    <h2>Instance Method Details</h2>
-    
-    
-      <div class="method_details first">
-  <p class="signature first" id="date-instance_method">
-  
-    - (<tt>Object</tt>) <strong>date</strong> 
-  
-
-  
-</p><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
 
 
-17
-18
-19
-20</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'app/models/date_attribute.rb', line 17</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_date'>date</span>
-  <span class='id identifier rubyid_y'>y</span> <span class='op'>=</span> <span class='id identifier rubyid_year'>year</span><span class='period'>.</span><span class='id identifier rubyid_blank?'>blank?</span><span class='op'>?</span> <span class='int'>0</span> <span class='op'>:</span> <span class='id identifier rubyid_year'>year</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span>
-  <span class='const'>Date</span><span class='period'>.</span><span class='id identifier rubyid_civil'>civil</span><span class='lparen'>(</span><span class='id identifier rubyid_y'>y</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span><span class='comma'>,</span><span class='id identifier rubyid_month'>month</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span><span class='comma'>,</span><span class='id identifier rubyid_day'>day</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='const'>Date</span><span class='period'>.</span><span class='id identifier rubyid_valid_civil?'>valid_civil?</span><span class='lparen'>(</span><span class='id identifier rubyid_y'>y</span><span class='comma'>,</span><span class='id identifier rubyid_month'>month</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span><span class='comma'>,</span><span class='id identifier rubyid_day'>day</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span><span class='rparen'>)</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-  </div>
+
+
+
+
+
+
 
 </div>
     
     <div id="footer">
-  Generated on Sat Feb 11 16:53:40 2012 by 
-  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.5 (ruby-1.9.2).
+  Generated on Fri Feb 24 15:48:32 2012 with ruby-1.9.2
 </div>
 
   </body>

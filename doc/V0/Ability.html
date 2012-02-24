@@ -6,7 +6,7 @@
 <title>
   Class: V0::Ability
   
-    &mdash; Documentation by YARD 0.7.5
+    &mdash; Contacts's API
   
 </title>
 
@@ -23,6 +23,8 @@
 
   <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
 
+  <script type="text/javascript" charset="utf-8" src="../js/rest_plugin.js"></script>
+
 
   </head>
   <body>
@@ -31,254 +33,40 @@
     </script>
     
     <div id="header">
-      <div id="menu">
-  
-    <a href="../_index.html">Index (A)</a> &raquo; 
-    <span class='title'>V0</span>
-     &raquo; 
-    <span class="title">Ability</span>
-  
-  
-  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+      <div id="search">
+  <!-- <a id="topic_list_link" href="#">Topic List</a> -->
+  <a id="resource_list_link" href="#">Resource List</a>
+  <a id="file_list_link" href="#">File List</a>
 </div>
 
-      <div id="search">
-  
-    <a id="class_list_link" href="#">Class List</a>
-  
-    <a id="method_list_link" href="#">Method List</a>
-  
-    <a id="file_list_link" href="#">File List</a>
-  
-</div>
-      <div class="clear"></div>
     </div>
     
     <iframe id="search_frame"></iframe>
     
-    <div id="content"><h1>Class: V0::Ability
-  
-  
-  
-</h1>
-
-<dl class="box">
-  
-    <dt class="r1">Inherits:</dt>
-    <dd class="r1">
-      <span class="inheritName">Object</span>
-      
-        <ul class="fullTree">
-          <li>Object</li>
-          
-            <li class="next">V0::Ability</li>
-          
-        </ul>
-        <a href="#" class="inheritanceTree">show all</a>
-      
-      </dd>
+    <div id="content"><div class="service">
+  <h1>
     
+  </h1>
   
   
-    
-  
-    
-      <dt class="r2">Includes:</dt>
-      <dd class="r2">CanCan::Ability</dd>
-      
-    
-  
-  
-  
-    <dt class="r1 last">Defined in:</dt>
-    <dd class="r1 last">app/models/v0/ability.rb</dd>
-  
-</dl>
-<div class="clear"></div>
-
-
-
-
-
-
-
-
-  
-    <h2>
-      Instance Method Summary
-      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
-    </h2>
-
-    <ul class="summary">
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#initialize-instance_method" title="#initialize (instance method)">- (Ability) <strong>initialize</strong>(account) </a>
-    
-
-    
-  </span>
-  
-    <span class="note title constructor">constructor</span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>
-A new instance of Ability.
-</p>
-</div></span>
-  
-</li>
-
-      
-    </ul>
-  
-
-
-  <div id="constructor_details" class="method_details_list">
-  <h2>Constructor Details</h2>
-  
-    <div class="method_details first">
-  <p class="signature first" id="initialize-instance_method">
-  
-    - (<tt>Ability</tt>) <strong>initialize</strong>(account) 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>
-A new instance of Ability
-</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'app/models/v0/ability.rb', line 4</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_account'>account</span><span class='rparen'>)</span>
-  <span class='comment'># The first argument to `can` is the action you are giving the user permission to do.
-</span>  <span class='comment'># If you pass :manage it will apply to every action. Other common actions here are
-</span>  <span class='comment'># :read, :create, :update and :destroy.
-</span>  <span class='comment'>#
-</span>  <span class='comment'># The second argument is the resource the user can perform the action on. If you pass
-</span>  <span class='comment'># :all it will apply to every resource. Otherwise pass a Ruby class of the resource.
-</span>  <span class='comment'>#
-</span>  <span class='comment'># The third argument is an optional hash of conditions to further filter the objects.
-</span>  <span class='comment'># For example, here the user can only update published articles.
-</span>  <span class='comment'>#
-</span>  <span class='comment'>#   can :update, Article, :published =&gt; true
-</span>  <span class='comment'>#
-</span>  <span class='comment'># See the wiki for details: https://github.com/ryanb/cancan/wiki/Defining-Abilities
-</span>
-  <span class='kw'>if</span> <span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
-    <span class='comment'># Account not specified for this request
-</span>    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:manage</span><span class='comma'>,</span> <span class='symbol'>:all</span>
-
-    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span>
-    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span>
-  <span class='kw'>else</span>
-    <span class='comment'># Account specified in this request
-</span>    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:manage</span><span class='comma'>,</span> <span class='symbol'>:all</span>
-
-    <span class='comment'># Contact
-</span>    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span>
-    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:destroy</span><span class='comma'>,</span> <span class='const'>Contact</span><span class='comma'>,</span> <span class='label'>owner:</span> <span class='id identifier rubyid_account'>account</span>
-
-    <span class='comment'># ContactAttribute
-</span>    <span class='id identifier rubyid_cannot'>cannot</span> <span class='symbol'>:manage</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span>
-    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:read</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_ca'>ca</span><span class='op'>|</span>
-      <span class='comment'># TODO refactor from block into argument so we can use ContactAttribute#accesible_by(account)
-</span>      <span class='id identifier rubyid_ca'>ca</span><span class='period'>.</span><span class='id identifier rubyid_public?'>public?</span> <span class='op'>||</span> <span class='id identifier rubyid_ca'>ca</span><span class='period'>.</span><span class='id identifier rubyid_account'>account</span> <span class='op'>==</span> <span class='id identifier rubyid_account'>account</span>
-    <span class='kw'>end</span>
-    <span class='id identifier rubyid_can'>can</span> <span class='lbracket'>[</span><span class='symbol'>:update</span><span class='comma'>,</span> <span class='symbol'>:destroy</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span><span class='comma'>,</span> <span class='label'>account:</span> <span class='id identifier rubyid_account'>account</span>
-    <span class='id identifier rubyid_can'>can</span> <span class='symbol'>:create</span><span class='comma'>,</span> <span class='const'>ContactAttribute</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_ca'>ca</span><span class='op'>|</span>
-      <span class='id identifier rubyid_ca'>ca</span><span class='period'>.</span><span class='id identifier rubyid_contact'>contact</span><span class='period'>.</span><span class='id identifier rubyid_linked_to?'>linked_to?</span><span class='lparen'>(</span><span class='id identifier rubyid_account'>account</span><span class='rparen'>)</span>
-    <span class='kw'>end</span>
-
-
-  <span class='kw'>end</span>
-
-
-
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
   
 </div>
+
+
+
+
+
+
+
+
+
+
 
 
 </div>
     
     <div id="footer">
-  Generated on Sat Feb 11 16:53:40 2012 by 
-  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.5 (ruby-1.9.2).
+  Generated on Fri Feb 24 15:48:32 2012 with ruby-1.9.2
 </div>
 
   </body>

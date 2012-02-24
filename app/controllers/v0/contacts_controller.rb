@@ -1,3 +1,6 @@
+# @url  /v0/contacts
+
+# @topic Contacts
 class V0::ContactsController < V0::ApplicationController
 
   before_filter :set_list
@@ -5,6 +8,7 @@ class V0::ContactsController < V0::ApplicationController
   before_filter :convert_local_attributes, only: [:create, :update]
   before_filter :typhoeus_bugfix, only: [:create, :update]
 
+  ##
   #  Returns list of contacts
   #
   #  == Request:
@@ -22,6 +26,8 @@ class V0::ContactsController < V0::ApplicationController
   #  == Response:
   #   :collection [array]: array of contacts {:id, :name, :description, :items}
   #   :total [integer]: total contacts
+  #
+  # @url [GET] /v0/contacts
   def index
 
     @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
@@ -34,9 +40,9 @@ class V0::ContactsController < V0::ApplicationController
     render :json => { :collection => @contacts, :total => total}.as_json(account: @account)
   end
 
+  ##
   # Returns a contact
   #
-  # @todo YARD: add support for tags :topic, :url, :argument, :example_response, :response_field
   # @topic Contacts
   # @url [GET] /v0/contacts/:id
   # @url [GET] /v0/accounts/:account_name/contacts/:id

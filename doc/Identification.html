@@ -6,7 +6,7 @@
 <title>
   Class: Identification
   
-    &mdash; Documentation by YARD 0.7.5
+    &mdash; Contacts's API
   
 </title>
 
@@ -23,6 +23,8 @@
 
   <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
 
+  <script type="text/javascript" charset="utf-8" src="js/rest_plugin.js"></script>
+
 
   </head>
   <body>
@@ -31,183 +33,40 @@
     </script>
     
     <div id="header">
-      <div id="menu">
-  
-    <a href="_index.html">Index (I)</a> &raquo; 
-    
-    
-    <span class="title">Identification</span>
-  
-  
-  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+      <div id="search">
+  <!-- <a id="topic_list_link" href="#">Topic List</a> -->
+  <a id="resource_list_link" href="#">Resource List</a>
+  <a id="file_list_link" href="#">File List</a>
 </div>
 
-      <div id="search">
-  
-    <a id="class_list_link" href="#">Class List</a>
-  
-    <a id="method_list_link" href="#">Method List</a>
-  
-    <a id="file_list_link" href="#">File List</a>
-  
-</div>
-      <div class="clear"></div>
     </div>
     
     <iframe id="search_frame"></iframe>
     
-    <div id="content"><h1>Class: Identification
-  
-  
-  
-</h1>
-
-<dl class="box">
-  
-    <dt class="r1">Inherits:</dt>
-    <dd class="r1">
-      <span class="inheritName"><span class='object_link'><a href="ContactAttribute.html" title="ContactAttribute (class)">ContactAttribute</a></span></span>
-      
-        <ul class="fullTree">
-          <li>Object</li>
-          
-            <li class="next"><span class='object_link'><a href="ContactAttribute.html" title="ContactAttribute (class)">ContactAttribute</a></span></li>
-          
-            <li class="next">Identification</li>
-          
-        </ul>
-        <a href="#" class="inheritanceTree">show all</a>
-      
-      </dd>
+    <div id="content"><div class="service">
+  <h1>
     
-  
-  
-    
-  
-    
+  </h1>
   
   
   
-    <dt class="r2 last">Defined in:</dt>
-    <dd class="r2 last">app/models/identification.rb</dd>
-  
-</dl>
-<div class="clear"></div>
-
-
-
-
-
-
-
-
-  
-    <h2>
-      Instance Method Summary
-      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
-    </h2>
-
-    <ul class="summary">
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#check_value_uniqueness-instance_method" title="#check_value_uniqueness (instance method)">- (Object) <strong>check_value_uniqueness</strong> </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'></div></span>
-  
-</li>
-
-      
-    </ul>
-  
-
-
-  
-  
-  
-  
-  
-  
-  
-  <h3 class="inherited">Methods inherited from <span class='object_link'><a href="ContactAttribute.html" title="ContactAttribute (class)">ContactAttribute</a></span></h3>
-  <p class="inherited"><span class='object_link'><a href="ContactAttribute.html#as_json-instance_method" title="ContactAttribute#as_json (method)">#as_json</a></span>, <span class='object_link'><a href="ContactAttribute.html#for_account-class_method" title="ContactAttribute.for_account (method)">for_account</a></span>, <span class='object_link'><a href="ContactAttribute.html#mask_value%21-instance_method" title="ContactAttribute#mask_value! (method)">#mask_value!</a></span></p>
-
-  
-  
-  
-  
-  
-  
-  
-  <h3 class="inherited">Methods included from <span class='object_link'><a href="ReadOnly.html" title="ReadOnly (module)">ReadOnly</a></span></h3>
-  <p class="inherited"><span class='object_link'><a href="ReadOnly.html#included-class_method" title="ReadOnly.included (method)">included</a></span>, <span class='object_link'><a href="ReadOnly.html#readonly%21-instance_method" title="ReadOnly#readonly! (method)">#readonly!</a></span>, <span class='object_link'><a href="ReadOnly.html#readonly%3F-instance_method" title="ReadOnly#readonly? (method)">#readonly?</a></span></p>
-
-  
-
-  <div id="instance_method_details" class="method_details_list">
-    <h2>Instance Method Details</h2>
-    
-    
-      <div class="method_details first">
-  <p class="signature first" id="check_value_uniqueness-instance_method">
-  
-    - (<tt>Object</tt>) <strong>check_value_uniqueness</strong> 
-  
-
-  
-</p><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-11
-12
-13
-14
-15
-16
-17
-18
-19</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'app/models/identification.rb', line 11</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_check_value_uniqueness'>check_value_uniqueness</span>
-  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid__parent'>_parent</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
-  <span class='kw'>if</span> <span class='const'>Contact</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>_id</span><span class='tstring_end'>'</span></span> <span class='op'>=&gt;</span> <span class='lbrace'>{</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>$ne</span><span class='tstring_end'>'</span></span> <span class='op'>=&gt;</span><span class='id identifier rubyid_contact'>contact</span><span class='period'>.</span><span class='id identifier rubyid__id'>_id</span><span class='rbrace'>}</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_and'>and</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>contact_attributes.value</span><span class='tstring_end'>'</span></span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_value'>value</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_and'>and</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>contact_attributes.category</span><span class='tstring_end'>'</span></span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_category'>category</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_exists?'>exists?</span>
-    <span class='id identifier rubyid_errors'>errors</span><span class='period'>.</span><span class='id identifier rubyid_add'>add</span><span class='lparen'>(</span>
-          <span class='symbol'>:value</span><span class='comma'>,</span>
-          <span class='symbol'>:taken</span>
-        <span class='rparen'>)</span>
-  <span class='kw'>end</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
 </div>
-    
-  </div>
+
+
+
+
+
+
+
+
+
+
+
 
 </div>
     
     <div id="footer">
-  Generated on Sat Feb 11 16:53:40 2012 by 
-  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.5 (ruby-1.9.2).
+  Generated on Fri Feb 24 15:48:32 2012 with ruby-1.9.2
 </div>
 
   </body>
