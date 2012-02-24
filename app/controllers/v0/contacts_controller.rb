@@ -21,16 +21,7 @@ class V0::ContactsController < V0::ApplicationController
   # @optional_argument full_text [String] will make a full_text search with this string.
   # @optional_argument where [Hash] Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status
   #
-  # @example_response
-  #   {
-  #     collection: [
-  #       {
-  #         _id: 1234,
-  #         name: ...
-  #       }
-  #     ]
-  #     total: 1
-  #   }
+  # @example_response { collection: [ {_id: 1234,name: ...} ], total: 1}
   #
   # @response_field collection [Array <Contact>] corresponding to chosen :page
   # @response_field total [Integer] total amount of contacts in query. (includes all pages.)
@@ -48,24 +39,28 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   ##
-  # Returns a contact
+  # Returns JSON for a contact
+  # if account is provided following attributes will be inclueded:
+  #   * owned by account
+  #   * public attributes
+  #   * masked attributes
   #
-  # @topic Contacts
   # @url [GET] /v0/contacts/:id
   # @url [GET] /v0/accounts/:account_name/contacts/:id
   #
-  # @argument [String] id contact_id (required)
-  # @argument [String] account_name scope search to this account. Fields will be added to response when this is sent.
+  # @argument id [String] contact_id
+  # @optional_argument account_name [String] scope search to this account. Fields will be added to response when this is sent.
   #
-  # @example_response without account_name
-  # {id: '124365w45215', first_name: 'Dwayne', last_name: 'Macgowan'}
+  # @example_response
+  #   if account_name is provided
+  #     {id: '124365w45215', first_name: 'Dwayne', last_name: 'Macgowan'}
+  #   else
+  #     {id: '123', first_name: 'Dwa', last_name: 'Mac', linked: true}
   #
-  # @example_response with account_name
-  # {id: '123', first_name: 'Dwa', last_name: 'Mac', linked: true}
-  #
-  # @response_filed [TrueClass] linked (only when scoped to account)
-  #
-  # @response_field [String] first_name Contacts first name
+  # @response_field [TrueClass] linked
+  #   is this contact linked to :account_name?
+  # @response_field [String] first_name
+  # @response_field [String] last_name
   def show
     @contact = @scope.find(params[:id])
     render :json => @contact.as_json(:account => @account, :include_masked => true)
