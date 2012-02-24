@@ -2,6 +2,12 @@
 
 Mongo DB is needed for this app. To install download from here: http://www.mongodb.org/downloads
 
-= Yard Documentation
+= Development documentation
 
-For yard documentation run `yard` in the repository and then open doc/index.html
+  Run `yard`
+  then open doc/index.html
+
+= WS API Documentation
+
+  Run `bundle exec yardoc --plugin rest`
+  then open doc/index.html

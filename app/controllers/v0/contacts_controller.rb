@@ -66,19 +66,28 @@ class V0::ContactsController < V0::ApplicationController
     render :json => @contact.as_json(:account => @account, :include_masked => true)
   end
 
-  #  Returns a new contact
+  ##
+  # Creates a contact
   #
-  #  == Request:
-  #   POST /v0/contacts
-  #   POST /v0/accounts/:account_name/contacts
+  # @url [POST] /v0/contacts
+  # @url [POST] /v0/accounts/:account_name/contacts
   #
-  #  == Valid params:
-  #   :account_name [string]: (account name) account which the contact will belong to
-  #   :name [string]: name of the contact
-  #   :description [string]: short description of the contact
+  # @argument account_name [String] account which the contact will belong to
+  # @argument name [String] name of the contact
   #
-  #  == Response:
-  #   :contact_id: [integer]: id of the contact created
+  # @example_response == Successfull (status: created)
+  #   { id: '245po46sjlka' }
+  #
+  # @example_response == Failed (status: 400)
+  #   {
+  #     message: 'Sorry, contact not created',
+  #     errors: [ email: 'not valid' ]
+  #   }
+  #
+  # @response_field id [Integer] id of the contact created.
+  # @response_field message [String] error message
+  # @response_field errors [Hash] model message errors
+  #
   def create
 
     authorize! :create, Contact
@@ -97,22 +106,24 @@ class V0::ContactsController < V0::ApplicationController
     end
   end
 
-  #  Updates specified values of a contact
+  ##
+  # Updates specified values of a contact
   #
-  #  == Request:
-  #   PUT /v0/contacts/:id
-  #   PUT /v0/accounts/:account_name/contacts/:id
+  # @url [PUT] /v0/contacts/:id
+  # @url [PUT] /v0/accounts/:account_name/contacts/:id
   #
-  #  == Valid params:
-  #   :account_name [string]: (account name) scopes account
-  #   :contact [hash]:
-  #     :account_id [string]: (account name) change de account the contact belongs to
-  #     :name [string]: change the name of the contact
-  #     :description [string]: change the description of the contact
+  # @argument id [String] contact id
+  # @optional_argument account_name [String] scopes account
+  # @argument contact [hash] contact attributes
   #
-  #  == Response:
-  #   :response [string] = "OK" if success or error message
-  #   :status [integer] = type of error
+  # @example_response == Successfull
+  #   "OK"
+  #
+  # @example_response == Failed (status: 400)
+  #   {
+  #     message: 'Sorry, contact not updated',
+  #     errors: [ email: 'is invalid' ]
+  #   }
   def update
     @contact = @scope.find(params[:id])
 
@@ -125,6 +136,15 @@ class V0::ContactsController < V0::ApplicationController
     end
   end
 
+  ##
+  # Links contact to account
+  # @url [POST] v0/contacts/:id/link
+  # @argument id [String]
+  # @argument account_name [String]
+  # @example_response == Successfull
+  #   "OK"
+  # @example_response == Failure (status: 400)
+  #   {message: 'Sorry, couldnt link contact', errors: [...]}
   def link
     @contact = Contact.find(params[:id])
     if @account && @contact.link(@account)
@@ -137,18 +157,15 @@ class V0::ContactsController < V0::ApplicationController
     end
   end
 
-  #  Destroys the contact
+  # Will destory contact if no account specified or unlink it from specified account
   #
-  #  == Request
-  #    DELETE /v0/contacts/:id
-  #    DELETE /v0/accounts/:account_name/contacts/:id
+  # @url [DELETE] /v0/contacts/:id
+  # @url [DELETE] /v0/accounts/:account_name/contacts/:id
   #
-  #  == Valid params:
-  #  @param [String] account_name - scope to this accounts contacts
-  #  @param [String] id - contact id
+  # @argument [String] account_name - scope to this accounts contacts
+  # @argument [String] id - contact id
   #
-  #  == Response:
-  #   :response [string]: "OK"
+  # @example_response "OK"
   def destroy
     @contact = @scope.find(params[:id])
     if @account
@@ -159,6 +176,15 @@ class V0::ContactsController < V0::ApplicationController
     render :json => "OK"
   end
 
+  # Deletes multiple contacts
+  #
+  # @url [DELETE] /v0/contacts/destroy_multiple
+  #
+  # @argument ids [Array <String>] id of each contact to be destroyed/unlinked
+  #
+  # @optional_argument account_name [String]
+  #
+  # @example_response "OK"
   def destroy_multiple
     @contacts = @scope.any_in('_id' => params[:ids])
     @contacts.each do |c|
