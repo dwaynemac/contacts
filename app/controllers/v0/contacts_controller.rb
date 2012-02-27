@@ -84,9 +84,11 @@ class V0::ContactsController < V0::ApplicationController
   #     errors: [ email: 'not valid' ]
   #   }
   #
-  # @response_field id [Integer] id of the contact created.
-  # @response_field message [String] error message
+  # @response_field id [Integer] id of the contact created. (only for status: 201)
+  # @response_field message [String] error message. (only for status: 400)
   # @response_field errors [Hash] model message errors
+  # @response_code success 201
+  # @response_code failure 400
   #
   def create
 

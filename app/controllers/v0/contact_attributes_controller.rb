@@ -1,8 +1,22 @@
+# @topic Attributes
+# @url /v0/contact_attributes
 class V0::ContactAttributesController < V0::ApplicationController
 
   before_filter :get_contact
   before_filter :set_scope
 
+  ##
+  # Returns an attribute of a contact
+  # @url [GET] /v0/contact_attributes/:id
+  #
+  # @argument id [String] id of contact_attribute
+  # @argument contact_id [String] id of contact
+  # @optional_argument account_name [String]
+  #
+  # @response_code 200
+  # @example_response { _type: 'Email', value: 'anemail@server.com', public: false}
+  #
+  # @author Luis Perichon
   def show
     @contact_attribute = @scope.find(params[:id])
     respond_to do |type|
@@ -10,23 +24,30 @@ class V0::ContactAttributesController < V0::ApplicationController
     end
   end
 
+  ##
   #  Updates specified values of a contact attribute
   #
-  #  == Request:
-  #   PUT /v0/contact_attributes/:id/
-  #   PUT /v0/accounts/:account_name/contact_attributes/:id
+  # @url [PUT] /v0/contact_attributes/:id/
+  # @url [PUT] /v0/accounts/:account_name/contact_attributes/:id
   #
-  #  == Valid params:
-  #   :account_name [string]: (account name) scopes account
-  #   :contact_id [string]: (account name) change de account the contact belongs to
-  #   :id
-  #   :contact_attribute
-  #     :category [string]: change the name of the category
-  #     :value [string]: change the value of the contact attribute
+  # @optional_argument account_name [String]: (account name) scopes account
+  # @argument contact_id [String]: (account name) change de account the contact belongs to
+  # @argument id [String]
   #
-  #  == Response:
-  #   :response [string] = "OK" if success or error message
-  #   :status [integer] = type of error
+  # @argument contact_attribute [Hash]
+  # @key_for contact_attribute [String] category
+  # @key_for contact_attribute [String] value change the value of the contact attribute
+  #
+  # @example_response == Code: 200
+  #   "OK"
+  # @response_code 200
+  #
+  # @example_response == Code: 400
+  #   { message: 'Sorry, contact attribute not updated', errors: [ ... ]}
+  # @response_code 400
+  #
+  # @author Luis Perichon
+  # @author Dwayne Macgowan
   def update
     authorize! :update, ContactAttribute
     @contact_attribute = @scope.find(params[:id])
@@ -41,17 +62,21 @@ class V0::ContactAttributesController < V0::ApplicationController
     end
   end
 
+  ##
   #  Returns a new contact attribute
   #
-  #  == Request:
-  #   POST /v0/contact_attribute_attributes
-  #   POST /v0/accounts/:account_name/contact_attributes
+  # @url [POST] /v0/contact_attribute_attributes
+  # @url [POST] /v0/accounts/:account_name/contact_attributes
   #
-  #  == Valid params:
-  #   :account_name [string]: (account name) account which the contact will belong to
+  # @argument contact_id [String] contact id
+  # @optional_argument account_name [String]: account which the contact will belong to
   #
-  #  == Response:
-  #   :contact_attribute_id: [integer]: id of the contact attribute created
+  # @response_code 201
+  # @response_field contact_attribute_id [Integer] id of the contact attribute created
+  #
+  # @response_code 400
+  # @response_field message [String] (for code: 400)
+  # @response_field errors [Array] (for code: 400)
   def create
     authorize! :create, ContactAttribute
 
@@ -69,18 +94,18 @@ class V0::ContactAttributesController < V0::ApplicationController
     end
   end
 
+  ##
   #  Destroys the contact attribute
   #
   #  == Request
-  #    DELETE /v0/contact?attributes/:id
-  #    DELETE /v0/accounts/:account_name/contacts/:contact_id/contact_attributes/:id
+  # @url [DELETE] /v0/contact?attributes/:id
+  # @url [DELETE] /v0/accounts/:account_name/contacts/:contact_id/contact_attributes/:id
   #
-  #  == Valid params:
-  #  @param [String] account_name - scope to this accounts contacts
-  #  @param [String] contact_id - contact id
+  # @optional_argument account_name [String] scope to this accounts contacts
+  # @argument contact_id [String] contact id
+  # @argument id [String]
   #
-  #  == Response:
-  #   :response [string]: "OK"
+  # @example_response "OK"
   def destroy
     @contact_attribute = @scope.find(params[:id])
     if can?(:destroy, @contact_attribute)
