@@ -38,7 +38,7 @@ gem 'fog'
 # gem 'ruby-debug19', :require => 'ruby-debug'
 
 group :documentation do
-  gem 'yard'
+  gem 'yard', '~> 0.7.4'
   gem 'yard-rest', :git => "git@github.com:dwaynemac/yard-rest-plugin.git"
 end
 

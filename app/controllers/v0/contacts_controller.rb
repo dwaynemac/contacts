@@ -14,6 +14,7 @@ class V0::ContactsController < V0::ApplicationController
   # @url [GET] /v0/contacts
   # @url [GET] /v0/accounts/:account_name/contacts
   #
+  # @optional_argument ids [Array] return contacts with id in this array
   # @optional_argument account_name [String] will scope contacts to this account
   # @optional_argument list_name [String] scope to this list. Will be ignored if no :account_name is given.
   # @optional_argument page [Integer] will return this page (default: 1)
@@ -27,6 +28,8 @@ class V0::ContactsController < V0::ApplicationController
   # @response_field total [Integer] total amount of contacts in query. (includes all pages.)
   #
   def index
+
+    @scope = @scope.any_in(_id: params[:ids]) if params[:ids]
 
     @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
     @scope = @scope.api_where(params[:where], @account.try(:id))   if params[:where].present?

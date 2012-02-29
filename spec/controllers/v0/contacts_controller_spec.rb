@@ -96,6 +96,17 @@ describe V0::ContactsController do
         @last_name = Contact.make(first_name: "asdf", last_name: "dwayne")
       end
 
+      context ":ids" do
+        before do
+          get :index, :app_key => V0::ApplicationController::APP_KEY, :ids => [@first_name.id,@email.id]
+        end
+        it "should only include contacts specified by ids" do
+          assigns(:contacts).should include(@first_name)
+          assigns(:contacts).should include(@email)
+          assigns(:contacts).should_not include(@last_name)
+        end
+      end
+
       context ":full_text it will make a full text search" do
         before do
           get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => "dwayne"
