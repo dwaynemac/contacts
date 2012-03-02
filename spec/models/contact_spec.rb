@@ -176,9 +176,9 @@ describe Contact do
   describe "#mobiles" do
     before do
       @con = Contact.make_unsaved
-      @con.contact_attributes << Telephone.make(category: 'Mobile')
-      @con.contact_attributes << Telephone.make(category: 'Mobile')
-      @con.contact_attributes << Telephone.make(category: 'Home')
+      @con.contact_attributes << Telephone.make(category: 'mobile')
+      @con.contact_attributes << Telephone.make(category: 'mobile')
+      @con.contact_attributes << Telephone.make(category: 'home')
       @con.contact_attributes << Email.make
       @con.save!
     end
@@ -457,17 +457,17 @@ describe Contact do
     describe "when mobile 1540995071 is registered" do
       before do
         @homer = Contact.make_unsaved(first_name: 'Homero', last_name: 'Simpsonsizado')
-        @homer.contact_attributes << Telephone.make(value: '1540995071', category: 'Mobile')
+        @homer.contact_attributes << Telephone.make(value: '1540995071', category: 'mobile')
         @homer.save!
       end
       it "new contact should match it by mobile" do
         c = Contact.new(first_name: 'Juan', last_name: 'Perez')
-        c.contact_attributes << Telephone.make(value: '1540995071', category: 'Mobile')
+        c.contact_attributes << Telephone.make(value: '1540995071', category: 'mobile')
         c.similar.should include(@homer)
       end
       it "new contact should not match if mobile differs" do
         c = Contact.new(first_name: 'Bob', last_name: 'Doe')
-        c.contact_attributes << Telephone.make(value: '15443340995071', category: 'Mobile')
+        c.contact_attributes << Telephone.make(value: '15443340995071', category: 'mobile')
         c.similar.should_not include(@homer)
       end
     end

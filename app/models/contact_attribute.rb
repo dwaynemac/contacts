@@ -29,7 +29,7 @@ class ContactAttribute
   %W(email telephone address custom_attribute date_attribute).each do |k|
     scope k.pluralize, where( _type: k.camelcase )
   end
-  scope :mobiles, where(_type: 'Telephone', category: 'Mobile' )
+  scope :mobiles, where(_type: 'Telephone', category: 'mobile' )
 
   # Returns ContactAttributes visible to account
   #

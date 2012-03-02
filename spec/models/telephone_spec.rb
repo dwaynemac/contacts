@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Telephone do
   before do
     @bart = Contact.make(:first_name => "Bart", :last_name => "Simpson")
-    @bart.contact_attributes << Telephone.new(:category => :Mobile, :value => "1540995071")
+    @bart.contact_attributes << Telephone.new(:category => :mobile, :value => "1540995071")
     @bart.save
   end
 
@@ -21,21 +21,21 @@ describe Telephone do
     it { should_not allow_value(v).for(:value)}
   end
 
-  describe "category" do
-    it "should always be saved camelcased" do
-      @bart.contact_attributes << Telephone.make(:category => :no_camel)
-      @bart.reload
-      @bart.telephones.map(&:category).should include("NoCamel")
-    end
-  end
+  #describe "category" do
+  #  it "should always be saved camelcased" do
+  #    @bart.contact_attributes << Telephone.make(:category => :no_camel)
+  #    @bart.reload
+  #    @bart.telephones.map(&:category).should include("NoCamel")
+  #  end
+  #end
 
   specify "#masked_value" do
     @contact = Contact.make
-    @contact.contact_attributes << Telephone.new(category: :Mobile, value: "1540995071")
+    @contact.contact_attributes << Telephone.new(category: :mobile, value: "1540995071")
     @contact.contact_attributes.last.masked_value.should == "1540######"
   end
 
-  describe "of 'Mobile' category should be unique" do
+  describe "of 'mobile' category should be unique" do
     specify "ensure contact is valid" do
       @bart.reload
       @bart.save!
