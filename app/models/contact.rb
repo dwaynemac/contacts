@@ -230,7 +230,7 @@ class Contact
       self.mobiles.map(&:value).each do |mobile|
         contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
           '_type' => 'Telephone',
-          'category' => /Mobile/i,
+          'category' => /mobile/i,
           'value' => mobile
         }})
       end
