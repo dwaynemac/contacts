@@ -322,6 +322,40 @@ describe V0::ContactsController do
   end
 
   describe "#update" do
+    context "for a contact owned by account A" do
+      before do
+        @account_a = Account.make(name: 'account-a')
+        @contact = Contact.make(owner: @account_a)
+        @contact.contact_attributes << Email.make(value: 'unmail@valido.com', account: @account_a)
+        @contact.save!
+      end
+      context "with a private attribute owned by account B" do
+        before do
+          account_b = Account.make(name: 'account-b')
+          @contact.contact_attributes << Telephone.make(category: 'mobile', public: false, value: '12345678', account: account_b)
+          @contact.save!
+        end
+        describe "update" do
+          before do
+            put :update, :id => @contact.id, :contact => {:coefficient => "pmenos"},
+                :app_key => V0::ApplicationController::APP_KEY
+          end
+          it "should save contact correctly" do
+            should respond_with :success
+          end
+        end
+        describe "update after a get" do
+          before do
+            get :show, id: @contact.id, account_name: @account_a.name
+            put :update, :id => @contact.id, :contact => {:coefficient => "pmenos"},
+                :app_key => V0::ApplicationController::APP_KEY
+          end
+          it "should save contact correctly" do
+            should respond_with :success
+          end
+        end
+      end
+    end
     describe "contact: {first_name: 'asdf'}" do
       before do
         @contact = Contact.first
