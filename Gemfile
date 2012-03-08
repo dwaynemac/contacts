@@ -39,7 +39,7 @@ gem 'fog'
 
 group :documentation do
   gem 'yard', '~> 0.7.4'
-  gem 'yard-rest', :git => "git@github.com:dwaynemac/yard-rest-plugin.git"
+  gem 'yard-rest', :git => "git://github.com/dwaynemac/yard-rest-plugin.git"
 end
 
 group :development, :test do
