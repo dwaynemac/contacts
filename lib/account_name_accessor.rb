@@ -3,6 +3,7 @@
 # * account_name
 # * account_name=(string)
 #
+# This module expect the class to have an attr_accessor :account [Account]
 module AccountNameAccessor
   # @return [String] account name
   def account_name

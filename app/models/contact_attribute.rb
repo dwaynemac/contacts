@@ -5,6 +5,7 @@ class ContactAttribute
 
   field :public, type: Boolean
   field :value, type: String
+  field :primary, type: Boolean
 
   validates :value, :presence => true
 
@@ -13,6 +14,10 @@ class ContactAttribute
   referenced_in :account
 
   before_save :assign_owner
+
+  # order of call of these two is important!
+  before_save :ensure_only_one_primary
+  before_save :ensure_at_least_one_primary
 
   # - replaces :account_id with :account_name
   # - adds :_type, :contact_id
@@ -74,6 +79,20 @@ class ContactAttribute
   end
 
   protected
+
+  def ensure_only_one_primary
+    if self.primary_changed? && self.primary?
+      self.contact.contact_attributes.not_in(_id: [self._id]).where(_type: self._type, account_id: self.account_id).each do |ca|
+        ca.update_attribute(:primary, false)
+      end
+    end
+  end
+
+  def ensure_at_least_one_primary
+    if self.contact.contact_attributes.where(_type: self._type, account_id: self.account_id).count == 1 # i'm the only one
+      self.primary = true
+    end
+  end
 
   def assign_owner
     self.account = self.contact.owner if self.account.blank? && self.contact.owner.present?

@@ -108,4 +108,26 @@ describe ContactAttribute do
       @contact.contact_attributes.first.account.should == @account
     end
   end
+
+  describe "can be primary." do
+    let(:contact){Contact.make}
+    let(:account){Account.make}
+    it { should have_field(:primary).of_type(Boolean) }
+    specify "When primary is set, any other primary-attribute of same account and category stops being primary" do
+      Email.make(primary: true, contact: contact, account: account)
+      new_e = Email.make(primary: false, contact: contact, account: account)
+      new_e.primary = true
+      new_e.save
+      contact.reload
+      contact.emails.first.should_not be_primary
+      contact.emails.last.should be_primary
+    end
+    specify "When attribute is created and it's de first of its account/type it is primary" do
+      e = Email.make_unsaved
+      contact.contact_attributes << e
+      contact.save
+      contact.reload
+      contact.emails.last.should be_primary
+    end
+  end
 end
