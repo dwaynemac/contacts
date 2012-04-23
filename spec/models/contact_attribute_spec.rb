@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe ContactAttribute do
   it { should have_field(:public).of_type(Boolean) }
+  it { should have_field(:primary).of_type(Boolean) }
   it { should have_field(:value).of_type(String) }
   it { should validate_presence_of(:value) }
 
@@ -20,6 +21,14 @@ describe ContactAttribute do
     end
     it "should show account_name" do
       @c.contact_attributes.last.as_json.should have_key 'account_name'
+    end
+
+    it "should show public boolean" do
+      @c.contact_attributes.last.as_json.should have_key 'public'
+    end
+
+    it "should show primary boolean" do
+      @c.contact_attributes.last.as_json.should have_key 'primary'
     end
   end
 
