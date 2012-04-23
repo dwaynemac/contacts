@@ -1,3 +1,11 @@
+##
+# = Contact Attribute
+#
+# This is an abstraction for all attributes like Email, Address, Telephone, Identification, etc.
+#
+# == Primary attributes
+#
+# For each contact, for each attribute type and each account there is *one* primary attribute
 class ContactAttribute
   include Mongoid::Document
   include ReadOnly

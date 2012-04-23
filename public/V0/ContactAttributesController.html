@@ -1,0 +1,599 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+  Class: V0::ContactAttributesController
+  
+    &mdash; Documentation by YARD 0.7.5
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" media="screen" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  relpath = '..';
+  if (relpath != '') relpath += '/';
+</script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/rest_plugin.js"></script>
+
+
+  </head>
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+    
+    <div id="header">
+      <div id="search">
+  <!-- <a id="topic_list_link" href="#">Topic List</a> -->
+  <a id="resource_list_link" href="#">Resource List</a>
+  <a id="file_list_link" href="#">File List</a>
+</div>
+
+    </div>
+    
+    <iframe id="search_frame"></iframe>
+    
+    <div id="content"><div class="service">
+  <h1>
+    
+      <span class="minor_heading">Resource: </span>
+      /v0/contact_attributes
+    
+  </h1>
+  
+    <h3 class="topic">Topics:</h3>
+    <ul class="box">
+      
+        <li>Attributes</li>
+      
+    </ul>
+  
+  
+  
+  <div id="Services" class="method_details_list">
+    <h2>Actions</h2>
+    
+      <div class="method_details first">
+  <p class="signature first" id="show-instance_method">
+  
+    - (<tt>Object</tt>) <strong>show</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="show-instance_method">  
+  
+  <li>[GET] /v0/contact_attributes/:id</li>
+  
+</ul>
+
+
+<p>Returns an attribute of a contact</p>
+
+<div class="tags">
+  
+<h3>Author:</h3>
+<ul class="author">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'>
+<p>Luis Perichon</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>id</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>id of contact_attribute</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>contact_id</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>id of contact</p>
+</div>
+      
+    </li>
+  
+</ul><h3>Optional Arguments:</h3>
+<ul class="optional_argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">{ _type: 'Email', value: 'anemail@server.com', public: false}</pre>
+    
+  </div>
+<h3>Response codes:</h3>
+<ul class="response_code">
+  
+    <li>
+      
+        <span class='type'></span>
+      
+      
+        <span class='name'>200</span>
+      
+      
+    </li>
+  
+</ul>
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="update-instance_method">
+  
+    - (<tt>Object</tt>) <strong>update</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="update-instance_method">  
+  
+  <li>[PUT] /v0/contact_attributes/:id/</li>
+  
+  <li>[PUT] /v0/accounts/:account_name/contact_attributes/:id</li>
+  
+</ul>
+
+
+<p>Updates specified values of a contact attribute</p>
+
+<div class="tags">
+  
+<h3>Author:</h3>
+<ul class="author">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'>
+<p>Luis Perichon</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'>
+<p>Dwayne Macgowan</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>contact_id</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>: (account name) change de account the contact belongs to</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>id</span>
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <span class='name'>contact_attribute</span>
+      
+      
+    </li>
+  
+</ul><h3>Optional Arguments:</h3>
+<ul class="optional_argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>: (account name) scopes account</p>
+</div>
+      
+    </li>
+  
+</ul>
+  
+    <h3>Keys for Hash (<tt>contact_attribute</tt>):</h3>
+    <ul>
+    
+      <li>
+        <span class="name">category</span>
+        <span class="type">(<tt>String</tt>)</span>
+        <span class="default">
+          
+        </span>
+        
+      </li>
+    
+      <li>
+        <span class="name">value</span>
+        <span class="type">(<tt>String</tt>)</span>
+        <span class="default">
+          
+        </span>
+        <div class='inline'>
+<p>change the value of the contact attribute</p>
+</div>
+      </li>
+    
+    </ul>
+  
+
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Code: 200
+&quot;OK&quot;</pre>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Code: 400
+{ message: 'Sorry, contact attribute not updated', errors: [ ... ]}</pre>
+    
+  </div>
+<h3>Response codes:</h3>
+<ul class="response_code">
+  
+    <li>
+      
+        <span class='type'></span>
+      
+      
+        <span class='name'>200</span>
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'></span>
+      
+      
+        <span class='name'>400</span>
+      
+      
+    </li>
+  
+</ul>
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="create-instance_method">
+  
+    - (<tt>Object</tt>) <strong>create</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="create-instance_method">  
+  
+  <li>[POST] /v0/contact_attribute_attributes</li>
+  
+  <li>[POST] /v0/accounts/:account_name/contact_attributes</li>
+  
+</ul>
+
+
+<p>Returns a new contact attribute</p>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>contact_id</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>contact id</p>
+</div>
+      
+    </li>
+  
+</ul><h3>Optional Arguments:</h3>
+<ul class="optional_argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>: account which the contact will belong to</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<h3>Response Fields:</h3>
+<ul class="response_field">
+  
+    <li>
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+        <span class='name'>contact_attribute_id</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>id of the contact attribute created</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>message</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>(for code: 400)</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Array</tt>)</span>
+      
+      
+        <span class='name'>errors</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>(for code: 400)</p>
+</div>
+      
+    </li>
+  
+</ul><h3>Response codes:</h3>
+<ul class="response_code">
+  
+    <li>
+      
+        <span class='type'></span>
+      
+      
+        <span class='name'>201</span>
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'></span>
+      
+      
+        <span class='name'>400</span>
+      
+      
+    </li>
+  
+</ul>
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="destroy-instance_method">
+  
+    - (<tt>Object</tt>) <strong>destroy</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="destroy-instance_method">  
+  
+  <li>[DELETE] /v0/contact?attributes/:id</li>
+  
+  <li>[DELETE] /v0/accounts/:account_name/contacts/:contact_id/contact_attributes/:id</li>
+  
+</ul>
+
+
+<p>Destroys the contact attribute</p>
+
+<pre class="code ruby"><code>== Request</code></pre>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>contact_id</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>contact id</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>id</span>
+      
+      
+    </li>
+  
+</ul><h3>Optional Arguments:</h3>
+<ul class="optional_argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>scope to this accounts contacts</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">&quot;OK&quot;</pre>
+    
+  </div>
+
+</div>
+</div>
+    
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+    
+    <div id="footer">
+  Generated on Tue Apr 17 13:38:26 2012 with ruby-1.9.2
+</div>
+
+  </body>
+</html>

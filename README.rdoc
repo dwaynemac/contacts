@@ -1,15 +1,17 @@
-= Mongo
+= Contacts WS
 
-Mongo DB is needed for this app. To install download from here: http://www.mongodb.org/downloads
+Web service for handling PADMA's Contacts.
 
-= Development documentation
+= Documentation
+
+== Development documentation
 
 Run
     yard
 
 then open doc/index.html
 
-= WS API Documentation
+== WS API Documentation
 
 Run
     bundle exec yardoc --plugin rest

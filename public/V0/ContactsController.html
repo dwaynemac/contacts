@@ -1,0 +1,851 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+  Class: V0::ContactsController
+  
+    &mdash; Documentation by YARD 0.7.5
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" media="screen" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  relpath = '..';
+  if (relpath != '') relpath += '/';
+</script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/rest_plugin.js"></script>
+
+
+  </head>
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+    
+    <div id="header">
+      <div id="search">
+  <!-- <a id="topic_list_link" href="#">Topic List</a> -->
+  <a id="resource_list_link" href="#">Resource List</a>
+  <a id="file_list_link" href="#">File List</a>
+</div>
+
+    </div>
+    
+    <iframe id="search_frame"></iframe>
+    
+    <div id="content"><div class="service">
+  <h1>
+    
+      <span class="minor_heading">Resource: </span>
+      /v0/contacts
+    
+  </h1>
+  
+    <h3 class="topic">Topics:</h3>
+    <ul class="box">
+      
+        <li>Contacts</li>
+      
+    </ul>
+  
+  
+  
+  <div id="Services" class="method_details_list">
+    <h2>Actions</h2>
+    
+      <div class="method_details first">
+  <p class="signature first" id="index-instance_method">
+  
+    - (<tt>Object</tt>) <strong>index</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="index-instance_method">  
+  
+  <li>[GET] /v0/contacts</li>
+  
+  <li>[GET] /v0/accounts/:account_name/contacts</li>
+  
+</ul>
+
+
+<p>Returns list of contacts in JSON</p>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Optional Arguments:</h3>
+<ul class="optional_argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>Array</tt>)</span>
+      
+      
+        <span class='name'>ids</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>return contacts with id in this array</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>will scope contacts to this account</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>list_name</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>scope to this list. Will be ignored if no :account_name is given.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+        <span class='name'>page</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>will return this page (default: 1)</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+        <span class='name'>per_page</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>will paginate contacts with this amount per page (default: 10)</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>full_text</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>will make a full_text search with this string.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <span class='name'>where</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>Mongoid where selector with additional keys -&gt; :email, :telephone,
+:address, :local_status</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">{ collection: [ {_id: 1234,name: ...} ], total: 1}</pre>
+    
+  </div>
+<h3>Response Fields:</h3>
+<ul class="response_field">
+  
+    <li>
+      
+        <span class='type'>(<tt>Array &lt;<span class='object_link'><a href="../Contact.html" title="Contact (class)">Contact</a></span>&gt;</tt>)</span>
+      
+      
+        <span class='name'>collection</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>corresponding to chosen :page</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+        <span class='name'>total</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>total amount of contacts in query. (includes all pages.)</p>
+</div>
+      
+    </li>
+  
+</ul>
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="show-instance_method">
+  
+    - (<tt>Object</tt>) <strong>show</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="show-instance_method">  
+  
+  <li>[GET] /v0/contacts/:id</li>
+  
+  <li>[GET] /v0/accounts/:account_name/contacts/:id</li>
+  
+</ul>
+
+
+<p>Returns JSON for a contact if account is provided following attributes will
+be inclueded:</p>
+
+<pre class="code ruby"><code>* owned by account
+* public attributes
+* masked attributes</code></pre>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>id</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>contact_id</p>
+</div>
+      
+    </li>
+  
+</ul><h3>Optional Arguments:</h3>
+<ul class="optional_argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>scope search to this account. Fields will be added to response when this is
+sent.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">if account_name is provided
+  {id: '124365w45215', first_name: 'Dwayne', last_name: 'Macgowan'}
+else
+  {id: '123', first_name: 'Dwa', last_name: 'Mac', linked: true}</pre>
+    
+  </div>
+<h3>Response Fields:</h3>
+<ul class="response_field">
+  
+    <li>
+      
+        <span class='type'>(<tt>TrueClass</tt>)</span>
+      
+      
+        <span class='name'>linked</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>is this contact linked to :account_name?</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>first_name</span>
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>last_name</span>
+      
+      
+    </li>
+  
+</ul>
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="create-instance_method">
+  
+    - (<tt>Object</tt>) <strong>create</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="create-instance_method">  
+  
+  <li>[POST] /v0/contacts</li>
+  
+  <li>[POST] /v0/accounts/:account_name/contacts</li>
+  
+</ul>
+
+
+<p>Creates a contact</p>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>account which the contact will belong to</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>name</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>name of the contact</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Successfull (status: created)
+{ id: '245po46sjlka' }</pre>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Failed (status: 400)
+{
+  message: 'Sorry, contact not created',
+  errors: [ email: 'not valid' ]
+}</pre>
+    
+  </div>
+<h3>Response Fields:</h3>
+<ul class="response_field">
+  
+    <li>
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+        <span class='name'>id</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>id of the contact created. (only for status: 201)</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>message</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>error message. (only for status: 400)</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <span class='name'>errors</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>model message errors</p>
+</div>
+      
+    </li>
+  
+</ul><h3>Response codes:</h3>
+<ul class="response_code">
+  
+    <li>
+      
+        <span class='type'></span>
+      
+      
+        <span class='name'>success</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>201</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'></span>
+      
+      
+        <span class='name'>failure</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>400</p>
+</div>
+      
+    </li>
+  
+</ul>
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="update-instance_method">
+  
+    - (<tt>Object</tt>) <strong>update</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="update-instance_method">  
+  
+  <li>[PUT] /v0/contacts/:id</li>
+  
+  <li>[PUT] /v0/accounts/:account_name/contacts/:id</li>
+  
+</ul>
+
+
+<p>Updates specified values of a contact</p>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>id</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>contact id</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>hash</tt>)</span>
+      
+      
+        <span class='name'>contact</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>contact attributes</p>
+</div>
+      
+    </li>
+  
+</ul><h3>Optional Arguments:</h3>
+<ul class="optional_argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>scopes account</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Successfull
+&quot;OK&quot;</pre>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Failed (status: 400)
+{
+  message: 'Sorry, contact not updated',
+  errors: [ email: 'is invalid' ]
+}</pre>
+    
+  </div>
+
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="link-instance_method">
+  
+    - (<tt>Object</tt>) <strong>link</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="link-instance_method">  
+  
+  <li>[POST] v0/contacts/:id/link</li>
+  
+</ul>
+
+
+<p>Links contact to account</p>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>id</span>
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Successfull
+&quot;OK&quot;</pre>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Failure (status: 400)
+{message: 'Sorry, couldnt link contact', errors: [...]}</pre>
+    
+  </div>
+
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="destroy-instance_method">
+  
+    - (<tt>Object</tt>) <strong>destroy</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="destroy-instance_method">  
+  
+  <li>[DELETE] /v0/contacts/:id</li>
+  
+  <li>[DELETE] /v0/accounts/:account_name/contacts/:id</li>
+  
+</ul>
+
+
+<p>Will destory contact if no account specified or unlink it from specified
+account</p>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+        &mdash;
+        <div class='inline'><ul><li>
+<p>scope to this accounts contacts</p>
+</li></ul>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>id</span>
+      
+      
+        &mdash;
+        <div class='inline'><ul><li>
+<p>contact id</p>
+</li></ul>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">&quot;OK&quot;</pre>
+    
+  </div>
+
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="destroy_multiple-instance_method">
+  
+    - (<tt>Object</tt>) <strong>destroy_multiple</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="destroy_multiple-instance_method">  
+  
+  <li>[DELETE] /v0/contacts/destroy_multiple</li>
+  
+</ul>
+
+
+<p>Deletes multiple contacts</p>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>Array &lt;String&gt;</tt>)</span>
+      
+      
+        <span class='name'>ids</span>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>id of each contact to be destroyed/unlinked</p>
+</div>
+      
+    </li>
+  
+</ul><h3>Optional Arguments:</h3>
+<ul class="optional_argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>account_name</span>
+      
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">&quot;OK&quot;</pre>
+    
+  </div>
+
+</div>
+</div>
+    
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+    
+    <div id="footer">
+  Generated on Tue Apr 17 13:38:26 2012 with ruby-1.9.2
+</div>
+
+  </body>
+</html>

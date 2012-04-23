@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+  Class: V0::AvatarsController
+  
+    &mdash; Documentation by YARD 0.7.5
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" media="screen" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  relpath = '..';
+  if (relpath != '') relpath += '/';
+</script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/rest_plugin.js"></script>
+
+
+  </head>
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+    
+    <div id="header">
+      <div id="search">
+  <!-- <a id="topic_list_link" href="#">Topic List</a> -->
+  <a id="resource_list_link" href="#">Resource List</a>
+  <a id="file_list_link" href="#">File List</a>
+</div>
+
+    </div>
+    
+    <iframe id="search_frame"></iframe>
+    
+    <div id="content"><div class="service">
+  <h1>
+    
+      <span class="minor_heading">Resource: </span>
+      /v0/contacts/:contact_id/avatar
+    
+  </h1>
+  
+    <h3 class="topic">Topics:</h3>
+    <ul class="box">
+      
+        <li>Avatar</li>
+      
+    </ul>
+  
+  
+  
+  <div id="Services" class="method_details_list">
+    <h2>Actions</h2>
+    
+      <div class="method_details first">
+  <p class="signature first" id="create-instance_method">
+  
+    - (<tt>Object</tt>) <strong>create</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="create-instance_method">  
+  
+  <li>[POST] /v0/contacts/:contact_id/avatar</li>
+  
+</ul>
+
+
+<p>Sets contact avatar overriding if there is already one</p>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>contact_id</span>
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <span class='name'>avatar</span>
+      
+      
+    </li>
+  
+</ul>
+  
+    <h3>Keys for Hash (<tt>avatar</tt>):</h3>
+    <ul>
+    
+      <li>
+        <span class="name">file</span>
+        <span class="type">(<tt>File</tt>)</span>
+        <span class="default">
+          
+        </span>
+        
+      </li>
+    
+    </ul>
+  
+
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Code: 201
+&quot;OK&quot;</pre>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">== Code: 400
+{message: 'Sorry', errors: [...]}</pre>
+    
+  </div>
+<h3>Response codes:</h3>
+<ul class="response_code">
+  
+    <li>
+      
+        <span class='type'></span>
+      
+      
+        <span class='name'>201</span>
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'></span>
+      
+      
+        <span class='name'>400</span>
+      
+      
+    </li>
+  
+</ul>
+</div>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="destroy-instance_method">
+  
+    - (<tt>Object</tt>) <strong>destroy</strong> 
+  
+
+  
+</p>
+<h3>Url:</h3>
+<ul id="destroy-instance_method">  
+  
+  <li>[DELETE] /v0/contacts/:contact_id/avatar</li>
+  
+</ul>
+
+
+<p>Removes contact's avatar</p>
+
+<div class="tags">
+  
+
+</div><div class="tags">
+  <h3>Required Arguments:</h3>
+<ul class="argument">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>contact_id</span>
+      
+      
+    </li>
+  
+</ul>
+
+
+  <div class="examples">
+    <h3>Example Response:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code">&quot;OK&quot;</pre>
+    
+  </div>
+
+</div>
+</div>
+    
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+    
+    <div id="footer">
+  Generated on Tue Apr 17 13:38:26 2012 with ruby-1.9.2
+</div>
+
+  </body>
+</html>
