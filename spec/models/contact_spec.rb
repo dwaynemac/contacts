@@ -347,7 +347,7 @@ describe Contact do
       end
     end
 
-    describe "Match all" do
+    describe "must match all words," do
       before do
         account = Account.make
 
