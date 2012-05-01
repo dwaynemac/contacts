@@ -126,9 +126,7 @@ describe V0::ContactsController do
       context "When full_text contains various words it should match all of them" do
         before do
           @goku_contact = Contact.make(first_name: "Son", last_name: "Goku")
-          @goku_contact.save
           @gohan_contact = Contact.make(first_name: "Son", last_name: "Gohan")
-          @gohan_contact.save
 
           get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => "Son Gok"
         end

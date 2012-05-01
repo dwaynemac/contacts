@@ -352,9 +352,7 @@ describe Contact do
         account = Account.make
 
         @goku_contact = Contact.make(first_name: "Son", last_name: "Goku")
-        @goku_contact.save
         @gohan_contact = Contact.make(first_name: "Son", last_name: "Gohan")
-        @gohan_contact.save
       end
       it "should find only Goku" do
         Contact.csearch("Son Gok").should include(@goku_contact)
