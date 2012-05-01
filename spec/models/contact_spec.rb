@@ -328,21 +328,38 @@ describe Contact do
   end
 
   describe "mongoid_search" do
-    before do
-      account = Account.make
+    describe "Email search" do
+      before do
+        account = Account.make
 
-      @first_name = Contact.make(first_name: "dwayne")
-      @first_name.contact_attributes << Telephone.new(account_id: account._id, value: "1234")
-      @first_name.save
+        @first_name = Contact.make(first_name: "dwayne")
+        @first_name.contact_attributes << Telephone.new(account_id: account._id, value: "1234")
+        @first_name.save
 
-      @email = Contact.make(last_name: "mac")
-      @email.contact_attributes << Email.new(account_id: account._id, value: "dwaynemac@gmail.com")
-      @email.save
+        @email = Contact.make(last_name: "mac")
+        @email.contact_attributes << Email.new(account_id: account._id, value: "dwaynemac@gmail.com")
+        @email.save
 
-      @last_name = Contact.make(first_name: "asdf", last_name: "dwayne")
+        @last_name = Contact.make(first_name: "asdf", last_name: "dwayne")
+      end
+      it "should find by email" do
+        Contact.csearch("dwaynemac@gmail.com").should include(@email)
+      end
     end
-    it "should find by email" do
-      Contact.csearch("dwaynemac@gmail.com").should include(@email)
+
+    describe "Match all" do
+      before do
+        account = Account.make
+
+        @goku_contact = Contact.make(first_name: "Son", last_name: "Goku")
+        @goku_contact.save
+        @gohan_contact = Contact.make(first_name: "Son", last_name: "Gohan")
+        @gohan_contact.save
+      end
+      it "should find only Goku" do
+        Contact.csearch("Son Gok").should include(@goku_contact)
+        Contact.csearch("Son Gok").should_not include(@gohan_contact)
+      end
     end
   end
 
