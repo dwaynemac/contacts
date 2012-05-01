@@ -6,7 +6,7 @@ class Contact
   include Mongoid::Timestamps
 
   include Mongoid::Search
-  search_in :first_name, :last_name, {:contact_attributes => :value }, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml")}
+  search_in :first_name, :last_name, {:contact_attributes => :value }, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
   embeds_many :contact_attributes, :validate => true, :cascade_callbacks => true
   validates_associated :contact_attributes
