@@ -44,14 +44,6 @@ end
 
 group :development, :test do
   gem 'thin'
-  gem "machinist", '1.0.6'
-  gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
-  gem 'faker', '0.9.4'
-  gem "rspec-rails", "~> 2.4"
-  gem "shoulda", '2.11.3'
-  gem 'mongoid-rspec', '1.4.4'
-  gem "database_cleaner", ">= 0.6.7", :group => :test
-  gem "cucumber-rails", '1.2.0'
   gem "timecop", '0.3.5'
 
   # Guard
@@ -66,4 +58,15 @@ group :development, :test do
   # guard notifications on Linux
   gem 'rb-inotify', :require => false if RUBY_PLATFORM =~ /linux/i
   gem 'libnotify', :require => false if RUBY_PLATFORM =~ /linux/i
+end
+
+group :test do
+  gem "cucumber-rails", '1.2.0'
+  gem "shoulda", '2.11.3'
+  gem 'mongoid-rspec', '1.4.4'
+  gem "rspec-rails", "~> 2.4"
+  gem "machinist", '1.0.6'
+  gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
+  gem 'faker', '0.9.4'
+  gem "database_cleaner", ">= 0.6.7", :group => :test
 end
