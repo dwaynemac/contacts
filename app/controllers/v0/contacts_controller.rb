@@ -33,6 +33,7 @@ class V0::ContactsController < V0::ApplicationController
 
     @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
     @scope = @scope.api_where(params[:where], @account.try(:id))   if params[:where].present?
+    @scope = @scope.order_by(params[:sort].to_a) if params[:sort].present?
 
     total = @scope.count
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
