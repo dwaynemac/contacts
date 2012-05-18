@@ -33,7 +33,7 @@ class V0::ContactsController < V0::ApplicationController
 
     @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
     @scope = @scope.api_where(params[:where], @account.try(:id))   if params[:where].present?
-    @scope = @scope.order_by(params[:sort].to_a) if params[:sort].present?
+    @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
 
     total = @scope.count
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
@@ -257,4 +257,13 @@ class V0::ContactsController < V0::ApplicationController
     params[:contact] = c
   end
 
+  # Sort by normalized fields
+  def normalize_criteria(criteria)
+    if criteria.is_a? Array then
+      criteria.map! { |crit| normalize_criteria crit }
+    elsif /^(first_name|last_name)$/.match(criteria) then
+      criteria = 'normalized_' + criteria
+    end
+    criteria
+  end
 end
