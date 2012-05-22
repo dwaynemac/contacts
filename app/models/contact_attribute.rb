@@ -100,7 +100,6 @@ class ContactAttribute
   def ensure_at_least_one_primary
     if self.contact.contact_attributes.where(_type: self._type, account_id: self.account_id).count == 1 # i'm the only one
       set_primary
-      self.primary = true
     end
   end
 
@@ -114,5 +113,6 @@ class ContactAttribute
 
   def set_primary
     self.contact[self._type.to_sym] = self.value
+    self.primary = true
   end
 end
