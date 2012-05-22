@@ -90,6 +90,7 @@ class ContactAttribute
 
   def ensure_only_one_primary
     if self.primary_changed? && self.primary?
+      set_primary
       self.contact.contact_attributes.not_in(_id: [self._id]).where(_type: self._type, account_id: self.account_id).each do |ca|
         ca.update_attribute(:primary, false)
       end
@@ -98,6 +99,7 @@ class ContactAttribute
 
   def ensure_at_least_one_primary
     if self.contact.contact_attributes.where(_type: self._type, account_id: self.account_id).count == 1 # i'm the only one
+      set_primary
       self.primary = true
     end
   end
@@ -108,5 +110,9 @@ class ContactAttribute
 
   def contact_id
     contact.id
+  end
+
+  def set_primary
+    self.contact[self._type.to_sym] = self.value
   end
 end
