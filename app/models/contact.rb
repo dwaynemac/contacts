@@ -32,8 +32,19 @@ class Contact
   field :avatar
   mount_uploader :avatar, AvatarUploader
 
-  VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro) # ordered by hierarchy (last is higher)
-  field :level
+  field :level, :type => Integer
+
+  # ordered by hierarchy (last is higher)
+  VALID_LEVELS = {
+    "aspirante" => 0,
+    "sádhaka" => 1,
+    "yôgin" => 2,
+    "chêla" => 3,
+    "graduado" => 4,
+    "asistente" => 5,
+    "docente" => 6,
+    "maestro" => 7
+  }
 
   VALID_STATUSES = [:student, :former_student, :prospect] # they are ordered by precedence (first has precedence)
 
@@ -55,6 +66,19 @@ class Contact
   # @return [String]
   def full_name
     "#{first_name} #{last_name}"
+  end
+
+  # Level getter/setter overriden to keep integers values for proper sorting
+
+  # @return [String]
+  def level
+    VALID_LEVELS.key(read_attribute(:level))
+  end
+
+  # Setter for level overriden to keep integers values for proper sorting
+  # param s [String]
+  def level=(s)
+    write_attribute(:level, VALID_LEVELS[s])
   end
 
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
