@@ -33,7 +33,7 @@ class Contact
   mount_uploader :avatar, AvatarUploader
 
   VALID_LEVELS = %W(aspirante sádhaka yôgin chêla graduado asistente docente maestro) # ordered by hierarchy (last is higher)
-  field :level, :type => String
+  field :level
 
   VALID_STATUSES = [:student, :former_student, :prospect] # they are ordered by precedence (first has precedence)
 
