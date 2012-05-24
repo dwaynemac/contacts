@@ -43,7 +43,7 @@ describe V0::ContactAttributesController do
         before do
           @telephone = "5432154"
           post :create, :account_name => @contact.owner.name, :contact_id => @contact.id,
-               :contact_attribute => {:category => :home, :value => @telephone},
+               :contact_attribute => {:category => :home, :value => @telephone, '_type' => "Telephone"},
                :app_key => V0::ApplicationController::APP_KEY
         end
         it { should respond_with :created }
@@ -80,7 +80,12 @@ describe V0::ContactAttributesController do
       let(:other_account){Account.make}
       before do
         @telephone = "5432154"
-        post :create, :account_name => other_account.name, :contact_id => @contact.id, :contact_attribute => {:category => :home, :value => @telephone},
+        post :create, :account_name => other_account.name, :contact_id => @contact.id,
+             :contact_attribute => {
+                :category => :home,
+                :value => @telephone,
+                '_type' => "Telephone"
+             },
              :app_key => V0::ApplicationController::APP_KEY
       end
       it { should respond_with :missing }
@@ -90,7 +95,12 @@ describe V0::ContactAttributesController do
       before do
         other_account.link(@contact)
         @telephone = "5432154"
-        post :create, :account_name => other_account.name, :contact_id => @contact.id, :contact_attribute => {:category => :home, :value => @telephone},
+        post :create, :account_name => other_account.name, :contact_id => @contact.id,
+             :contact_attribute => {
+                :category => :home,
+                :value => @telephone,
+                '_type' => "Telephone"
+             },
              :app_key => V0::ApplicationController::APP_KEY
       end
       it { should respond_with :created }
