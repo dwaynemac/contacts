@@ -140,4 +140,28 @@ describe ContactAttribute do
       contact.emails.where(:primary => true).count.should == 1
     end
   end
+
+  describe "Primary attributes must be copied to related contact as a field" do
+    before do
+      @account = Account.make
+      @contact = Contact.make(:owner => @account)
+      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
+      @contact.save
+      @contact.reload
+    end
+
+    it "should be copied to related contact" do
+      @contact.Telephone.should == "1234321"
+    end
+
+    it "should be updated if new primary is saved" do
+      @contact.contact_attributes << Telephone.new(
+        :account => @contact.owner,
+        :category => :home,
+        :value => "11235813",
+        :primary => true
+      )
+      @contact.Telephone.should == "11235813"
+    end
+  end
 end
