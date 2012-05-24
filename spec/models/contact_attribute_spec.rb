@@ -131,12 +131,13 @@ describe ContactAttribute do
       contact.emails.first.should_not be_primary
       contact.emails.last.should be_primary
     end
-    specify "When attribute is created and it's de first of its account/type it is primary" do
-      e = Email.make_unsaved
-      contact.contact_attributes << e
+    specify "The set of attributes that share account and type must have one and only one primary element" do
+      (1..3).each do
+        contact.contact_attributes << Email.make_unsaved(primary: false, contact: contact, account: account)
+      end
       contact.save
       contact.reload
-      contact.emails.last.should be_primary
+      contact.emails.where(:primary => true).count.should == 1
     end
   end
 end
