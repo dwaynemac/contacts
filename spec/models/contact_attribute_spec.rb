@@ -151,7 +151,7 @@ describe ContactAttribute do
     end
 
     it "should be copied to related contact" do
-      @contact.Telephone.should == "1234321"
+      @contact.telephone.should == "1234321"
     end
 
     it "should be updated if new primary is saved" do
@@ -161,7 +161,7 @@ describe ContactAttribute do
         :value => "11235813",
         :primary => true
       )
-      @contact.Telephone.should == "11235813"
+      @contact.telephone.should == "11235813"
     end
   end
 end

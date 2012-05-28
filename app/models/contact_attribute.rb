@@ -113,6 +113,6 @@ class ContactAttribute
   end
 
   def copy_primary_to_contact
-    self.contact[self._type.to_sym] = self.value
+    self.contact[self._type.downcase.to_sym] = self.value
   end
 end
