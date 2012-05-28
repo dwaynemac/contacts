@@ -310,8 +310,8 @@ class Contact
   #
   # @param selector   [ Hash ]      query
   # @param account_id    [ BSON / String ] account id with wich to interpret local attributes
-  # @option selector :telephone
-  # @option selector :email
+  # @option selector :telephone, searches within all telephones
+  # @option selector :email, searches within all emails
   # @option selector :address
   # @option selector :custom_attribute
   # @option selector :local_status      only considered if account_id is specified
