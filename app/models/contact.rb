@@ -327,7 +327,9 @@ class Contact
       unless v.blank?
         case k.to_s
           when 'telephone', 'email', 'address', 'custom_attribute'
-            new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}}
+            new_selector['$and'] << {
+              :contact_attributes => { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
+            }
           when 'country', 'state', 'city', 'postal_code'
             new_selector['$and'] << {:contact_attributes => { '$elemMatch' => { "_type" => "Address", k => Regexp.new(v.to_s)}}}
           when 'contact_attributes'
@@ -344,12 +346,16 @@ class Contact
             if account_id.present?
               new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: k.to_s.camelcase, value: v, account_id: account_id}}
             end
+          when 'level'
+            new_selector['$and'] << {:level => VALID_LEVELS[v]}
           when /^(.+)_for_([^=]+)$/
             local_attribute = $1
             account_name    = $2
             a = Account.where(name: account_name).first
             if a
-              new_selector['$and'] << {:local_unique_attributes => {'$elemMatch' => {_type: local_attribute.to_s.camelcase, value: v, account_id: a.id}}}
+              new_selector['$and'] << {
+                :local_unique_attributes => {'$elemMatch' => {_type: local_attribute.to_s.camelcase, value: v, account_id: a.id}}
+              }
             end
           else
             new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
