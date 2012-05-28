@@ -10,7 +10,7 @@ describe Contact do
   it { should have_fields :first_name, :last_name, :gender }
   it { should have_fields :normalized_first_name, :normalized_last_name }
   it { should have_field(:status).of_type(Symbol)}
-  it { should have_field(:level).of_type(String)}
+  it { should have_field(:level).of_type(Integer)}
 
   it { should validate_presence_of :first_name }
 
@@ -579,10 +579,10 @@ describe Contact do
   end
 
   describe "History" do
-    let(:contact) { Contact.make(level: Contact::VALID_LEVELS[2], status: :student) }
+    let(:contact) { Contact.make(level: "yôgin", status: :student) }
     it "should record level changes" do
-      expect{contact.update_attribute(:level, Contact::VALID_LEVELS[3])}.to change{contact.history_entries.count}
-      contact.history_entries.last.old_value.should == Contact::VALID_LEVELS[2]
+      expect{contact.update_attribute(:level, "chêla")}.to change{contact.history_entries.count}
+      contact.history_entries.last.old_value.should == Contact::VALID_LEVELS["yôgin"]
       contact.history_entries.last.changed_at.should be_within(1.second).of(Time.now)
     end
     it "should record status changes" do
