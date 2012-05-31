@@ -14,4 +14,11 @@ describe Email do
     assert !c2.valid?
   end
 
+  it "should be normalized" do
+    c = Contact.make(:first_name => "Shinji", :last_name => "Ikari")
+    c.contact_attributes << Email.new(:value => "EVA_PILOT_01@GMAIL.COM")
+    c.save!
+    c.email.should == "eva_pilot_01@gmail.com"
+  end
+
 end
