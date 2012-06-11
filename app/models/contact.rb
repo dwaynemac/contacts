@@ -196,6 +196,7 @@ class Contact
         json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
       end
       json[:linked] = self.linked_to?(account)
+      json[:last_local_status] = self.history_entries.last_value("local_status_for_#{account.name}".to_sym)
     end
     json
   end

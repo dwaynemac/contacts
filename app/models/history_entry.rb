@@ -54,7 +54,7 @@ class HistoryEntry
         conditions: {
             attribute: ref_attribute,
         },
-        sort: [[:changed_at, :asc]]
+        sort: [[:changed_at, :desc]]
     ).try :old_value
   end
 
