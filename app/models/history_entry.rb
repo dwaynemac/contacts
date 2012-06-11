@@ -35,6 +35,30 @@ class HistoryEntry
     ).try :old_value
   end
 
+  # Returns last value for a given attribute
+  #
+  # @param [String] ref_attribute
+  # @param [Hash] options
+  # @option [String] class - historiable_type
+  # @option [String] id    - historiable_id
+  #
+  # @return [depends on attribute type?] value
+  def self.last_value(ref_attribute, options = {})
+
+    scope = self
+    scope = scope.where(historiable_type: options[:class]) if options[:class]
+    scope = scope.where(historiable_id: options[:id]) if options[:id]
+
+    # find last change
+    scope.first(
+        conditions: {
+            attribute: ref_attribute,
+        },
+        sort: [[:changed_at, :asc]]
+    ).try :old_value
+  end
+
+
   # Returns all elements with given value in given attribute at a given date
   #
   # TODO benchmark

@@ -31,6 +31,26 @@ describe HistoryEntry do
     end
   end
 
+  describe "#last_value" do
+    let(:contact){Contact.make(level: Contact::VALID_LEVELS[3])}
+    it "should return nil if there is no record in history" do
+      contact.history_entries.last_value(:level).should be_nil
+    end
+    it "should return last value if found" do
+      contact.history_entries.create(attribute: :level,
+                                     old_value: Contact::VALID_LEVELS[0],
+                                     changed_at: 3.weeks.ago.to_time)
+      contact.history_entries.create(attribute: :level,
+                                     old_value: Contact::VALID_LEVELS[1],
+                                     changed_at: 2.weeks.ago.to_time)
+      contact.history_entries.create(attribute: :level,
+                                     old_value: Contact::VALID_LEVELS[2],
+                                     changed_at: 1.week.ago.to_time)
+      contact.history_entries.last_value(:level).should  == Contact::VALID_LEVELS[2]
+    end
+  end
+
+
   describe "#element_ids_with" do
 
     it "should ignore other attribute entries" do
