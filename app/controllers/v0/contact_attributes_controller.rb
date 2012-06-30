@@ -86,7 +86,7 @@ class V0::ContactAttributesController < V0::ApplicationController
 
     if @contact_attribute.save
       @contact.index_keywords!
-      render :json => { :id => @contact_attribute.id }.to_json, :status => :created
+      render :json => { :id => @contact_attribute.id, :primary => @contact_attribute.primary }.to_json, :status => :created
     else
       render :json => { :message => "Sorry, contact attribute not created",
        :error_codes => [],
