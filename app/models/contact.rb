@@ -8,6 +8,8 @@ class Contact
   include Mongoid::Search
   search_in :first_name, :last_name, {:contact_attributes => :value }, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
+  embeds_many :image_attachments, :validate => true, :cascade_callbacks => true
+
   embeds_many :contact_attributes, :validate => true, :cascade_callbacks => true
   validates_associated :contact_attributes
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
