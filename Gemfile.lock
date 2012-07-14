@@ -111,7 +111,7 @@ GEM
       rb-fchange (~> 0.0.5)
       rb-fsevent (~> 0.9.1)
       rb-inotify (~> 0.8.8)
-    logical_model (0.2.15)
+    logical_model (0.2.16)
       activemodel
       activesupport
       kaminari (~> 0.13.0)
@@ -238,7 +238,7 @@ DEPENDENCIES
   guard-spork
   kaminari (~> 0.13)
   libnotify
-  logical_model (= 0.2.15)
+  logical_model (= 0.2.16)
   machinist (= 1.0.6)
   machinist_mongo (= 1.2.0)
   mongoid (= 2.3.3)
