@@ -133,7 +133,7 @@ class V0::ContactsController < V0::ApplicationController
   def update
     @contact = @scope.find(params[:id])
 
-    if @contact.update_attributes!(params[:contact])
+    if @contact.update_attributes(params[:contact])
       render :json => "OK"# , :status => :updated
     else
       render :json => { :message => "Sorry, contact not updated",
