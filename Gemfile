@@ -9,7 +9,7 @@ gem 'mongoid_search'
 
 gem 'cancan', '~> 1.6.7'
 
-gem "logical_model", '0.2.16'
+gem "logical_model", '0.2.17'
 
 gem 'kaminari', '~> 0.13'
 
