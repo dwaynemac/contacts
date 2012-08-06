@@ -40,6 +40,12 @@ Address.blueprint do
   value "luis maria campos"
 end
 
+Identification.blueprint do
+  account { Account.make }
+  value '30366843'
+  category "DNI"
+end
+
 Account.blueprint do
   name { Faker::Internet.user_name }
 end

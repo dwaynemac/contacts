@@ -83,7 +83,7 @@ class Contact
 
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
   # they all return a Criteria scoping to according _type
-  %W(email telephone address custom_attribute date_attribute).each do |k|
+  %W(email telephone address custom_attribute date_attribute identification).each do |k|
     delegate k.pluralize, to: :contact_attributes
   end
 
@@ -257,6 +257,14 @@ class Contact
           '_type' => 'Telephone',
           'category' => /mobile/i,
           'value' => mobile
+        }})
+      end
+
+      self.identifications.each do |identification|
+        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+            _type: 'Identification',
+            category: identification.category,
+            value: identification.value.gsub(/[\.\-_\s\/]/,'')
         }})
       end
     end

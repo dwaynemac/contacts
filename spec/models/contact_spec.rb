@@ -486,6 +486,44 @@ describe Contact do
         c.similar.should_not include(@homer)
       end
     end
+
+    describe "when DNI 30366832 is registered" do
+      before do
+        @similar = Contact.make(first_name: 'Dwayne', last_name: 'Macgowan')
+        @similar.contact_attributes << Identification.make_unsaved(value: '30366832', category: 'DNI')
+        @similar.save!
+      end
+      describe "a new contact" do
+        before do
+          @new_contact = Contact.make_unsaved(first_name: 'Alejandro', last_name: 'Mac Gowan')
+        end
+        describe "with DNI 30366832" do
+          before do
+            @new_contact.contact_attributes << Identification.make_unsaved(value: '30366832', category: 'DNI')
+          end
+          it "should have possible duplicates" do
+            @new_contact.similar.should include(@similar)
+          end
+        end
+        describe "with DNI 3/0.3_6 6.83-2" do
+          before do
+            @new_contact.contact_attributes << Identification.make_unsaved(value: '3/0.3_6 6.83-2', category: 'DNI')
+          end
+          it "should have possible duplicates" do
+            @new_contact.similar.should include(@similar)
+          end
+        end
+        describe "with CPF 30366832" do
+          before do
+            @new_contact.contact_attributes << Identification.make_unsaved(value: '30366832', category: 'CPF')
+          end
+          it "should not have possible duplicates" do
+            @new_contact.similar.should be_empty
+          end
+        end
+      end
+    end
+
   end
 
   describe "flagged to check for duplicates" do
