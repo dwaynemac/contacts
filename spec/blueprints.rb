@@ -14,6 +14,11 @@ LocalStatus.blueprint do
   value { :prospect }
 end
 
+LocalTeacher.blueprint do
+  contact { Contact.make }
+  account { Account.make }
+end
+
 LocalUniqueAttribute.blueprint do
   contact { Contact.make }
   account { Account.make }

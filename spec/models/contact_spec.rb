@@ -17,6 +17,9 @@ describe Contact do
   it { should embed_many :contact_attributes }
   it { should embed_many :local_unique_attributes }
 
+  it { should respond_to :local_statuses }
+  it { should respond_to :local_teachers }
+
   %W(first_name last_name).each do |attr|
     specify "normalized_#{attr} should be updated when #{attr} is updated" do
       @contact = Contact.make
@@ -34,6 +37,19 @@ describe Contact do
 
   %W(asdf asdf alumno ex-alumno).each do |v|
     it { should_not allow_value(v).for(:status)}
+  end
+
+  describe "has a global teacher" do
+    it { should have_field(:global_teacher_username).of_type(String) }
+    # it should keep track of changes to global teacher --> see spec below: "Contact History should record teacher changes"
+    it "should automatically set global_teacher_username as local_teacher_username in account where it is owned" do
+      account = Account.make
+      c = Contact.make(global_teacher_username: 'dwayne.macgowan', owner: account)
+      c.local_unique_attributes << LocalTeacher.make(account: account, value: 'new.teacher')
+      c.save
+      c.reload
+      c.global_teacher_username.should == 'new.teacher'
+    end
   end
 
   describe "#_keywords" do
@@ -132,6 +148,7 @@ describe Contact do
   describe "#as_json" do
     before do
       @contact= Contact.make(:owner => Account.make)
+      @contact.local_unique_attributes << LocalTeacher.make(account: Account.first)
     end
     it "should not include owner_id" do
       @contact.as_json.should_not have_key 'owner_id'
@@ -142,14 +159,18 @@ describe Contact do
     it "should include :coefficients_counts key" do
       @contact.as_json.should have_key 'coefficients_counts'
     end
+    it "should include global_teacher_username" do
+      @contact.as_json.should have_key 'global_teacher_username'
+    end
     context "account specified" do
       subject { @contact.as_json(account: Account.first)}
       it { should have_key 'coefficient'}
-
+      it { should have_key 'local_teacher' }
     end
     context "account not specified" do
       subject { @contact.as_json}
       it { should_not have_key 'coefficient' }
+      it { should_not have_key 'local_teacher' }
     end
   end
 
@@ -618,6 +639,15 @@ describe Contact do
 
   describe "History" do
     let(:contact) { Contact.make(level: "yôgin", status: :student) }
+
+    it "should record global teacher changes" do
+      expect{contact.update_attribute(:global_teacher_username,'dwayne.macgowan')}.to change{contact.history_entries.count}
+      contact.history_entries.last.old_value.should be_nil
+      contact.history_entries.last.changed_at.should be_within(1.second).of(Time.now)
+      contact.update_attribute(:global_teacher_username,'luis.perichon')
+      contact.history_entries.last.old_value.should =='dwayne.macgowan'
+    end
+
     it "should record level changes" do
       expect{contact.update_attribute(:level, "chêla")}.to change{contact.history_entries.count}
       contact.history_entries.last.old_value.should == Contact::VALID_LEVELS["yôgin"]

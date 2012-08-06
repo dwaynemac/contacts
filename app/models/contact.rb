@@ -32,7 +32,7 @@ class Contact
   field :avatar
   mount_uploader :avatar, AvatarUploader
 
-  field :level, :type => Integer
+  field :level, type: Integer
 
   # ordered by hierarchy (last is higher)
   VALID_LEVELS = {
@@ -54,6 +54,9 @@ class Contact
 
   belongs_to :owner, :class_name => "Account"
   before_validation :assign_owner
+
+  field :global_teacher_username, type: String
+  before_validation :set_global_teacher
 
   references_and_referenced_in_many :lists
   before_save :update_lists
@@ -94,7 +97,7 @@ class Contact
 
   # defines Contact#coefficients/...
   # they all return a Criteria scoping to according _type
-  %W(coefficient local_status).each do |lua|
+  %W(coefficient local_status local_teacher).each do |lua|
     delegate lua.pluralize, to: :local_unique_attributes
   end
 
@@ -173,8 +176,13 @@ class Contact
     Coefficient::VALID_VALUES.map{ |vv| {vv => self.coefficients.where(value: vv).count} }.inject(:merge)
   end
 
+  # If account_id is specified some addtional attributes are added:
+  #   - linked [TrueClass] whether or not this contact is linked to given account
+  #   - last_local_status [String] last local status on given account
+  #   - local_teacher [String] username of teacher in given account
+  #
   # @param [Hash] options
-  # @option options [Account] account_id
+  # @option options [Account] account
   # @option options [TrueClass] include_masked
   def as_json(options = nil)
     options ||= {}
@@ -192,7 +200,7 @@ class Contact
     if account
       # add these data when account_id specified
       json[:contact_attributes] = self.contact_attributes.for_account(account, options)
-      %w{local_status coefficient}.each do |local_attribute|
+      %w{local_status coefficient local_teacher}.each do |local_attribute|
         json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
       end
       json[:linked] = self.linked_to?(account)
@@ -224,9 +232,15 @@ class Contact
     self.owner = Account.where(:name => name).first
   end
 
-
+  # Updates global_status (#status) and saves contact
   def update_status!
     self.set_status
+    self.save
+  end
+
+  # Updates global_teacher_username and saves contact
+  def update_global_teacher!
+    self.set_global_teacher
     self.save
   end
 
@@ -430,16 +444,25 @@ class Contact
     end
   end
 
+  def set_global_teacher
+    return if self.owner.nil?
+    teacher_in_owner_accounts = self.local_teachers.for_account(self.owner.id).first
+    if !teacher_in_owner_accounts.nil? && (teacher_in_owner_accounts.teacher_username != self.global_teacher_username)
+      self.global_teacher_username= teacher_in_owner_accounts.teacher_username
+    end
+  end
+
   def keep_history_of_changes
-    # level and global_status
-    %W(level status).each do |att|
+    # level, global_status and teacher_username
+    %W(level status global_teacher_username).each do |att|
       if self.send("#{att}_changed?")
         self.history_entries.create(attribute: att,
                                     changed_at: Time.zone.now.to_time,
                                     old_value: self.changes[att][0])
       end
     end
-    # local_status are tracked in LocalStatus model
+    # local_status changes are tracked in LocalStatus model
+    # local_teacher changes are tracked in LocalTeacher model
   end
 
   def validate_duplicates
