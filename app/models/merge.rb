@@ -4,8 +4,9 @@ class Merge
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  field :father, :type => Integer
-  field :son, :type => Integer
+  field :father_id
+  field :first_contact_id
+  field :second_contact_id
 
   field :merging, :type => Boolean, :default => false
   field :done, :type => Boolean, :default => false
@@ -16,27 +17,55 @@ class Merge
 
   field :services, :type => Hash, :default => SERVICES
 
-  #attr_protected :father, :son, :merging, :done, :services
+  validate :first_contact_id, presence: true
+  validate :second_contact_id, presence: true
+  validate :similarity_of_contacts
 
-  validate :existence_of_contacts
-  #validate :similarity_of_contacts
+  after_validation :choose_father
 
-
-  def initialize(first_contact, second_contact)
-      @first_contact = first_contact
-      @second_contact = second_contact
-
-      self.father = first_contact
-      self.son = second_contact
-  end
-
-  def existence_of_contacts
-    if !Contact.where(:_id => @first_contact).exists? || !Contact.where(:_id => @second_contact).exists?
-      self.errors[:existence_of_contacts] << I18n.t('errors.messages.contact_inexistence')
+  # Validate existence and similarity of contacts.
+  def similarity_of_contacts
+    if !Contact.where(:_id => self.first_contact_id).exists? || !Contact.where(:_id => self.second_contact_id).exists?
+      self.errors[:existence_of_contacts] << I18n.t('errors.merge.existence_of_contacts')
+    else
+      if !get_first_contact.similar.include?(get_second_contact)
+        self.errors[:similarity_of_contacts] << I18n.t('errors.merge.similarity_of_contacts')
+      end
     end
   end
 
-  #def similarity_of_contacts
-  #end
+  private
+
+  def choose_father
+
+    if self.errors.include?(:existence_of_contacts) || self.errors.include?(:similarity_of_contacts)
+      return false
+    end
+
+    first_contact = get_first_contact
+    second_contact = get_second_contact
+
+    if first_contact.status != second_contact.status
+      if Contact::VALID_STATUSES.index(first_contact.status) < Contact::VALID_STATUSES.index(second_contact.status)
+        self.father_id = self.first_contact_id
+      else
+        self.father_id = self.second_contact_id
+      end
+    else
+      if first_contact.updated_at > second_contact.updated_at
+        self.father_id = self.first_contact_id
+      else
+        self.father_id = self.second_contact_id
+      end
+    end
+  end
+
+  def get_first_contact
+    Contact.find(self.first_contact_id)
+  end
+
+  def get_second_contact
+    Contact.find(self.second_contact_id)
+  end
 
 end
