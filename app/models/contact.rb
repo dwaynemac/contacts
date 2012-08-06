@@ -143,7 +143,7 @@ class Contact
         return self.local_unique_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first.try :value
       end
 
-    # local_unique_attribute setter for an account_id
+    # local_unique_attribute setter for an account_name
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
       a = Account.where(name: $2).first
       if a.nil?
