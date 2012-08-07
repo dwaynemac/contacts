@@ -338,6 +338,7 @@ class Contact
   # @option selector :address
   # @option selector :custom_attribute
   # @option selector :local_status      only considered if account_id is specified
+  # @option selector :local_teacher      only considered if account_id is specified
   # @option selector :birth_day
   #
   # @return [Mongoid::Criteria]
@@ -365,7 +366,7 @@ class Contact
           when 'date_attribute'
             aux = DateAttribute.convert_selector(v)
             new_selector['$and'] << aux unless aux.nil?
-          when 'local_status', 'coefficient'
+          when 'local_status', 'coefficient', 'local_teacher'
             if account_id.present?
               new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: k.to_s.camelcase, value: v, account_id: account_id}}
             end
