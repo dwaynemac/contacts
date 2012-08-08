@@ -4,12 +4,10 @@ class Merge
   include Mongoid::Document
   include Mongoid::Timestamps
 
+
   field :father_id
   field :first_contact_id
   field :second_contact_id
-
-  field :merging, :type => Boolean, :default => false
-  field :done, :type => Boolean, :default => false
 
   SERVICES = {
     'contacts' => false
@@ -23,6 +21,34 @@ class Merge
 
   after_validation :choose_father
 
+  state_machine :initial => :not_started do
+    after_transition [:not_started, :pending] => :merging, :do => :merge
+
+    event :start do
+      transition [:not_started, :pending] => :merging, :if => :father_has_been_chosen
+    end
+
+    event :stop do
+      transition :merging => :merged, :if => :finished
+      transition :merging => :pending
+    end
+  end
+
+  private
+
+  def merge
+    # TODO: Merge code
+    self.stop
+  end
+
+  def finished
+    self.services.select{|service, finished| not finished}.count == 0
+  end
+
+  def father_has_been_chosen
+    self.father_id
+  end
+
   # Validate existence and similarity of contacts.
   def similarity_of_contacts
     if !Contact.where(:_id => self.first_contact_id).exists? || !Contact.where(:_id => self.second_contact_id).exists?
@@ -33,8 +59,6 @@ class Merge
       end
     end
   end
-
-  private
 
   def choose_father
 
