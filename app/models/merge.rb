@@ -75,6 +75,12 @@ class Merge
       else
         self.father_id = self.second_contact_id
       end
+    elsif first_contact.contact_attributes.count != second_contact.contact_attributes.count
+      if first_contact.contact_attributes.count > second_contact.contact_attributes.count
+        self.father_id = self.first_contact_id
+      else
+        self.father_id = self.second_contact_id
+      end
     else
       if first_contact.updated_at > second_contact.updated_at
         self.father_id = self.first_contact_id
