@@ -14,6 +14,11 @@ LocalStatus.blueprint do
   value { :prospect }
 end
 
+LocalTeacher.blueprint do
+  contact { Contact.make }
+  account { Account.make }
+end
+
 LocalUniqueAttribute.blueprint do
   contact { Contact.make }
   account { Account.make }
@@ -38,6 +43,12 @@ end
 Address.blueprint do
   account { Account.make }
   value "luis maria campos"
+end
+
+Identification.blueprint do
+  account { Account.make }
+  value '30366843'
+  category "DNI"
 end
 
 Account.blueprint do

@@ -209,7 +209,7 @@ class V0::ContactsController < V0::ApplicationController
   #   local_status -> local_status_for_CurrentAccountName
   #   coefficient  -> coefficient_for_CurrentAccountName
   def convert_local_attributes
-    %w(local_status coefficient).each do |la|
+    %w(local_status coefficient local_teacher).each do |la|
       if @account
         if params[:contact][la]
           params[:contact]["#{la}_for_#{@account.name}"] = params[:contact].delete(la)

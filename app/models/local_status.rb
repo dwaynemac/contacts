@@ -29,7 +29,6 @@ class LocalStatus < LocalUniqueAttribute
   end
 
   def keep_history_of_changes
-
     if self.status_changed?
       self.contact.history_entries.create(
         attribute: "local_status_for_#{self.account_name}",
