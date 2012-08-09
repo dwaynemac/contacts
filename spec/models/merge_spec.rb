@@ -56,7 +56,7 @@ describe Merge do
 
       end
 
-      it "should choose depending on status hirarchy (first criteria)" do
+      it "should choose depending on status hierarchy (first criteria)" do
         m = Merge.new(:first_contact_id => @student_goku.id, :second_contact_id => @pr_goku_2a.id)
         m.save
         m.father_id.should == @student_goku.id
