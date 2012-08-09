@@ -15,8 +15,8 @@ class Merge
 
   field :services, :type => Hash, :default => SERVICES
 
-  validate :first_contact_id, presence: true
-  validate :second_contact_id, presence: true
+  validates :first_contact_id, presence: true
+  validates :second_contact_id, presence: true
   validate :similarity_of_contacts
 
   after_validation :choose_father
