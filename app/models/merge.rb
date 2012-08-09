@@ -21,6 +21,17 @@ class Merge
 
   after_validation :choose_father
 
+  # Public methods:
+  #
+  # Start: Starts or continue with merging process.
+  # @method start
+  #
+  # Stop: Stop with merging process.
+  #   If merging process is finished this will
+  #   update state to :merge otherwise it will be
+  #   updated to :pending
+  # @method stop
+
   state_machine :initial => :not_started do
     after_transition [:not_started, :pending] => :merging, :do => :merge
 
@@ -60,6 +71,10 @@ class Merge
     end
   end
 
+  # Choose father following this set of rules:
+  # 1) If status is different choose the one which takes precedence
+  # 2) If status is the same choose the one with more contact attributes
+  # 3) If both have the same amount of contact attributes choose the lastly updated
   def choose_father
 
     if self.errors.include?(:existence_of_contacts) || self.errors.include?(:similarity_of_contacts)
