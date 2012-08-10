@@ -6,7 +6,6 @@ describe Merge do
   it { should validate_presence_of :second_contact_id }
 
   describe "Creation" do
-
     before do
       @goku1 = Contact.make(:first_name => "Son", :last_name => "Goku")
       @goku1.save
@@ -32,7 +31,7 @@ describe Merge do
 
     it "should be in not_started state" do
       m = Merge.new(:first_contact_id => @goku1.id, :second_contact_id => @goku2.id)
-      m.not_started?.should == true
+      m.should be_not_started # RSpec magic for: m.not_started?.should == true
     end
 
     describe "Father Choosing" do
@@ -56,7 +55,7 @@ describe Merge do
 
       end
 
-      it "should choose depending on status hierarchy (first criteria)" do
+      it "should choose depending on status hierarchy (first criteria) - between prospect and student, student if chosen" do
         m = Merge.new(:first_contact_id => @student_goku.id, :second_contact_id => @pr_goku_2a.id)
         m.save
         m.father_id.should == @student_goku.id

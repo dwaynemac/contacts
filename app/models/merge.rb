@@ -36,11 +36,11 @@ class Merge
     after_transition [:not_started, :pending] => :merging, :do => :merge
 
     event :start do
-      transition [:not_started, :pending] => :merging, :if => :father_has_been_chosen
+      transition [:not_started, :pending] => :merging, :if => :father_has_been_chosen?
     end
 
     event :stop do
-      transition :merging => :merged, :if => :finished
+      transition :merging => :merged, :if => :finished?
       transition :merging => :pending
     end
   end
@@ -52,11 +52,11 @@ class Merge
     self.stop
   end
 
-  def finished
+  def finished?
     self.services.select{|service, finished| not finished}.count == 0
   end
 
-  def father_has_been_chosen
+  def father_has_been_chosen?
     self.father_id
   end
 
