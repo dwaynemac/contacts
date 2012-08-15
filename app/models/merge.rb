@@ -14,12 +14,14 @@ class Merge
   }
 
   field :services, :type => Hash, :default => SERVICES
+  field :warnings, :type => Hash, :default => {}
 
   validates :first_contact_id, presence: true
   validates :second_contact_id, presence: true
   validate :similarity_of_contacts
 
   after_validation :choose_father
+  after_save :look_for_warnings
 
   # Public methods:
   #
@@ -32,17 +34,46 @@ class Merge
   #   updated to :pending
   # @method stop
 
-  state_machine :initial => :not_started do
-    after_transition [:not_started, :pending] => :merging, :do => :merge
+  state_machine :initial => :embryonic do
+    after_transition [:ready, :pending] => :merging, :do => :merge
+
+    event :confirm do
+      transition [:has_warnings] => :ready
+    end
 
     event :start do
-      transition [:not_started, :pending] => :merging, :if => :father_has_been_chosen?
+      transition [:ready, :pending] => :merging, :if => :father_has_been_chosen?
     end
 
     event :stop do
       transition :merging => :merged, :if => :finished?
       transition :merging => :pending
     end
+
+    # To avoid maliciuos usage :embryonic => :ready only happens when
+    # father has been chosen
+    event :merge_initialization_finished do
+      transition :embryonic => :has_warnings, :if => :has_warnings?
+      transition :embryonic => :ready, :if => :father_has_been_chosen?
+    end
+  end
+
+  def get_father
+    if father_has_been_chosen?
+      Contact.find(self.father_id)
+    end
+  end
+
+  def get_son
+    if father_has_been_chosen?
+      get_first_contact if self.first_contact_id != self.father_id
+      get_second_contact if self.second_contact_id != self.father_id
+    end
+  end
+
+  def has_warnings?
+    return false if self.warnings.size == 0
+    return true
   end
 
   private
@@ -105,6 +136,28 @@ class Merge
     end
   end
 
+  def look_for_warnings
+    father = get_father
+    son = get_son
+
+    # Local Status
+    # For each local status that they share (:account_id) warn the user
+    # if the son has the local_status that takes precedence
+    son.local_statuses.all.entries.each do |ls|
+      father_ls = father.local_statuses.where(:account_id => ls.account_id).first
+      if Contact::VALID_STATUSES.index(father_ls.value) < Contact::VALID_STATUSES.index(ls.value)
+        self.warnings['local_statuses'] = Array.new if !self.warnings.has_key?('local_statuses')
+        self.warnings['local_statuses'].push(ls.account_id)
+      end
+    end
+
+    # Level
+    # Warn the user if the son has a higher level
+    self.warnings['level'] = true if Contact::VALID_LEVELS[son.level] > Contact::VALID_LEVELS[father.level]
+    self.merge_initialization_finished
+  end
+
+
   def get_first_contact
     Contact.find(self.first_contact_id)
   end
@@ -112,5 +165,6 @@ class Merge
   def get_second_contact
     Contact.find(self.second_contact_id)
   end
+
 
 end
