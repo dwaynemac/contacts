@@ -464,25 +464,6 @@ describe V0::ContactsController do
     end
   end
 
-  describe "#update from Typhoeus" do
-    before do
-      @contact = Contact.first
-      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "154636875215")
-      @contact.save
-      @new_first_name = "Homer"
-      put :update, :id => @contact.id,
-          "contact"=>{"contact_attributes_attributes"=>["{\"_id\"=>\"#{@contact.contact_attributes.first._id}\", \"type\"=>\"Telephone\", \"category\"=>\"home\", \"value\"=>\"123432134\", \"public\"=>1}"], "_id" => @contact.id, "first_name"=>@new_first_name},
-                  :app_key => V0::ApplicationController::APP_KEY
-    end
-    it "should change first name" do
-      @contact.reload.first_name.should == @new_first_name
-    end
-
-    it "should change telephone value" do
-      @contact.reload.contact_attributes.first.value.should == "123432134"
-    end
-  end
-
   describe "#link" do
     let(:contact){Contact.make}
     let(:account){Account.make}
@@ -509,17 +490,6 @@ describe V0::ContactsController do
       before do
         post :create,
                   :contact => Contact.plan(:contact_attributes => [ContactAttribute.plan]),
-                  :app_key => V0::ApplicationController::APP_KEY
-      end
-      it { assigns(:contact).should_not be_new_record }
-      it { assigns(:contact).contact_attributes.should have_at_least(1).attribute }
-      it { assigns(:contact).contact_attributes.first.should_not be_new_record }
-    end
-
-    describe "should create a contact with attributes (Typhoeus)" do
-      before do
-        post :create,
-                  "contact"=>{"contact_attributes_attributes"=>["{\"_type\"=>\"Telephone\", \"public\"=>nil, \"category\"=>\"f\", \"value\"=>\"1112312\"}", "{\"_type\"=>\"Email\", \"public\"=>nil, \"category\"=>\"d\", \"value\"=>\"lionel.hutz75@hotmail.com\"}"], "first_name"=>"Lionel", "last_name"=>"Hutz"},
                   :app_key => V0::ApplicationController::APP_KEY
       end
       it { assigns(:contact).should_not be_new_record }

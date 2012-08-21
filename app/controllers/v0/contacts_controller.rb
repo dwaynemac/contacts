@@ -6,7 +6,6 @@ class V0::ContactsController < V0::ApplicationController
   before_filter :set_list
   before_filter :set_scope
   before_filter :convert_local_attributes, only: [:create, :update]
-  before_filter :typhoeus_bugfix, only: [:create, :update]
 
   ##
   # Returns list of contacts in JSON
@@ -243,18 +242,6 @@ class V0::ContactsController < V0::ApplicationController
       else
         Contact
     end
-  end
-
-  # Fix for Typhoeus call bug
-  def typhoeus_bugfix
-    c = params[:contact]
-
-    return if c.nil?
-    if c[:contact_attributes_attributes] && c[:contact_attributes_attributes].first.is_a?(String)
-      c[:contact_attributes_attributes] = c[:contact_attributes_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":").gsub(/nil/, "null"))}
-    end
-
-    params[:contact] = c
   end
 
   # Sort by normalized fields
