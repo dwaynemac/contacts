@@ -38,11 +38,11 @@ class Merge
     after_transition [:ready, :pending] => :merging, :do => :merge
 
     event :confirm do
-      transition [:has_warnings] => :ready
+      transition [:pending_confirmation] => :ready, :if => :father_has_been_chosen?
     end
 
     event :start do
-      transition [:ready, :pending] => :merging, :if => :father_has_been_chosen?
+      transition [:ready, :pending] => :merging
     end
 
     event :stop do
@@ -53,10 +53,12 @@ class Merge
     # To avoid maliciuos usage :embryonic => :ready only happens when
     # father has been chosen
     event :merge_initialization_finished do
-      transition :embryonic => :has_warnings, :if => :has_warnings?
+      transition :embryonic => :pending_confirmation, :if => :has_warnings?
       transition :embryonic => :ready, :if => :father_has_been_chosen?
     end
   end
+
+  # private keyword should be put here
 
   def get_father
     if father_has_been_chosen?
@@ -66,8 +68,11 @@ class Merge
 
   def get_son
     if father_has_been_chosen?
-      get_first_contact if self.first_contact_id != self.father_id
-      get_second_contact if self.second_contact_id != self.father_id
+      if self.first_contact_id != self.father_id
+        return get_first_contact
+      else
+        return get_second_contact
+      end
     end
   end
 
@@ -143,17 +148,21 @@ class Merge
     # Local Status
     # For each local status that they share (:account_id) warn the user
     # if the son has the local_status that takes precedence
-    son.local_statuses.all.entries.each do |ls|
+    son.local_statuses.each do |ls|
       father_ls = father.local_statuses.where(:account_id => ls.account_id).first
       if Contact::VALID_STATUSES.index(father_ls.value) < Contact::VALID_STATUSES.index(ls.value)
-        self.warnings['local_statuses'] = Array.new if !self.warnings.has_key?('local_statuses')
+        if !self.warnings.has_key?('local_statuses')
+          self.warnings['local_statuses'] = Array.new
+        end
         self.warnings['local_statuses'].push(ls.account_id)
       end
     end
 
     # Level
     # Warn the user if the son has a higher level
-    self.warnings['level'] = true if Contact::VALID_LEVELS[son.level] > Contact::VALID_LEVELS[father.level]
+    if Contact::VALID_LEVELS[son.level] > Contact::VALID_LEVELS[father.level]
+      self.warnings['level'] = true
+    end
     self.merge_initialization_finished
   end
 
