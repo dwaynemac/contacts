@@ -19,7 +19,7 @@ class V0::AvatarsController < V0::ApplicationController
     contact = Contact.find(params[:contact_id])
     contact.avatar = params[:avatar][:file]
     if contact.save!
-      render :json => {:id => nil}.to_json, :status => :created
+      render :json => "OK", :status => :created
     else
       render :json => {:message => "Sorry, avatar not created", :errors => contact.errors}.to_json, :status => 400
     end
