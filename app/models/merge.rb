@@ -84,8 +84,49 @@ class Merge
   private
 
   def merge
-    # TODO: Merge code
+
+    father = get_father
+    son = get_son
+
+    contacts_service_merge(father, son)
+
+    if finished?
+      son.delete
+      father.save
+    end
+
     self.stop
+  end
+
+  def contacts_service_merge(father, son)
+
+    # Contact Attributes
+    father.contact_attributes << son.contact_attributes
+
+    # Father's Level remains
+    # Father's Global Teacher remains
+
+    # Local Teachers
+    son.local_teachers.each do |lt|
+      if father.local_teachers.where(:account_id => lt.account_id).count == 0
+        father.local_unique_attributes << lt
+      end
+    end
+
+    # Local Statuses
+    son.local_statuses.each do |ls|
+      if father.local_statuses.where(:account_id => ls.account_id).count == 0
+        father.local_unique_attributes << ls
+      end
+    end
+
+    # Lists
+    father.lists << son.lists
+
+    father.contact_attributes << CustomAttribute.new(:name => "old_first_name", :value => son.first_name)
+    father.contact_attributes << CustomAttribute.new(:name => "old_last_name", :value => son.last_name)
+
+    self.services['contacts'] = true
   end
 
   def finished?
@@ -149,12 +190,14 @@ class Merge
     # For each local status that they share (:account_id) warn the user
     # if the son has the local_status that takes precedence
     son.local_statuses.each do |ls|
-      father_ls = father.local_statuses.where(:account_id => ls.account_id).first
-      if Contact::VALID_STATUSES.index(father_ls.value) < Contact::VALID_STATUSES.index(ls.value)
-        if !self.warnings.has_key?('local_statuses')
-          self.warnings['local_statuses'] = Array.new
+      if father.local_statuses.where(:account_id => ls.account_id).exists?
+        father_ls = father.local_statuses.where(:account_id => ls.account_id).first
+        if Contact::VALID_STATUSES.index(father_ls.value) < Contact::VALID_STATUSES.index(ls.value)
+          if !self.warnings.has_key?('local_statuses')
+            self.warnings['local_statuses'] = Array.new
+          end
+          self.warnings['local_statuses'].push(ls.account_id)
         end
-        self.warnings['local_statuses'].push(ls.account_id)
       end
     end
 

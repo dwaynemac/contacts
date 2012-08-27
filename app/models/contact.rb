@@ -286,6 +286,19 @@ class Contact
     if self.id.present?
       contacts = contacts.excludes(:id => self.id)
     end
+
+    contacts = contacts.to_a
+
+    contacts.delete_if do |c|
+      not_similar = false
+      c.identifications.each do |id|
+        if self.identifications.select{|id_c| id_c.category == id.category}.select{|id_v| id_v.value != id.value}.length > 0
+          not_similar = true
+        end
+      end
+      not_similar
+    end
+
   end
 
   def check_duplicates= value
