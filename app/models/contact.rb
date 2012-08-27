@@ -278,7 +278,7 @@ class Contact
         contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
             _type: 'Identification',
             category: identification.category,
-            value: identification.value.gsub(/[\.\-_\s\/]/,'')
+            value: identification.get_normalized_value
         }})
       end
     end
@@ -292,7 +292,9 @@ class Contact
     contacts.delete_if do |c|
       not_similar = false
       c.identifications.each do |id|
-        if self.identifications.select{|id_c| id_c.category == id.category}.select{|id_v| id_v.value != id.value}.length > 0
+        if self.identifications.where(:category => id.category).select{ |id_v|
+            id_v.get_normalized_value != id.get_normalized_value
+          }.length > 0
           not_similar = true
         end
       end

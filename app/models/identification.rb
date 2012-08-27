@@ -18,6 +18,10 @@ class Identification < ContactAttribute
     end
   end
 
+  def get_normalized_value
+    self.value.gsub(/[\.\-_\s\/]/,'')
+  end
+
   private
 
   def ensure_public
