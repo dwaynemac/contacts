@@ -18,6 +18,7 @@ gem 'carrierwave'
 gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
 gem 'fog'
 gem 'state_machine', '~> 1.1.2'
+gem 'ethon', '0.4.2'
 
 group :documentation do
   gem 'yard', '~> 0.7.4'
