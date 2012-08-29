@@ -47,7 +47,7 @@ class V0::ApplicationController < ApplicationController
           I18n.locale = @user.try :locale
           # TODO: check account with user
         end
-    end
+      end
     end
   end
 end

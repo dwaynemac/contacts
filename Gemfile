@@ -9,7 +9,7 @@ gem 'mongoid_search'
 
 gem 'cancan', '~> 1.6.7'
 
-gem "logical_model", '0.2.17'
+gem "logical_model", '0.3.2'
 
 gem 'kaminari', '~> 0.13'
 
@@ -17,6 +17,7 @@ gem 'rmagick'
 gem 'carrierwave'
 gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
 gem 'fog'
+gem 'state_machine', '~> 1.1.2'
 
 group :documentation do
   gem 'yard', '~> 0.7.4'
