@@ -10,7 +10,8 @@ class Merge
   field :second_contact_id
 
   SERVICES = {
-    'contacts' => false
+    'contacts' => false,
+    'activity_stream' => false
   }
 
   field :services, :type => Hash, :default => SERVICES
@@ -89,6 +90,7 @@ class Merge
     son = get_son
 
     contacts_service_merge(father, son)
+    activity_stream_service_merge(father,son)
 
     if finished?
       son.delete
@@ -127,6 +129,14 @@ class Merge
     father.contact_attributes << CustomAttribute.new(:name => "old_last_name", :value => son.last_name)
 
     self.services['contacts'] = true
+  end
+
+  def activity_stream_service_merge(father,son)
+
+    am = ActivitiesMerge.new(parent_id: father.id.to_s, son_id: son.id.to_s)
+    if am.create
+      self.services['activity_stream'] = true
+    end
   end
 
   def finished?

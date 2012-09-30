@@ -113,9 +113,10 @@ GEM
     libwebsocket (0.1.5)
       addressable
     listen (0.5.0)
-    logical_model (0.3.2)
+    logical_model (0.3.5)
       activemodel
       activesupport
+      ethon (= 0.4.2)
       kaminari (~> 0.13.0)
       typhoeus (= 0.5.0.alpha)
     machinist (1.0.6)
@@ -239,7 +240,7 @@ DEPENDENCIES
   guard-spork
   kaminari (~> 0.13)
   libnotify
-  logical_model (= 0.3.2)
+  logical_model (= 0.3.5)
   machinist (= 1.0.6)
   machinist_mongo (= 1.2.0)
   mongoid (= 2.3.3)
