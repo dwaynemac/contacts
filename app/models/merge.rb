@@ -12,6 +12,7 @@ class Merge
   SERVICES = {
     'contacts' => false,
     'crm' => false
+    'activity_stream' => false
   }
 
   field :services, :type => Hash, :default => SERVICES
@@ -97,6 +98,10 @@ class Merge
       crm_service_merge(father, son)
     end
 
+    if !self.services['activity_stream']
+      activity_stream_service_merge(father,son)
+    end
+
     if finished?
       son.delete
       father.save
@@ -140,6 +145,13 @@ class Merge
     crm_merge = CrmMerge.new(:parent_id => father.id, :son_id => son.id)
     if crm_merge.create
       self.services['crm'] = true
+    end
+  end
+
+  def activity_stream_service_merge(father,son)
+    am = ActivitiesMerge.new(parent_id: father.id.to_s, son_id: son.id.to_s)
+    if am.create
+      self.services['activity_stream'] = true
     end
   end
 

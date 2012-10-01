@@ -694,19 +694,25 @@ describe Contact do
       @contact.save
     end
 
-    it "on save a contact without status should set the owners main list" do
-      @contact.lists.first.should == @account.base_list
+    context "if contact has no status" do
+
+      it "on save a contact without status should set the owners main list" do
+        @contact.lists.first.should == @account.base_list
+      end
     end
 
-    example "if contact is a student, account where it is student should own it" do
-      new_acc = Account.make
-      @contact.local_status={account_id: new_acc.id, status: :student}
-      @contact.save
-      @contact.reload
-      @contact.status.should == :student
-      @contact.owner.should == new_acc
+    context "if contact is a student" do
+      before do
+        @new_acc = Account.make
+        @contact.local_status={account_id: @new_acc.id, status: :student}
+        @contact.save
+        @contact.reload
+        @contact.status.should == :student
+      end
+      example "account where it is student should own it" do
+        @contact.owner.should == @new_acc
+      end
     end
-
   end
 
 end

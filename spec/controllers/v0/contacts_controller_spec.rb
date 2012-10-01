@@ -590,28 +590,26 @@ describe V0::ContactsController do
       @contact = Contact.make(owner: @account)
     end
     describe "as the owner" do
+      let(:params){{:id => @contact.id,
+                    :account_name => @account.name,
+                    :app_key => V0::ApplicationController::APP_KEY}}
       it "should unlink the contact" do
         prev = @account.contacts.count
-        delete :destroy,
-               :id => @contact.id,
-               :account_name => @account.name,
-               :app_key => V0::ApplicationController::APP_KEY
+        delete :destroy, params
         @account.reload
         @account.contacts.count.should == prev-1
       end
       it "should not destroy the contact" do
         owner = @contact.owner
-        expect{delete :destroy,
-                    :id => @contact.id,
-                    :account_name => owner.name,
-                    :app_key => V0::ApplicationController::APP_KEY}.not_to change{Contact.count}.by(-1)
+        expect{delete :destroy, params}.not_to change{Contact.count}.by(-1)
       end
     end
     describe "as a viewer/editor" do
-      it "should not delete the contact" do
-        expect{post :destroy, :method => :delete,
+      let(:params){{:method => :delete,
                     :id => @contact.id,
-                    :app_key => V0::ApplicationController::APP_KEY}.not_to change{Contact.count}
+                    :app_key => V0::ApplicationController::APP_KEY}}
+      it "should not delete the contact" do
+        expect{post :destroy, params}.not_to change{Contact.count}
       end
     end
   end
@@ -623,18 +621,16 @@ describe V0::ContactsController do
       3.times { @contacts << Contact.make(owner: @account) }
     end
     context "as the owner" do
-      it "should unlink owned contacts" do
-        expect{post :destroy_multiple, :method => :delete,
+      let(:params){{:method => :delete,
                     :ids => @contacts.map(&:_id),
                     :account_name => @account.name,
-                    :app_key => V0::ApplicationController::APP_KEY}.to change{@account.contacts.count}.by(-3)
+                    :app_key => V0::ApplicationController::APP_KEY}}
+      it "should unlink owned contacts" do
+        expect{post :destroy_multiple, params}.to change{@account.contacts.count}.by(-3)
       end
       it "should skip deletion of any not-owned contact" do
         @contacts << Contact.make(owner: Account.make)
-        expect{post :destroy_multiple, :method => :delete,
-                    :ids => @contacts.map(&:_id),
-                    :account_name => @account.name,
-                    :app_key => V0::ApplicationController::APP_KEY}.to change{@account.contacts.count}.by(-3)
+        expect{post :destroy_multiple, params}.to change{@account.contacts.count}.by(-3)
       end
     end
     context "as non-owner" do

@@ -118,6 +118,7 @@ describe Merge do
   describe "Merging" do
 
     before do
+
       @account_1 = Account.make
       @account_2 = Account.make
       @account_3 = Account.make
@@ -157,6 +158,11 @@ describe Merge do
       @son.contact_attributes << [@contact_attributes['son_telephone'], @contact_attributes['son_email']]
 
       @son.save
+
+      # it should call ActivityStream API (expectation has to be befare call to @m.start)
+      mock = ActivitiesMerge.new
+      ActivitiesMerge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
+      ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
 
       @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
       @m.save
@@ -199,6 +205,9 @@ describe Merge do
       @father.contact_attributes.where(:name => "old_last_name").first.value.should == "Goku2"
     end
 
+    it "should keep record of migrated services" do
+      @m.services['activity_stream'].should be_true
+    end
   end
 end
 
