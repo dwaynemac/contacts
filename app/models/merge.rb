@@ -10,7 +10,8 @@ class Merge
   field :second_contact_id
 
   SERVICES = {
-    'contacts' => false
+    'contacts' => false,
+    'crm' => false
   }
 
   field :services, :type => Hash, :default => SERVICES
@@ -88,7 +89,13 @@ class Merge
     father = get_father
     son = get_son
 
-    contacts_service_merge(father, son)
+    if !self.services['contacts']
+      contacts_service_merge(father, son)
+    end
+
+    if !self.services['crm']
+      crm_service_merge(father, son)
+    end
 
     if finished?
       son.delete
@@ -127,6 +134,13 @@ class Merge
     father.contact_attributes << CustomAttribute.new(:name => "old_last_name", :value => son.last_name)
 
     self.services['contacts'] = true
+  end
+
+  def crm_service_merge(father, son)
+    crm_merge = CrmMerge.new(:parent_id => father.id, :son_id => son.id)
+    if crm_merge.create
+      self.services['crm'] = true
+    end
   end
 
   def finished?
