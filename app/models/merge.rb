@@ -11,7 +11,7 @@ class Merge
 
   SERVICES = {
     'contacts' => false,
-    'crm' => false
+    'crm' => false,
     'activity_stream' => false
   }
 
@@ -102,10 +102,7 @@ class Merge
       activity_stream_service_merge(father,son)
     end
 
-    if finished?
-      son.delete
-      father.save
-    end
+    son.delete if finished?
 
     self.stop
   end
@@ -113,7 +110,9 @@ class Merge
   def contacts_service_merge(father, son)
 
     # Contact Attributes
-    father.contact_attributes << son.contact_attributes
+    son.contact_attributes.each do |ca|
+      father.contact_attributes << ca.clone
+    end
 
     # Father's Level remains
     # Father's Global Teacher remains
@@ -137,6 +136,9 @@ class Merge
 
     father.contact_attributes << CustomAttribute.new(:name => "old_first_name", :value => son.first_name)
     father.contact_attributes << CustomAttribute.new(:name => "old_last_name", :value => son.last_name)
+
+    son.contact_attributes.delete_all
+    father.save
 
     self.services['contacts'] = true
   end

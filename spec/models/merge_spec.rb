@@ -115,7 +115,7 @@ describe Merge do
     end
   end
 
-  describe "Merging" do
+  describe "Merging Incomplete" do
 
     before do
 
@@ -164,6 +164,12 @@ describe Merge do
       ActivitiesMerge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
       ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
 
+      # it should call Crm API
+      mock = CrmMerge.new
+      CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
+      CrmMerge.any_instance.should_receive(:create).and_return(false)
+
+
       @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
       @m.save
 
@@ -176,7 +182,11 @@ describe Merge do
 
     it "should have all the contact attributes" do
       @contact_attributes.values.each do |cd|
-        @father.contact_attributes.include?(cd).should == true
+        @father.contact_attributes.where(
+          :_type => cd._type,
+          :value => cd.value,
+          :account_id => cd.account_id
+        ).exists?.should == true
       end
     end
 
@@ -207,6 +217,48 @@ describe Merge do
 
     it "should keep record of migrated services" do
       @m.services['activity_stream'].should be_true
+    end
+
+    it "should keep record of not-migrated services" do
+      @m.services['crm'].should be_false
+      @m.should be_pending
+    end
+  end
+
+  describe "Merging Complete" do
+    before do
+      @account_1 = Account.make
+      @account_2 = Account.make
+
+      @father = Contact.make(:first_name => "Son", :last_name => "Goku", :level => "maestro")
+      @father.local_unique_attributes << LocalStatus.make(:value => :student, :account => @account_1)
+      @father.save
+
+      @son = Contact.make(:first_name => "Son", :last_name => "Goku2", :level => "aspirante")
+      @son.local_unique_attributes << LocalStatus.make(:value => :prospect, :account => @account_2)
+      @son.save
+
+      # it should call ActivityStream API (expectation has to be befare call to @m.start)
+      mock = ActivitiesMerge.new
+      ActivitiesMerge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
+      ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
+
+      # it should call Crm API
+      mock = CrmMerge.new
+      CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
+      CrmMerge.any_instance.should_receive(:create).and_return(true)
+
+      @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
+      @m.save
+
+      @m.start
+    end
+
+    it "should keep record of migrated services" do
+      @m.services['activity_stream'].should be_true
+      @m.services['crm'].should be_true
+      @m.services['contacts'].should be_true
+      @m.should be_finished
     end
   end
 end
