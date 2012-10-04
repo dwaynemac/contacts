@@ -22,7 +22,9 @@ class V0::Ability
 
       cannot :destroy, Contact
       cannot :destroy, ContactAttribute
+      cannot :create, Merge
     else
+
       # Account specified in this request
       can :manage, :all
 
@@ -41,6 +43,21 @@ class V0::Ability
         ca.contact.linked_to?(account)
       end
 
+      # Merge
+      cannot :create, Merge
+      can :create, Merge do |m|
+        own_first, own_second = false, false
+        
+        if m.first_contact_id
+          own_first = Contact.find(m.first_contact_id).owner == account 
+        end
+
+        if m.second_contact_id
+          own_second = Contact.find(m.second_contact_id).owner == account
+        end
+        
+        own_first && own_second
+      end
 
     end
 

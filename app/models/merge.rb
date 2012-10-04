@@ -231,8 +231,10 @@ class Merge
 
     # Level
     # Warn the user if the son has a higher level
-    if Contact::VALID_LEVELS[son.level] > Contact::VALID_LEVELS[father.level]
-      self.warnings['level'] = true
+    if son.level && father.level
+      if Contact::VALID_LEVELS[son.level] > Contact::VALID_LEVELS[father.level]
+        self.warnings['level'] = true
+      end
     end
     self.merge_initialization_finished
   end

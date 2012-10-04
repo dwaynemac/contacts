@@ -42,47 +42,57 @@ describe Merge do
     end
 
     describe "Father Choosing" do
+      context "for ok contacts" do
+        before do
+          @student_goku = Contact.make(:first_name => "Son", :last_name => "Goku", :status => :student, :level => "aspirante")
+          @student_goku.save
 
-      before do
-        @student_goku = Contact.make(:first_name => "Son", :last_name => "Goku", :status => :student, :level => "aspirante")
-        @student_goku.save
+          @pr_goku_2a = Contact.make(:first_name => "Son", :last_name => "Goku", :status => :prospect, :level => "aspirante")
+          @pr_goku_2a.contact_attributes << Telephone.make(:value => "5445234342")
+          @pr_goku_2a.contact_attributes << Email.make(:value => "goku_two@email.com")
+          @pr_goku_2a.save
 
-        @pr_goku_2a = Contact.make(:first_name => "Son", :last_name => "Goku", :status => :prospect, :level => "aspirante")
-        @pr_goku_2a.contact_attributes << Telephone.make(:value => "5445234342")
-        @pr_goku_2a.contact_attributes << Email.make(:value => "goku_two@email.com")
-        @pr_goku_2a.save
+          @pr_goku_1a = Contact.make(:first_name => "Son", :last_name => "Goku", :status => :prospect, :level => "aspirante")
+          @pr_goku_1a.contact_attributes << Email.make(value: 'goku_one@email.com')
+          @pr_goku_1a.save
 
-        @pr_goku_1a = Contact.make(:first_name => "Son", :last_name => "Goku", :status => :prospect, :level => "aspirante")
-        @pr_goku_1a.contact_attributes << Email.make(value: 'goku_one@email.com')
-        @pr_goku_1a.save
+          @new_pr_goku_1a = Contact.make(:first_name => "Son", :last_name => "Goku", :status => :prospect, :level => "aspirante")
+          @new_pr_goku_1a.contact_attributes << Email.make(value: 'goku_one_but_new@email.com')
+          @new_pr_goku_1a.save
 
-        @new_pr_goku_1a = Contact.make(:first_name => "Son", :last_name => "Goku", :status => :prospect, :level => "aspirante")
-        @new_pr_goku_1a.contact_attributes << Email.make(value: 'goku_one_but_new@email.com')
-        @new_pr_goku_1a.save
+        end
 
+        it "should choose depending on status hierarchy (first criteria) - between prospect and student, student if chosen" do
+          m = Merge.new(:first_contact_id => @student_goku.id, :second_contact_id => @pr_goku_2a.id)
+          m.save
+          m.father_id.should == @student_goku.id
+        end
+
+        it "should choose depending on amount of contact attributes if they share status (second criteria)" do
+          m = Merge.new(:first_contact_id => @pr_goku_1a.id, :second_contact_id => @pr_goku_2a.id)
+          m.save
+          m.father_id.should == @pr_goku_2a.id
+        end
+
+        it "should choose depending on updated time if they share the amount of contact attributes (third criteria)" do
+          m = Merge.new(
+              :first_contact_id => @pr_goku_1a.id,
+              :second_contact_id => @new_pr_goku_1a.id
+          )
+          m.save
+          m.father_id.should == @new_pr_goku_1a.id
+        end
       end
-
-      it "should choose depending on status hierarchy (first criteria) - between prospect and student, student if chosen" do
-        m = Merge.new(:first_contact_id => @student_goku.id, :second_contact_id => @pr_goku_2a.id)
-        m.save
-        m.father_id.should == @student_goku.id
+      context "for contacts without status" do
+        before do
+          @a = Contact.make first_name: 'son', last_name: 'goku'
+          @b = Contact.make first_name: 'sons', last_name: 'goku'
+        end
+        it "should no raise exception" do
+          m = Merge.new(first_contact_id: @a.id, second_contact_id: @b.id)
+          expect{m.save!}.not_to raise_exception
+        end
       end
-
-      it "should choose depending on amount of contact attributes if they share status (second criteria)" do
-        m = Merge.new(:first_contact_id => @pr_goku_1a.id, :second_contact_id => @pr_goku_2a.id)
-        m.save
-        m.father_id.should == @pr_goku_2a.id
-      end
-
-      it "should choose depending on updated time if they share the amount of contact attributes (third criteria)" do
-        m = Merge.new(
-          :first_contact_id => @pr_goku_1a.id,
-          :second_contact_id => @new_pr_goku_1a.id
-        )
-        m.save
-        m.father_id.should == @new_pr_goku_1a.id
-      end
-
     end
 
     describe "Look for Warnings" do
@@ -112,6 +122,41 @@ describe Merge do
 
         m.warnings['level'].should == true
       end
+
+      it "should not fail if contact has no level" do
+        @a = Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley')
+        @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
+
+        m = Merge.new(first_contact_id: @a.id, second_contact_id: @b.id)
+        expect{m.save}.not_to raise_exception
+      end
+    end
+  end
+
+  describe "#merge" do
+    it "should call ActivityStream API" do
+      father = Contact.make(first_name: 'dwayne 2', last_name: 'macgowan')
+      son = Contact.make(first_name: 'dwayne', last_name: 'macgowan')
+
+      mock = ActivitiesMerge.new
+      ActivitiesMerge.should_receive(:new).with(parent_id: father.id.to_s, son_id: son.id.to_s).and_return(mock)
+      ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
+
+      m = Merge.new(first_contact_id: son.id, second_contact_id: father.id)
+      expect{m.save!}.not_to raise_exception
+      m.start
+    end
+    it "should call Crm API" do
+      father = Contact.make(first_name: 'a', last_name: 'by')
+      son = Contact.make(first_name: 'a b', last_name: 'by')
+
+      mock = CrmMerge.new
+      CrmMerge.should_receive(:new).with(parent_id: father.id, son_id: son.id).and_return(mock)
+      CrmMerge.any_instance.should_receive(:create).and_return(true)
+
+      m = Merge.new(first_contact_id: son.id, second_contact_id: father.id)
+      expect{m.save!}.not_to raise_exception
+      m.start
     end
   end
 
