@@ -5,8 +5,9 @@ class Merge
   include Mongoid::Timestamps
 
   field :father_id
-  field :first_contact_id
-  field :second_contact_id
+
+  belongs_to :first_contact, class_name: 'Contact'
+  belongs_to :second_contact, class_name: 'Contact'
 
   SERVICES = {
     'contacts' => false,
@@ -70,9 +71,9 @@ class Merge
   def get_son
     if father_has_been_chosen?
       if self.first_contact_id != self.father_id
-        return get_first_contact
+        return first_contact
       else
-        return get_second_contact
+        return second_contact
       end
     end
   end
@@ -173,18 +174,10 @@ class Merge
     if !Contact.where(:_id => self.first_contact_id).exists? || !Contact.where(:_id => self.second_contact_id).exists?
       self.errors[:existence_of_contacts] << I18n.t('errors.merge.existence_of_contacts')
     else
-      if !get_first_contact.similar.include?(get_second_contact)
+      if !first_contact.similar.include?(second_contact)
         self.errors[:similarity_of_contacts] << I18n.t('errors.merge.similarity_of_contacts')
       end
     end
-  end
-
-  def first_contact
-    get_first_contact
-  end
-
-  def second_contact
-    get_second_contact
   end
 
   # Choose father following this set of rules:
@@ -279,15 +272,5 @@ class Merge
     end
     self.merge_initialization_finished
   end
-
-
-  def get_first_contact
-    @get_first_contact ||= Contact.find(self.first_contact_id)
-  end
-
-  def get_second_contact
-    @get_second_contact ||= Contact.find(self.second_contact_id)
-  end
-
 
 end
