@@ -93,6 +93,16 @@ describe Merge do
           expect{m.save!}.not_to raise_exception
         end
       end
+      context "when one contact has no status" do
+        before do
+          @a = Contact.make first_name: 'son', last_name: 'goku', status: 'student'
+          @b = Contact.make first_name: 'sons', last_name: 'goku'
+        end
+        it "should no raise exception" do
+          m = Merge.new(first_contact_id: @a.id, second_contact_id: @b.id)
+          expect{m.save!}.not_to raise_exception
+        end
+      end
     end
 
     describe "Look for Warnings" do
@@ -126,6 +136,19 @@ describe Merge do
       it "should not fail if contact has no level" do
         @a = Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley')
         @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
+
+        m = Merge.new(first_contact_id: @a.id, second_contact_id: @b.id)
+        expect{m.save}.not_to raise_exception
+      end
+
+      it "should not fail if contacts have local_status in same acc and one is blank" do
+        account = Account.make
+
+        @a = Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley')
+        @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
+
+        @a.local_unique_attributes << LocalStatus.make(value: '', account: account)
+        @b.local_unique_attributes << LocalStatus.make(value: :student, account: account)
 
         m = Merge.new(first_contact_id: @a.id, second_contact_id: @b.id)
         expect{m.save}.not_to raise_exception
@@ -277,10 +300,12 @@ describe Merge do
 
       @father = Contact.make(:first_name => "Son", :last_name => "Goku", :level => "maestro")
       @father.local_unique_attributes << LocalStatus.make(:value => :student, :account => @account_1)
+      @father.local_unique_attributes << LocalTeacher.make(value: 'teacher_1', account: @account_1)
       @father.save
 
       @son = Contact.make(:first_name => "Son", :last_name => "Goku2", :level => "aspirante")
       @son.local_unique_attributes << LocalStatus.make(:value => :prospect, :account => @account_2)
+      @son.local_unique_attributes << LocalTeacher.make(value: 'teacher_2', account: @account_2)
       @son.save
 
       # it should call ActivityStream API (expectation has to be befare call to @m.start)
@@ -305,6 +330,70 @@ describe Merge do
       @m.services['contacts'].should be_true
       @m.should be_finished
     end
+
+    it "should keep global_teacher" do
+      @father.reload.global_teacher_username.should == 'teacher_1'
+    end
+
+    it "should keep local_Teachers" do
+      @father.reload
+      ['teacher_1', 'teacher_2'].each do |teacher|
+       @father.local_teachers.map(&:value).should include(teacher)
+      end
+    end
+
+  end
+
+  # creates a merge that has warnings.
+  # code extracted from merge_spec.rb:157
+  def create_merge_with_warnings()
+    account_1 = Account.make
+    account_2 = Account.make
+    account_3 = Account.make
+
+    contact_attributes = {
+        'father_telephone' => Telephone.make(:value => '111111111'),
+        'father_email' => Email.make(:value => 'fathermail.com'),
+        'son_telephone' => Telephone.make(:value => '555555555'),
+        'son_email' => Email.make(:value => 'sonmail.com')
+    }
+
+    father_list = List.make
+    son_list = List.make
+
+    #Father
+    father = Contact.make(:first_name => "Son", :last_name => "Goku", :level => "aspirante", :lists => [father_list])
+
+    father.local_unique_attributes << LocalStatus.make(:value => :student, :account => account_1)
+    father.local_unique_attributes << LocalStatus.make(:value => :prospect, :account => account_2)
+
+    father.local_unique_attributes << LocalTeacher.make(:value => 'Roshi', :account => account_1)
+
+    father.contact_attributes << [contact_attributes['father_telephone'], contact_attributes['father_email']]
+
+    father.save
+
+    #Son
+    son = Contact.make(:first_name => "Son", :last_name => "Goku2", :level => "maestro", :lists => [son_list])
+
+    son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => account_1)
+    son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => account_2)
+    son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => account_3)
+
+    son.local_unique_attributes << LocalTeacher.make(:value => 'Kami', :account => account_1)
+    son.local_unique_attributes << LocalTeacher.make(:value => 'Kaio', :account => account_2)
+
+    son.contact_attributes << [contact_attributes['son_telephone'], contact_attributes['son_email']]
+
+    son.save
+
+
+    m = Merge.new(:first_contact_id => father.id, :second_contact_id => son.id)
+    m.save
+
+    m.should be_pending_confirmation
+
+    m
   end
 end
 

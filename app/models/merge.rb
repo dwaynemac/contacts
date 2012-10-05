@@ -4,7 +4,6 @@ class Merge
   include Mongoid::Document
   include Mongoid::Timestamps
 
-
   field :father_id
   field :first_contact_id
   field :second_contact_id
@@ -86,25 +85,29 @@ class Merge
   private
 
   def merge
+    begin
+      father = get_father
+      son = get_son
 
-    father = get_father
-    son = get_son
+      if !self.services['contacts']
+        contacts_service_merge(father, son)
+      end
 
-    if !self.services['contacts']
-      contacts_service_merge(father, son)
+      if !self.services['crm']
+        crm_service_merge(father, son)
+      end
+
+      if !self.services['activity_stream']
+        activity_stream_service_merge(father,son)
+      end
+
+      son.destroy if finished?
+
+      self.stop
+    rescue
+      son.destroy if finished?
+      self.stop
     end
-
-    if !self.services['crm']
-      crm_service_merge(father, son)
-    end
-
-    if !self.services['activity_stream']
-      activity_stream_service_merge(father,son)
-    end
-
-    son.delete if finished?
-
-    self.stop
   end
 
   def contacts_service_merge(father, son)
@@ -176,6 +179,14 @@ class Merge
     end
   end
 
+  def first_contact
+    get_first_contact
+  end
+
+  def second_contact
+    get_second_contact
+  end
+
   # Choose father following this set of rules:
   # 1) If status is different choose the one which takes precedence
   # 2) If status is the same choose the one with more contact attributes
@@ -186,27 +197,50 @@ class Merge
       return false
     end
 
-    first_contact = get_first_contact
-    second_contact = get_second_contact
+    self.father_id= nil
 
-    if first_contact.status != second_contact.status
-      if Contact::VALID_STATUSES.index(first_contact.status) < Contact::VALID_STATUSES.index(second_contact.status)
+    set_father_by_status
+    if self.father_id.nil?
+      set_father_by_contact_attributes_count
+    end
+    if self.father_id.nil?
+      set_father_by_updated_at
+    end
+  end
+
+  def set_father_by_status
+    if first_contact.status.nil? && second_contact.status.present?
+      self.father_id = self.second_contact_id
+    elsif second_contact.status.nil? && first_contact.status.present?
+      self.father_id = self.first_contact_id
+    elsif first_contact.status.present? && second_contact.status.present?
+      if first_contact.status != second_contact.status
+        if Contact::VALID_STATUSES.index(first_contact.status) < Contact::VALID_STATUSES.index(second_contact.status)
+          self.father_id = self.first_contact_id
+        else
+          self.father_id = self.second_contact_id
+        end
+      end
+    end
+  end
+
+  def set_father_by_contact_attributes_count
+    first_count = first_contact.contact_attributes.count
+    second_count = second_contact.contact_attributes.count
+    if first_count != second_count
+      if first_count > second_count
         self.father_id = self.first_contact_id
       else
         self.father_id = self.second_contact_id
       end
-    elsif first_contact.contact_attributes.count != second_contact.contact_attributes.count
-      if first_contact.contact_attributes.count > second_contact.contact_attributes.count
-        self.father_id = self.first_contact_id
-      else
-        self.father_id = self.second_contact_id
-      end
+    end
+  end
+
+  def set_father_by_updated_at
+    if first_contact.updated_at > second_contact.updated_at
+      self.father_id = self.first_contact_id
     else
-      if first_contact.updated_at > second_contact.updated_at
-        self.father_id = self.first_contact_id
-      else
-        self.father_id = self.second_contact_id
-      end
+      self.father_id = self.second_contact_id
     end
   end
 
@@ -220,7 +254,14 @@ class Merge
     son.local_statuses.each do |ls|
       if father.local_statuses.where(:account_id => ls.account_id).exists?
         father_ls = father.local_statuses.where(:account_id => ls.account_id).first
-        if Contact::VALID_STATUSES.index(father_ls.value) < Contact::VALID_STATUSES.index(ls.value)
+
+        father_ls_index = Contact::VALID_STATUSES.index(father_ls.value)
+        son_ls_index = Contact::VALID_STATUSES.index(ls.value)
+
+        father_ls_index = -1 if father_ls_index.nil?
+        son_ls_index = -1 if son_ls_index.nil?
+
+        if father_ls_index < son_ls_index
           if !self.warnings.has_key?('local_statuses')
             self.warnings['local_statuses'] = Array.new
           end
@@ -241,11 +282,11 @@ class Merge
 
 
   def get_first_contact
-    Contact.find(self.first_contact_id)
+    @get_first_contact ||= Contact.find(self.first_contact_id)
   end
 
   def get_second_contact
-    Contact.find(self.second_contact_id)
+    @get_second_contact ||= Contact.find(self.second_contact_id)
   end
 
 
