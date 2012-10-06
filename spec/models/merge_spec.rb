@@ -154,6 +154,28 @@ describe Merge do
         expect{m.save}.not_to raise_exception
       end
 
+      context "when contacts have same status in same account" do
+        let(:account){Account.make}
+        let(:contact_a){Contact.make(owner: account, first_name: 'Bob', last_name: 'Marley')}
+        let(:contact_b){Contact.make(owner: account, first_name: 'Bobby', last_name: 'Marley')}
+        let(:set_local_statuses) do
+          contact_a.local_unique_attributes << LocalStatus.make(value: status, account: account)
+          contact_b.local_unique_attributes << LocalStatus.make(value: status, account: account)
+        end
+        let(:merge){Merge.new(first_contact: contact_a, second_contact: contact_b)}
+
+        (Contact::VALID_STATUSES+['']).each do |st|
+          context "when status is #{st}" do
+            let(:status){st}
+            before{ set_local_statuses }
+            it "should not set warnings" do
+              merge.save
+              merge.should_not have_warnings
+            end
+          end
+        end
+      end
+
       context "for contacts :student and :prospect in same account" do
         before do
           account = Account.make

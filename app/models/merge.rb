@@ -240,8 +240,7 @@ class Merge
   end
 
   def look_for_warnings
-    father = get_father
-    son = get_son
+    return unless father_has_been_chosen?
 
     # Local Status
     # For each local status that they share (:account_id) warn the user
@@ -256,7 +255,7 @@ class Merge
         father_ls_index = -1 if father_ls_index.nil?
         son_ls_index = -1 if son_ls_index.nil?
 
-        unless father_ls_index < son_ls_index
+        unless father_ls_index <= son_ls_index
           if !self.warnings.has_key?('local_statuses')
             self.warnings['local_statuses'] = Array.new
           end
