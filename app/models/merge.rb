@@ -89,23 +89,10 @@ class Merge
 
   def merge
     begin
-      father = get_father
-      son = get_son
-
-      if !self.services['contacts']
-        contacts_service_merge(father, son)
-      end
-
-      if !self.services['crm']
-        crm_service_merge(father, son)
-      end
-
-      if !self.services['activity_stream']
-        activity_stream_service_merge(father,son)
-      end
-
+      contacts_service_merge(father, son) unless self.services['contacts']
+      crm_service_merge(father, son) unless self.services['crm']
+      activity_stream_service_merge(father,son) unless self.services['activity_stream']
       son.destroy if finished?
-
       self.stop
     rescue
       son.destroy if finished?
@@ -164,7 +151,7 @@ class Merge
   end
 
   def finished?
-    self.services.select{|service, finished| not finished}.count == 0
+    self.services.select{|service, finished| not finished }.count == 0
   end
 
   def father_has_been_chosen?

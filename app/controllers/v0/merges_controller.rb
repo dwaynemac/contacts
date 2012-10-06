@@ -45,7 +45,7 @@ class V0::MergesController < V0::ApplicationController
 
     if @merge.save
       @merge.start
-      if @merge.merged? || @merge.pending?
+      if @merge.merged? || @merge.merging? || @merge.pending?
         render json: {id: @merge.id }, status: 201
       else # pending_confirmation
         render json: {id: @merge.id}, status: 202

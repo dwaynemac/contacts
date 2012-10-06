@@ -19,14 +19,18 @@ describe V0::MergesController do
     @acc = Account.make
   end
 
+  let(:bob_marley)  { Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley') }
+  let(:bobby_marley){ Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley') }
+
   describe "#create" do
+    let(:account_1){ Account.make }
+    let(:account_2){ Account.make }
+    let(:account_3){ Account.make }
+
+
     context "called with contact_ids of 2 owned contacts" do
       context "with conflicts" do
         before do
-          account_1 = Account.make
-          account_2 = Account.make
-          account_3 = Account.make
-
           contact_attributes = {
               'father_telephone' => Telephone.make(:value => '111111111'),
               'father_email' => Email.make(:value => 'fathermail.com'),
@@ -84,14 +88,17 @@ describe V0::MergesController do
         end
       end
       context "without conflicts" do
+
         before do
-          @a = Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley')
-          @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
+
+          CrmMerge.any_instance.stub(:create).and_return(true)
+          ActivitiesMerge.any_instance.stub(:create).and_return(true)
+
 
           @post_args = {account_name: @acc.name,
                         merge: {
-                            first_contact_id: @a.id.to_s,
-                            second_contact_id: @b.id.to_s
+                            first_contact_id: bob_marley.id.to_s,
+                            second_contact_id: bobby_marley.id.to_s
                         }
           }
 
@@ -103,6 +110,7 @@ describe V0::MergesController do
           assert true # test is in before{...} this example if for indexation only
         end
         it { should respond_with 201 }
+
         it "should return merge's id" do
           JSON.parse(response.body).should == {'id' => Merge.last.id.to_s}
         end
@@ -114,12 +122,13 @@ describe V0::MergesController do
     end
     context "called with id of a contact not owned by account" do
       before do
-        @a = Contact.make(owner: Account.make, first_name: 'Bob', last_name: 'Marley')
-        @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
+        bob_marley.owner = Account.make
+        bob_marley.save
+        bobby_marley
         expect{
           post_create(account_name: @acc.name, merge: {
-              first_contact_id: @a.id.to_s,
-              second_contact_id: @b.id.to_s
+              first_contact_id: bob_marley.id.to_s,
+              second_contact_id: bobby_marley.id.to_s
           })
         }.not_to change{Merge.count}
       end
@@ -137,7 +146,7 @@ describe V0::MergesController do
           })
         }.not_to change{Merge.count}
       end
-      it { should respond_with 404 }
+      it { should respond_with 401 }
       it "should not create merge" do
         assert true # spec here for indexation only. expectation on before.
       end
@@ -147,9 +156,7 @@ describe V0::MergesController do
   describe "#show" do
     context "called with valid id" do
       before do
-        a = Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley')
-        b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
-        @merge = Merge.new(first_contact_id: a.id, second_contact_id: b.id)
+        @merge = Merge.new(first_contact: bob_marley, second_contact: bobby_marley)
         @merge.save
 
         get_show id: @merge.id
