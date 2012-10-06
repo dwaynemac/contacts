@@ -21,41 +21,101 @@ describe V0::MergesController do
 
   describe "#create" do
     context "called with contact_ids of 2 owned contacts" do
-      before do
-        @a = Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley')
-        @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
+      context "with conflicts" do
+        before do
+          account_1 = Account.make
+          account_2 = Account.make
+          account_3 = Account.make
 
-        @post_args = {account_name: @acc.name,
-                      merge: {
-                          first_contact_id: @a.id.to_s,
-                          second_contact_id: @b.id.to_s
-                      }
-        }
+          contact_attributes = {
+              'father_telephone' => Telephone.make(:value => '111111111'),
+              'father_email' => Email.make(:value => 'fathermail.com'),
+              'son_telephone' => Telephone.make(:value => '555555555'),
+              'son_email' => Email.make(:value => 'sonmail.com')
+          }
 
-        expect{
-          post_create(@post_args)
-        }.to change{Merge.count}
+          father_list = List.make
+          son_list = List.make
+
+          #Father
+          father = Contact.make(:first_name => "Son", :last_name => "Goku", :level => "aspirante", :lists => [father_list], :owner => account_1)
+
+          father.local_unique_attributes << LocalStatus.make(:value => :student, :account => account_1)
+          father.local_unique_attributes << LocalStatus.make(:value => :prospect, :account => account_2)
+
+          father.local_unique_attributes << LocalTeacher.make(:value => 'Roshi', :account => account_1)
+
+          father.contact_attributes << [contact_attributes['father_telephone'], contact_attributes['father_email']]
+
+          father.save
+
+          #Son
+          son = Contact.make(:first_name => "Son", :last_name => "Goku2", :level => "maestro", :lists => [son_list], :owner => account_1)
+
+          son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => account_1)
+          son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => account_2)
+          son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => account_3)
+
+          son.local_unique_attributes << LocalTeacher.make(:value => 'Kami', :account => account_1)
+          son.local_unique_attributes << LocalTeacher.make(:value => 'Kaio', :account => account_2)
+
+          son.contact_attributes << [contact_attributes['son_telephone'], contact_attributes['son_email']]
+
+          son.save
+
+          expect{
+            post_create({account_name: account_1.name,
+                        merge: {
+                          first_contact_id: father.id.to_s,
+                          second_contact_id: son.id.to_s
+                        }})
+          }.to change{Merge.count}
+        end
+        it "should create merge" do
+          assert true # test is in before{...} this example if for indexation only
+        end
+        it { should respond_with 202 }
+        it "should return merge's id" do
+          JSON.parse(response.body).should == {'id' => Merge.last.id.to_s}
+        end
+        it "should leave merge with state :pending_confirmation" do
+          state = Merge.find(JSON.parse(response.body)['id']).state
+          state.should == 'pending_confirmation'
+        end
       end
-      it "should create merge" do
-        assert true # test is in before{...} this example if for indexation only
-      end
-      it "should respond with status 202" do
-        response.code.should == '202'
-      end
-      it "should return merge's id" do
-        JSON.parse(response.body).should == {'id' => Merge.last.id.to_s}
-      end
-      it "should start merge" do
-        state = Merge.find(JSON.parse(response.body)['id']).state
-        state.should_not be_in([:embryonic,:ready])
+      context "without conflicts" do
+        before do
+          @a = Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley')
+          @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
+
+          @post_args = {account_name: @acc.name,
+                        merge: {
+                            first_contact_id: @a.id.to_s,
+                            second_contact_id: @b.id.to_s
+                        }
+          }
+
+          expect{
+            post_create(@post_args)
+          }.to change{Merge.count}
+        end
+        it "should create merge" do
+          assert true # test is in before{...} this example if for indexation only
+        end
+        it { should respond_with 201 }
+        it "should return merge's id" do
+          JSON.parse(response.body).should == {'id' => Merge.last.id.to_s}
+        end
+        it "should start merge" do
+          state = Merge.find(JSON.parse(response.body)['id']).state
+          state.should_not be_in([:embryonic,:ready])
+        end
       end
     end
     context "called with id of a contact not owned by account" do
       before do
         @a = Contact.make(owner: Account.make, first_name: 'Bob', last_name: 'Marley')
         @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
-      end
-      it "should not create merge" do
         expect{
           post_create(account_name: @acc.name, merge: {
               first_contact_id: @a.id.to_s,
@@ -63,15 +123,23 @@ describe V0::MergesController do
           })
         }.not_to change{Merge.count}
       end
+      it { should respond_with 401 }
+      it "should not create merge" do
+        assert true # spec here for indexation only. expectation on before.
+      end
     end
     context "called with ids of unexisting contacts" do
-      it "should not create merge" do
+      before do
         expect{
           post_create(account_name: @acc.name, merge: {
               first_contact_id: 'any-thing',
               second_contact_id: 'some-other-thing'
           })
         }.not_to change{Merge.count}
+      end
+      it { should respond_with 404 }
+      it "should not create merge" do
+        assert true # spec here for indexation only. expectation on before.
       end
     end
   end
@@ -93,58 +161,4 @@ describe V0::MergesController do
     end
   end
 
-  # creates a merge that has warnings.
-  # code extracted from merge_spec.rb:157
-  def create_merge_with_warnings()
-    account_1 = Account.make
-    account_2 = Account.make
-    account_3 = Account.make
-
-    contact_attributes = {
-        'father_telephone' => Telephone.make(:value => '111111111'),
-        'father_email' => Email.make(:value => 'fathermail.com'),
-        'son_telephone' => Telephone.make(:value => '555555555'),
-        'son_email' => Email.make(:value => 'sonmail.com')
-    }
-
-    father_list = List.make
-    son_list = List.make
-
-    #Father
-    father = Contact.make(:first_name => "Son", :last_name => "Goku", :level => "aspirante", :lists => [father_list])
-
-    father.local_unique_attributes << LocalStatus.make(:value => :student, :account => account_1)
-    father.local_unique_attributes << LocalStatus.make(:value => :prospect, :account => account_2)
-
-    father.local_unique_attributes << LocalTeacher.make(:value => 'Roshi', :account => account_1)
-
-    father.contact_attributes << [contact_attributes['father_telephone'], contact_attributes['father_email']]
-
-    father.save
-
-    #Son
-    son = Contact.make(:first_name => "Son", :last_name => "Goku2", :level => "maestro", :lists => [son_list])
-
-    son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => account_1)
-    son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => account_2)
-    son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => account_3)
-
-    son.local_unique_attributes << LocalTeacher.make(:value => 'Kami', :account => account_1)
-    son.local_unique_attributes << LocalTeacher.make(:value => 'Kaio', :account => account_2)
-
-    son.contact_attributes << [contact_attributes['son_telephone'], contact_attributes['son_email']]
-
-    son.save
-
-
-
-
-    m = Merge.new(:first_contact_id => father.id, :second_contact_id => son.id)
-    m.save
-
-    m.should be_pending_confirmation
-
-    m
-  end
-  
 end

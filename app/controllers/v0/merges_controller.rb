@@ -28,14 +28,28 @@ class V0::MergesController < V0::ApplicationController
   #
   # @response_field id [String] id of created Merge
   #
+  # == Response code
+  #
+  #   - if merge was successfull satus is 201
+  #   - if merge was created but needs admin confirmation is 202
+  #   - if merge couldn't be created is 400
+  #   - if contacts dont exist 404
+  #
   def create
+
+    # LogicalModel fix. until LogicalModel supports read-only attributes this is needed.
+    params[:merge].delete(:state)
 
     @merge = Merge.new(params[:merge])
     authorize! :create, @merge
 
     if @merge.save
       @merge.start
-      render json: {id: @merge.id}, status: 202
+      if @merge.merged? || @merge.pending?
+        render json: {id: @merge.id }, status: 201
+      else # pending_confirmation
+        render json: {id: @merge.id}, status: 202
+      end
     else
       render json: {
           message: "",
