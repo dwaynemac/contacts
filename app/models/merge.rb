@@ -60,7 +60,9 @@ class Merge
     end
   end
 
-  # private keyword should be put here
+  def son
+    (self.father_id == self.first_contact_id)? self.second_contact : self.first_contact
+  end
 
   def get_father
     if father_has_been_chosen?
