@@ -4,7 +4,7 @@ class Merge
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  field :father_id
+  belongs_to :father, class_name: 'Contact'
 
   belongs_to :first_contact, class_name: 'Contact'
   belongs_to :second_contact, class_name: 'Contact'
@@ -64,7 +64,7 @@ class Merge
 
   def get_father
     if father_has_been_chosen?
-      Contact.find(self.father_id)
+      self.father
     end
   end
 
