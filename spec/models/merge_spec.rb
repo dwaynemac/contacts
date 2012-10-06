@@ -153,6 +153,24 @@ describe Merge do
         m = Merge.new(first_contact_id: @a.id, second_contact_id: @b.id)
         expect{m.save}.not_to raise_exception
       end
+
+      context "for contacts :student and :prospect in same account" do
+        before do
+          account = Account.make
+
+          @a = Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley')
+          @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
+
+          @a.local_unique_attributes << LocalStatus.make(value: :prospect, account: account)
+          @b.local_unique_attributes << LocalStatus.make(value: :student, account: account)
+
+          @m = Merge.new(first_contact_id: @a.id, second_contact_id: @b.id)
+          expect{@m.save}.not_to raise_exception
+        end
+        it "should not set warnings" do
+          @m.warnings.should == {}
+        end
+      end
     end
   end
 

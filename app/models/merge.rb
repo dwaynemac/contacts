@@ -256,7 +256,7 @@ class Merge
         father_ls_index = -1 if father_ls_index.nil?
         son_ls_index = -1 if son_ls_index.nil?
 
-        if father_ls_index < son_ls_index
+        unless father_ls_index < son_ls_index
           if !self.warnings.has_key?('local_statuses')
             self.warnings['local_statuses'] = Array.new
           end
