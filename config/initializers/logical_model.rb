@@ -11,7 +11,7 @@ end
 
 PADMA_CRM_HOST = case Rails.env
   when "production"
-    "padma-crm.heroku.com"
+    "padma-crm.herokuapp.com"
   when "development"
     "localhost:3000"
   when "test"
