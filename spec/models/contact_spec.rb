@@ -184,6 +184,9 @@ describe Contact do
     it "should include global_teacher_username" do
       @contact.as_json.should have_key 'global_teacher_username'
     end
+    it "includes #in_active_merge" do
+      @contact.as_json.should have_key 'in_active_merge'
+    end
     context "account specified" do
       subject { @contact.as_json(account: Account.first)}
       it { should have_key 'coefficient'}

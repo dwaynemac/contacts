@@ -71,6 +71,7 @@ class Contact
   def in_active_merge?
     (Merge.any_of({first_contact_id: self.id}, {second_contact_id: self.id}).excludes(state: :merged).count > 0)
   end
+  alias_method :in_active_merge, :in_active_merge? # alias for json. ? is not valid attribute name for client.
 
   # @return [String]
   def full_name
@@ -199,7 +200,12 @@ class Contact
       options = options.merge({:except => [:contact_attributes, :local_unique_attributes]})
     end
 
-    options = options.merge({:except => :owner_id, :methods => [:owner_name, :local_statuses, :coefficients_counts]})
+    options = options.merge({:except => :owner_id,
+                             :methods => [:owner_name,
+                                          :local_statuses,
+                                          :coefficients_counts,
+                                          :in_active_merge
+                             ]})
 
     json = super options
 
