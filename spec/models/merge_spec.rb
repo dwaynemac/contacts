@@ -331,9 +331,20 @@ describe Merge do
       @father.lists.include?(@son_list).should == true
     end
 
-    it "should keep old names" do
-      @father.contact_attributes.where(:name => "old_first_name").first.value.should == "Son"
-      @father.contact_attributes.where(:name => "old_last_name").first.value.should == "Goku2"
+    describe "keeps son's first_name as a custom_attributes" do
+      let(:old_first_name){ @father.contact_attributes.where(:name => "old_first_name").first }
+      subject{old_first_name}
+      its(:value) { should == 'Son' }
+      its(:account) { should == @father.owner }
+      it { should be_public }
+    end
+
+    describe "keeps son's last_name as a custom attribute" do
+      let(:old_last_name){ @father.contact_attributes.where(:name => "old_last_name").first }
+      subject{old_last_name}
+      its(:value){ should == 'Goku2' }
+      its(:account){ should == @father.owner }
+      it { should be_public }
     end
 
     it "should keep record of migrated services" do

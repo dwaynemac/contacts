@@ -120,8 +120,9 @@ class Merge
     # Lists
     father.lists << son.lists
 
-    father.contact_attributes << CustomAttribute.new(:name => "old_first_name", :value => son.first_name)
-    father.contact_attributes << CustomAttribute.new(:name => "old_last_name", :value => son.last_name)
+    # Names
+    father.contact_attributes << CustomAttribute.new(:name => "old_first_name", :value => son.first_name, :account => father.owner, :public => true )
+    father.contact_attributes << CustomAttribute.new(:name => "old_last_name", :value => son.last_name, :account => father.owner, :public => true )
 
     son.contact_attributes.delete_all
     father.save
