@@ -66,6 +66,12 @@ class Contact
   attr_accessor :check_duplicates
   validate :validate_duplicates, :if => :check_duplicates
 
+  # Checks if contact is currently in a non-finished merge.
+  # @return [TrueClass]
+  def in_active_merge?
+    (Merge.any_of({first_contact_id: self.id}, {second_contact_id: self.id}).excludes(state: :merged).count > 0)
+  end
+
   # @return [String]
   def full_name
     "#{first_name} #{last_name}"

@@ -8,6 +8,11 @@ Contact.blueprint do
   owner { Account.make }
 end
 
+Merge.blueprint do
+  first_contact { Contact.make(first_name: 'first_name', last_name: 'last name') }
+  second_contact { Contact.make(first_name: 'first_name2', last_name: 'last name') }
+end
+
 LocalStatus.blueprint do
   contact { Contact.make }
   account { Account.make }
