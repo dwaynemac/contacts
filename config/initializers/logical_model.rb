@@ -27,3 +27,8 @@ PADMA_ACTIVITY_STREAM_HOST = case Rails.env
   when "test"
     "localhost:3003"
 end
+
+module ActivityStream
+  HYDRA = ::HYDRA
+  API_KEY = "6d1a2dd931ef48d5f0c4d62de773825d3369ab426811c79c55e40569bc7bf044a437bbf569f765e6fd3a282ab43a27a2cb48ee2bd08c8bf743190165cd2ecb76"
+end
