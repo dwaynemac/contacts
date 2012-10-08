@@ -82,6 +82,19 @@ describe Merge do
           m.save
           m.father_id.should == @new_pr_goku_1a.id
         end
+
+        let(:merge){Merge.create(:first_contact_id => @student_goku.id, :second_contact_id => @pr_goku_2a.id)}
+        describe "#father" do
+          it "returns father" do
+            merge.father.should == @student_goku
+          end
+        end
+
+        describe "#son" do
+          it "returns son" do
+            merge.son.should == @pr_goku_2a
+          end
+        end
       end
       context "for contacts without status" do
         before do

@@ -5,6 +5,7 @@ class Merge
   include Mongoid::Timestamps
 
   belongs_to :father, class_name: 'Contact'
+  belongs_to :son, class_name: 'Contact'
 
   belongs_to :first_contact, class_name: 'Contact'
   belongs_to :second_contact, class_name: 'Contact'
@@ -60,10 +61,6 @@ class Merge
     end
   end
 
-  def son
-    (self.father_id == self.first_contact_id)? self.second_contact : self.first_contact
-  end
-
   def get_father
     if father_has_been_chosen?
       self.father
@@ -72,11 +69,7 @@ class Merge
 
   def get_son
     if father_has_been_chosen?
-      if self.first_contact_id != self.father_id
-        return first_contact
-      else
-        return second_contact
-      end
+      self.son
     end
   end
 
@@ -180,6 +173,7 @@ class Merge
     end
 
     self.father_id= nil
+    self.son_id = nil
 
     set_father_by_status
     if self.father_id.nil?
@@ -192,15 +186,15 @@ class Merge
 
   def set_father_by_status
     if first_contact.status.nil? && second_contact.status.present?
-      self.father_id = self.second_contact_id
+      set_father_and_son! :second_contact
     elsif second_contact.status.nil? && first_contact.status.present?
-      self.father_id = self.first_contact_id
+      set_father_and_son! :first_contact
     elsif first_contact.status.present? && second_contact.status.present?
       if first_contact.status != second_contact.status
         if Contact::VALID_STATUSES.index(first_contact.status) < Contact::VALID_STATUSES.index(second_contact.status)
-          self.father_id = self.first_contact_id
+          set_father_and_son! :first_contact
         else
-          self.father_id = self.second_contact_id
+          set_father_and_son! :second_contact
         end
       end
     end
@@ -211,18 +205,34 @@ class Merge
     second_count = second_contact.contact_attributes.count
     if first_count != second_count
       if first_count > second_count
-        self.father_id = self.first_contact_id
+        set_father_and_son!(:first_contact)
       else
-        self.father_id = self.second_contact_id
+        set_father_and_son!(:second_contact)
       end
     end
   end
 
   def set_father_by_updated_at
     if first_contact.updated_at > second_contact.updated_at
-      self.father_id = self.first_contact_id
+      set_father_and_son! :first_contact
     else
-      self.father_id = self.second_contact_id
+      set_father_and_son! :second_contact
+    end
+  end
+
+  # Sets #father to new_father and son to the other contact.
+  # @argument new_father [Symbol] valid values: :first_contact, :second_contact
+  # @raise if new_father is invalid it raises ArgumentError
+  def set_father_and_son!(new_father)
+    case new_father
+      when :first_contact
+        self.father = self.first_contact
+        self.son = self.second_contact
+      when :second_contact
+        self.father = self.second_contact
+        self.son = self.first_contact
+      else
+        raise ArgumentError
     end
   end
 
