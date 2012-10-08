@@ -764,4 +764,9 @@ describe Contact do
     end
   end
 
+  it "posts creation to activity stream" do
+    ActivityStream::Activity.any_instance.should_receive(:create)
+    c = Contact.make_unsaved
+    c.save
+  end
 end

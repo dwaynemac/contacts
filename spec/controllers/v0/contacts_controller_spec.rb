@@ -486,6 +486,13 @@ describe V0::ContactsController do
                   :app_key => V0::ApplicationController::APP_KEY}.to change{Contact.count}.by(1)
     end
 
+    it "posts to activity stream" do
+      ActivityStream::Activity.any_instance.should_receive(:create)
+      post :create,
+           :contact => Contact.plan,
+           :app_key => V0::ApplicationController::APP_KEY
+    end
+
     describe "should create a contact with attributes" do
       before do
         post :create,
