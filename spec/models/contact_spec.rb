@@ -21,26 +21,50 @@ describe Contact do
   it { should respond_to :local_statuses }
   it { should respond_to :local_teachers }
 
-  describe "#in_active_merge?" do
+
+  context "- merges -" do
     let(:contact){Contact.make(first_name: 'fn', last_name: 'ln')}
-    subject { contact }
-    context "when contact is not in a merge" do
-      it { should_not be_in_active_merge }
+    let(:merge){ Merge.make(first_contact: contact, second_contact: Contact.make(first_name: 'fn', last_name: 'ln')) }
+
+    describe "#active_merges" do
+      subject { contact.active_merges }
+      context "when contact is not in a merge" do
+        it { should be_empty }
+      end
+      context "when contact is in a merge" do
+        context "with state :merged" do
+          before { merge.update_attribute :state, :merged }
+          it { should be_empty }
+        end
+        [:ready, :merging, :pending].each do |state|
+          context "with state #{state}" do
+            before { merge.update_attribute :state, state }
+            it { should_not be_empty }
+          end
+        end
+      end
     end
-    context "when contact is in a merge" do
-      let(:merge){ Merge.make(first_contact: contact, second_contact: Contact.make(first_name: 'fn', last_name: 'ln')) }
-      context "with state :merged" do
-        before { merge.update_attribute :state, :merged }
+
+    describe "#in_active_merge?" do
+      subject { contact }
+      context "when contact is not in a merge" do
         it { should_not be_in_active_merge }
       end
-      [:ready, :merging, :pending].each do |state|
-        context "with state #{state}" do
-          before { merge.update_attribute :state, state }
-          it { should be_in_active_merge }
+      context "when contact is in a merge" do
+        context "with state :merged" do
+          before { merge.update_attribute :state, :merged }
+          it { should_not be_in_active_merge }
+        end
+        [:ready, :merging, :pending].each do |state|
+          context "with state #{state}" do
+            before { merge.update_attribute :state, state }
+            it { should be_in_active_merge }
+          end
         end
       end
     end
   end
+
 
   %W(first_name last_name).each do |attr|
     specify "normalized_#{attr} should be updated when #{attr} is updated" do

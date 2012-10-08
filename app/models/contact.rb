@@ -66,10 +66,15 @@ class Contact
   attr_accessor :check_duplicates
   validate :validate_duplicates, :if => :check_duplicates
 
+  # @return [Mongoid::Criteria]
+  def active_merges
+    Merge.any_of({first_contact_id: self.id}, {second_contact_id: self.id}).excludes(state: :merged)
+  end
+
   # Checks if contact is currently in a non-finished merge.
   # @return [TrueClass]
   def in_active_merge?
-    (Merge.any_of({first_contact_id: self.id}, {second_contact_id: self.id}).excludes(state: :merged).count > 0)
+    (active_merges.count > 0)
   end
   alias_method :in_active_merge, :in_active_merge? # alias for json. ? is not valid attribute name for client.
 
