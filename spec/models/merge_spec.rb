@@ -408,6 +408,36 @@ describe Merge do
 
   end
 
+  describe "#finished?" do
+    let(:merge){Merge.make}
+    subject{merge}
+    context "when all services are merged" do
+      before do
+        Merge::SERVICES.keys.each{|s|merge.services[s]=true}
+        merge.save
+      end
+      it { should be_finished }
+    end
+    context "when no services are merged" do
+      before do
+        Merge::SERVICES.keys.each{|s|merge.services[s]=true}
+        merge.services['contacts']=false
+        merge.save
+      end
+      it { should_not be_finished }
+    end
+    context "when some services are merged" do
+      before do
+        Merge::SERVICES.keys.each{|s|merge.services[s]=false}
+        merge.save
+      end
+      it { should_not be_finished }
+    end
+    context "on a vanilla merge" do
+      it { should_not be_finished }
+    end
+  end
+
   # creates a merge that has warnings.
   # code extracted from merge_spec.rb:157
   def create_merge_with_warnings()
