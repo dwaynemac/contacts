@@ -17,3 +17,4 @@ Run
     bundle exec yardoc --plugin rest
 
 then open doc/index.html
+
