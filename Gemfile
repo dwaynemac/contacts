@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.1.3'
+gem 'rails', '3.1.6'
 
 gem "mongoid", "2.3.3"
 gem 'bson', '= 1.4.0'
@@ -9,7 +9,8 @@ gem 'mongoid_search'
 
 gem 'cancan', '~> 1.6.7'
 
-gem "logical_model", '0.2.15'
+gem "logical_model", '0.3.5'
+gem 'activity_stream_client', '~> 0.0.4'
 
 gem 'kaminari', '~> 0.13'
 
@@ -17,6 +18,8 @@ gem 'rmagick'
 gem 'carrierwave'
 gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
 gem 'fog'
+gem 'state_machine', '~> 1.1.2'
+gem 'ethon', '0.4.2'
 
 group :documentation do
   gem 'yard', '~> 0.7.4'

@@ -6,7 +6,6 @@ class V0::ContactsController < V0::ApplicationController
   before_filter :set_list
   before_filter :set_scope
   before_filter :convert_local_attributes, only: [:create, :update]
-  before_filter :typhoeus_bugfix, only: [:create, :update]
 
   ##
   # Returns list of contacts in JSON
@@ -14,6 +13,7 @@ class V0::ContactsController < V0::ApplicationController
   # @url [GET] /v0/contacts
   # @url [GET] /v0/accounts/:account_name/contacts
   #
+  # @optional_argument nids [Array] return contacts without id in this array
   # @optional_argument ids [Array] return contacts with id in this array
   # @optional_argument account_name [String] will scope contacts to this account
   # @optional_argument list_name [String] scope to this list. Will be ignored if no :account_name is given.
@@ -29,6 +29,7 @@ class V0::ContactsController < V0::ApplicationController
   #
   def index
 
+    @scope = @scope.not_in(_id: params[:nids]) if params[:nids]
     @scope = @scope.any_in(_id: params[:ids]) if params[:ids]
 
     @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
@@ -104,6 +105,21 @@ class V0::ContactsController < V0::ApplicationController
     @contact = @contact.reload unless @contact.new_record?
 
     if @contact.save
+
+      entry = ActivityStream::Activity.new(
+          target_id: @contact.owner_name, target_type: 'Account',
+          object_id: @contact._id, object_type: 'Contact',
+          generator: 'contacts',
+          verb: 'created',
+          content: "#{params[:username]} created #{@contact.full_name} on #{@contact.owner_name}",
+          public: true,
+          username: params[:username] || 'system',
+          account_name: params[:account_name] || 'system',
+          created_at: @contact.created_at.to_s,
+          updated_at: @contact.updated_at.to_s
+      )
+      entry.create(username:  params[:username], account_name: params[:account_name])
+
       render :json => { :id => @contact.id }.to_json, :status => :created
     else
       render :json => { :message => "Sorry, contact not created",
@@ -133,7 +149,7 @@ class V0::ContactsController < V0::ApplicationController
   def update
     @contact = @scope.find(params[:id])
 
-    if @contact.update_attributes!(params[:contact])
+    if @contact.update_attributes(params[:contact])
       render :json => "OK"# , :status => :updated
     else
       render :json => { :message => "Sorry, contact not updated",
@@ -209,7 +225,7 @@ class V0::ContactsController < V0::ApplicationController
   #   local_status -> local_status_for_CurrentAccountName
   #   coefficient  -> coefficient_for_CurrentAccountName
   def convert_local_attributes
-    %w(local_status coefficient).each do |la|
+    %w(local_status coefficient local_teacher).each do |la|
       if @account
         if params[:contact][la]
           params[:contact]["#{la}_for_#{@account.name}"] = params[:contact].delete(la)
@@ -243,18 +259,6 @@ class V0::ContactsController < V0::ApplicationController
       else
         Contact
     end
-  end
-
-  # Fix for Typhoeus call bug
-  def typhoeus_bugfix
-    c = params[:contact]
-
-    return if c.nil?
-    if c[:contact_attributes_attributes] && c[:contact_attributes_attributes].first.is_a?(String)
-      c[:contact_attributes_attributes] = c[:contact_attributes_attributes].map {|att| ActiveSupport::JSON.decode(att.gsub(/=>/, ":").gsub(/nil/, "null"))}
-    end
-
-    params[:contact] = c
   end
 
   # Sort by normalized fields

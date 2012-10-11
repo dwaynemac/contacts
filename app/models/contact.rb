@@ -35,7 +35,7 @@ class Contact
   field :avatar
   mount_uploader :avatar, AvatarUploader
 
-  field :level, :type => Integer
+  field :level, type: Integer
 
   # ordered by hierarchy (last is higher)
   VALID_LEVELS = {
@@ -58,6 +58,9 @@ class Contact
   belongs_to :owner, :class_name => "Account"
   before_validation :assign_owner
 
+  field :global_teacher_username, type: String
+  before_validation :set_global_teacher
+
   references_and_referenced_in_many :lists
   before_save :update_lists
 
@@ -65,6 +68,18 @@ class Contact
 
   attr_accessor :check_duplicates
   validate :validate_duplicates, :if => :check_duplicates
+
+  # @return [Mongoid::Criteria]
+  def active_merges
+    Merge.any_of({first_contact_id: self.id}, {second_contact_id: self.id}).excludes(state: :merged)
+  end
+
+  # Checks if contact is currently in a non-finished merge.
+  # @return [TrueClass]
+  def in_active_merge?
+    (active_merges.count > 0)
+  end
+  alias_method :in_active_merge, :in_active_merge? # alias for json. ? is not valid attribute name for client.
 
   # @return [String]
   def full_name
@@ -86,7 +101,7 @@ class Contact
 
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
   # they all return a Criteria scoping to according _type
-  %W(email telephone address custom_attribute date_attribute).each do |k|
+  %W(email telephone address custom_attribute date_attribute identification).each do |k|
     delegate k.pluralize, to: :contact_attributes
   end
 
@@ -97,7 +112,7 @@ class Contact
 
   # defines Contact#coefficients/...
   # they all return a Criteria scoping to according _type
-  %W(coefficient local_status).each do |lua|
+  %W(coefficient local_status local_teacher).each do |lua|
     delegate lua.pluralize, to: :local_unique_attributes
   end
 
@@ -143,7 +158,7 @@ class Contact
         return self.local_unique_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first.try :value
       end
 
-    # local_unique_attribute setter for an account_id
+    # local_unique_attribute setter for an account_name
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
       a = Account.where(name: $2).first
       if a.nil?
@@ -176,8 +191,13 @@ class Contact
     Coefficient::VALID_VALUES.map{ |vv| {vv => self.coefficients.where(value: vv).count} }.inject(:merge)
   end
 
+  # If account_id is specified some addtional attributes are added:
+  #   - linked [TrueClass] whether or not this contact is linked to given account
+  #   - last_local_status [String] last local status on given account
+  #   - local_teacher [String] username of teacher in given account
+  #
   # @param [Hash] options
-  # @option options [Account] account_id
+  # @option options [Account] account
   # @option options [TrueClass] include_masked
   def as_json(options = nil)
     options ||= {}
@@ -188,14 +208,19 @@ class Contact
       options = options.merge({:except => [:contact_attributes, :local_unique_attributes]})
     end
 
-    options = options.merge({:except => :owner_id, :methods => [:owner_name, :local_statuses, :coefficients_counts]})
+    options = options.merge({:except => :owner_id,
+                             :methods => [:owner_name,
+                                          :local_statuses,
+                                          :coefficients_counts,
+                                          :in_active_merge
+                             ]})
 
     json = super options
 
     if account
       # add these data when account_id specified
       json[:contact_attributes] = self.contact_attributes.for_account(account, options)
-      %w{local_status coefficient}.each do |local_attribute|
+      %w{local_status coefficient local_teacher}.each do |local_attribute|
         json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
       end
       json[:linked] = self.linked_to?(account)
@@ -227,9 +252,15 @@ class Contact
     self.owner = Account.where(:name => name).first
   end
 
-
+  # Updates global_status (#status) and saves contact
   def update_status!
     self.set_status
+    self.save
+  end
+
+  # Updates global_teacher_username and saves contact
+  def update_global_teacher!
+    self.set_global_teacher
     self.save
   end
 
@@ -262,11 +293,34 @@ class Contact
           'value' => mobile
         }})
       end
+
+      self.identifications.each do |identification|
+        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+            _type: 'Identification',
+            category: identification.category,
+            value: identification.get_normalized_value
+        }})
+      end
     end
 
     if self.id.present?
       contacts = contacts.excludes(:id => self.id)
     end
+
+    contacts = contacts.to_a
+
+    contacts.delete_if do |c|
+      not_similar = false
+      c.identifications.each do |id|
+        if self.identifications.where(:category => id.category).select{ |id_v|
+            id_v.get_normalized_value != id.get_normalized_value
+          }.length > 0
+          not_similar = true
+        end
+      end
+      not_similar
+    end
+
   end
 
   def check_duplicates= value
@@ -319,6 +373,7 @@ class Contact
   # @option selector :address
   # @option selector :custom_attribute
   # @option selector :local_status      only considered if account_id is specified
+  # @option selector :local_teacher      only considered if account_id is specified
   # @option selector :birth_day
   #
   # @return [Mongoid::Criteria]
@@ -346,7 +401,7 @@ class Contact
           when 'date_attribute'
             aux = DateAttribute.convert_selector(v)
             new_selector['$and'] << aux unless aux.nil?
-          when 'local_status', 'coefficient'
+          when 'local_status', 'coefficient', 'local_teacher'
             if account_id.present?
               new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: k.to_s.camelcase, value: v, account_id: account_id}}
             end
@@ -425,16 +480,25 @@ class Contact
     end
   end
 
+  def set_global_teacher
+    return if self.owner.nil?
+    teacher_in_owner_accounts = self.local_teachers.for_account(self.owner.id).first
+    if !teacher_in_owner_accounts.nil? && (teacher_in_owner_accounts.teacher_username != self.global_teacher_username)
+      self.global_teacher_username= teacher_in_owner_accounts.teacher_username
+    end
+  end
+
   def keep_history_of_changes
-    # level and global_status
-    %W(level status).each do |att|
+    # level, global_status and teacher_username
+    %W(level status global_teacher_username).each do |att|
       if self.send("#{att}_changed?")
         self.history_entries.create(attribute: att,
                                     changed_at: Time.zone.now.to_time,
                                     old_value: self.changes[att][0])
       end
     end
-    # local_status are tracked in LocalStatus model
+    # local_status changes are tracked in LocalStatus model
+    # local_teacher changes are tracked in LocalTeacher model
   end
 
   def validate_duplicates

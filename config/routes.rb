@@ -17,6 +17,11 @@ Contacts::Application.routes.draw do
         resources :contact_attributes
       end
     end
+    resources :merges do
+      member do
+        put 'confirm'
+      end
+    end
   end
 
   # The priority is based upon order of creation:

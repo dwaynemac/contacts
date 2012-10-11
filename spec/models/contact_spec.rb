@@ -3,6 +3,7 @@ require 'spec_helper'
 
 describe Contact do
 
+
   it { should belong_to_related :owner }
 
   it { should reference_and_be_referenced_in_many :lists }
@@ -16,6 +17,54 @@ describe Contact do
 
   it { should embed_many :contact_attributes }
   it { should embed_many :local_unique_attributes }
+
+  it { should respond_to :local_statuses }
+  it { should respond_to :local_teachers }
+
+
+  context "- merges -" do
+    let(:contact){Contact.make(first_name: 'fn', last_name: 'ln')}
+    let(:merge){ Merge.make(first_contact: contact, second_contact: Contact.make(first_name: 'fn', last_name: 'ln')) }
+
+    describe "#active_merges" do
+      subject { contact.active_merges }
+      context "when contact is not in a merge" do
+        it { should be_empty }
+      end
+      context "when contact is in a merge" do
+        context "with state :merged" do
+          before { merge.update_attribute :state, :merged }
+          it { should be_empty }
+        end
+        [:ready, :merging, :pending].each do |state|
+          context "with state #{state}" do
+            before { merge.update_attribute :state, state }
+            it { should_not be_empty }
+          end
+        end
+      end
+    end
+
+    describe "#in_active_merge?" do
+      subject { contact }
+      context "when contact is not in a merge" do
+        it { should_not be_in_active_merge }
+      end
+      context "when contact is in a merge" do
+        context "with state :merged" do
+          before { merge.update_attribute :state, :merged }
+          it { should_not be_in_active_merge }
+        end
+        [:ready, :merging, :pending].each do |state|
+          context "with state #{state}" do
+            before { merge.update_attribute :state, state }
+            it { should be_in_active_merge }
+          end
+        end
+      end
+    end
+  end
+
 
   %W(first_name last_name).each do |attr|
     specify "normalized_#{attr} should be updated when #{attr} is updated" do
@@ -34,6 +83,19 @@ describe Contact do
 
   %W(asdf asdf alumno ex-alumno).each do |v|
     it { should_not allow_value(v).for(:status)}
+  end
+
+  describe "has a global teacher" do
+    it { should have_field(:global_teacher_username).of_type(String) }
+    # it should keep track of changes to global teacher --> see spec below: "Contact History should record teacher changes"
+    it "should automatically set global_teacher_username as local_teacher_username in account where it is owned" do
+      account = Account.make
+      c = Contact.make(global_teacher_username: 'dwayne.macgowan', owner: account)
+      c.local_unique_attributes << LocalTeacher.make(account: account, value: 'new.teacher')
+      c.save
+      c.reload
+      c.global_teacher_username.should == 'new.teacher'
+    end
   end
 
   describe "#_keywords" do
@@ -132,6 +194,7 @@ describe Contact do
   describe "#as_json" do
     before do
       @contact= Contact.make(:owner => Account.make)
+      @contact.local_unique_attributes << LocalTeacher.make(account: Account.first)
     end
     it "should not include owner_id" do
       @contact.as_json.should_not have_key 'owner_id'
@@ -142,14 +205,21 @@ describe Contact do
     it "should include :coefficients_counts key" do
       @contact.as_json.should have_key 'coefficients_counts'
     end
+    it "should include global_teacher_username" do
+      @contact.as_json.should have_key 'global_teacher_username'
+    end
+    it "includes #in_active_merge" do
+      @contact.as_json.should have_key 'in_active_merge'
+    end
     context "account specified" do
       subject { @contact.as_json(account: Account.first)}
       it { should have_key 'coefficient'}
-
+      it { should have_key 'local_teacher' }
     end
     context "account not specified" do
       subject { @contact.as_json}
       it { should_not have_key 'coefficient' }
+      it { should_not have_key 'local_teacher' }
     end
   end
 
@@ -486,6 +556,44 @@ describe Contact do
         c.similar.should_not include(@homer)
       end
     end
+
+    describe "when DNI 30366832 is registered" do
+      before do
+        @similar = Contact.make(first_name: 'Dwayne', last_name: 'Macgowan')
+        @similar.contact_attributes << Identification.make_unsaved(value: '30366832', category: 'DNI')
+        @similar.save!
+      end
+      describe "a new contact" do
+        before do
+          @new_contact = Contact.make_unsaved(first_name: 'Alejandro', last_name: 'Mac Gowan')
+        end
+        describe "with DNI 30366832" do
+          before do
+            @new_contact.contact_attributes << Identification.make_unsaved(value: '30366832', category: 'DNI')
+          end
+          it "should have possible duplicates" do
+            @new_contact.similar.should include(@similar)
+          end
+        end
+        describe "with DNI 3/0.3_6 6.83-2" do
+          before do
+            @new_contact.contact_attributes << Identification.make_unsaved(value: '3/0.3_6 6.83-2', category: 'DNI')
+          end
+          it "should have possible duplicates" do
+            @new_contact.similar.should include(@similar)
+          end
+        end
+        describe "with CPF 30366832" do
+          before do
+            @new_contact.contact_attributes << Identification.make_unsaved(value: '30366832', category: 'CPF')
+          end
+          it "should not have possible duplicates" do
+            @new_contact.similar.should be_empty
+          end
+        end
+      end
+    end
+
   end
 
   describe "flagged to check for duplicates" do
@@ -580,6 +688,15 @@ describe Contact do
 
   describe "History" do
     let(:contact) { Contact.make(level: "yôgin", status: :student) }
+
+    it "should record global teacher changes" do
+      expect{contact.update_attribute(:global_teacher_username,'dwayne.macgowan')}.to change{contact.history_entries.count}
+      contact.history_entries.last.old_value.should be_nil
+      contact.history_entries.last.changed_at.should be_within(1.second).of(Time.now)
+      contact.update_attribute(:global_teacher_username,'luis.perichon')
+      contact.history_entries.last.old_value.should =='dwayne.macgowan'
+    end
+
     it "should record level changes" do
       expect{contact.update_attribute(:level, "chêla")}.to change{contact.history_entries.count}
       contact.history_entries.last.old_value.should == Contact::VALID_LEVELS["yôgin"]
@@ -626,19 +743,30 @@ describe Contact do
       @contact.save
     end
 
-    it "on save a contact without status should set the owners main list" do
-      @contact.lists.first.should == @account.base_list
+    context "if contact has no status" do
+
+      it "on save a contact without status should set the owners main list" do
+        @contact.lists.first.should == @account.base_list
+      end
     end
 
-    example "if contact is a student, account where it is student should own it" do
-      new_acc = Account.make
-      @contact.local_status={account_id: new_acc.id, status: :student}
-      @contact.save
-      @contact.reload
-      @contact.status.should == :student
-      @contact.owner.should == new_acc
+    context "if contact is a student" do
+      before do
+        @new_acc = Account.make
+        @contact.local_status={account_id: @new_acc.id, status: :student}
+        @contact.save
+        @contact.reload
+        @contact.status.should == :student
+      end
+      example "account where it is student should own it" do
+        @contact.owner.should == @new_acc
+      end
     end
-
   end
 
+  it "posts creation to activity stream" do
+    ActivityStream::Activity.any_instance.should_receive(:create)
+    c = Contact.make_unsaved
+    c.save
+  end
 end
