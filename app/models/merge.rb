@@ -159,7 +159,7 @@ class Merge
   end
 
   def activity_stream_service_merge(father,son)
-    am = ActivitiesMerge.new(parent_id: father.id.to_s, son_id: son.id.to_s)
+    am = ActivityStream::Merge.new(parent_id: father._id.to_s, son_id: son._id.to_s)
     if am.create
       self.update_service 'activity_stream', true
     end
