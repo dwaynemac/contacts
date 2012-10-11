@@ -78,6 +78,15 @@ class Merge
     return true
   end
 
+  # updates value of service
+  # @param service_name [String]
+  # @param new_value [True, False]
+  # @return [True, False]
+  def update_service(service_name, new_value)
+    self.services[service_name.to_s] = new_value
+    self.update_attribute :services, self.services
+  end
+
   private
 
   def merge
@@ -85,9 +94,7 @@ class Merge
       contacts_service_merge(father, son) unless self.services['contacts']
       crm_service_merge(father, son) unless self.services['crm']
       activity_stream_service_merge(father,son) unless self.services['activity_stream']
-      son.destroy if finished?
-      self.stop
-    rescue
+    ensure
       son.destroy if finished?
       self.stop
     end
@@ -127,20 +134,20 @@ class Merge
     son.contact_attributes.delete_all
     father.save
 
-    self.services['contacts'] = true
+    self.update_service('contacts', true)
   end
 
   def crm_service_merge(father, son)
     crm_merge = CrmMerge.new(:parent_id => father.id, :son_id => son.id)
     if crm_merge.create
-      self.services['crm'] = true
+      self.update_service('crm', true)
     end
   end
 
   def activity_stream_service_merge(father,son)
     am = ActivitiesMerge.new(parent_id: father.id.to_s, son_id: son.id.to_s)
     if am.create
-      self.services['activity_stream'] = true
+      self.update_service 'activity_stream', true
     end
   end
 
