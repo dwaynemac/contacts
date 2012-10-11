@@ -402,6 +402,7 @@ describe Merge do
     end
 
     it "should keep record of migrated services" do
+      @m.reload
       @m.services['activity_stream'].should be_true
       @m.services['crm'].should be_true
       @m.services['contacts'].should be_true
@@ -409,6 +410,7 @@ describe Merge do
     end
 
     it "should end in state :merged" do
+      @m.reload
       @m.state.should == 'merged'
     end
 
