@@ -408,6 +408,10 @@ describe Merge do
       @m.should be_finished
     end
 
+    it "should end in state :merged" do
+      @m.state.should == 'merged'
+    end
+
     it "should keep global_teacher" do
       @father.reload.global_teacher_username.should == 'teacher_1'
     end
