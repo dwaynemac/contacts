@@ -91,6 +91,8 @@ describe V0::MergesController do
 
         before do
 
+          ActivityStream::Activity.any_instance.should_receive(:create).with(hash_including(:account_name, :username))
+
           CrmMerge.any_instance.stub(:create).and_return(true)
           ActivitiesMerge.any_instance.stub(:create).and_return(true)
 
@@ -105,6 +107,9 @@ describe V0::MergesController do
           expect{
             post_create(@post_args)
           }.to change{Merge.count}
+        end
+        it "should post to activity stream" do
+          assert true # test is in before{...} this example if for indexation only
         end
         it "should create merge" do
           assert true # test is in before{...} this example if for indexation only
