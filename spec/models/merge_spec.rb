@@ -207,32 +207,100 @@ describe Merge do
   end
 
   describe "#merge" do
-    let(:father){Contact.make(first_name: 'dwayne 2', last_name: 'macgowan')}
+    let(:father){Contact.make(first_name: 'dwayne 2', last_name: 'macgowan', status: :student)}
     let(:son){Contact.make(first_name: 'dwayne', last_name: 'macgowan')}
-    it "should call ActivityStream API" do
-      mock = ActivitiesMerge.new
-      ActivitiesMerge.should_receive(:new).with(parent_id: father.id.to_s, son_id: son.id.to_s).and_return(mock)
-      ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
 
-      m = Merge.new(first_contact_id: son.id, second_contact_id: father.id)
-      expect{m.save!}.not_to raise_exception
-      m.start
+    describe "delegates to ActivityStream service" do
+      let(:merge){Merge.new(first_contact_id: father.id, second_contact_id: son.id)}
+      before do
+        mock = ActivityStream::Merge.new
+        ActivityStream::Merge.should_receive(:new).with(parent_id: father.id.to_s, son_id: son.id.to_s).and_return(mock)
+        merge.save
+      end
+      context "when connection is successfull" do
+        context "and merge succesfull" do
+          before { ActivityStream::Merge.any_instance.should_receive(:create).and_return(true) }
+          it "sets services['activity_stream'] to true" do
+            merge.start
+            merge.services['activity_stream'].should be_true
+          end
+        end
+        context "and merge fails" do
+          before { ActivityStream::Merge.any_instance.should_receive(:create).and_return(false) }
+          it "leaves services['activity_stream'] in false" do
+            merge.start
+            merge.services['activity_stream'].should be_false
+          end
+          it "stores message 'errors.merge.services.merge_failed' in :crm_service" do
+            merge.start
+            merge.reload
+            merge.messages['activity_stream_service'].should == I18n.t('errors.merge.services.merge_failed')
+          end
+        end
+      end
+      context "when connection fails" do
+        before { ActivityStream::Merge.any_instance.should_receive(:create).and_return(nil) }
+        it "leaves services['activity_stream'] in false" do
+          merge.start
+          merge.reload
+          merge.services['activity_stream'].should be_false
+        end
+        it "stores message 'errors.merge.services.connection_failed' in :crm_service" do
+          merge.start
+          merge.reload
+          merge.messages['activity_stream_service'].should == I18n.t('errors.merge.services.connection_failed')
+        end
+      end
     end
-    it "should call Crm API" do
-      mock = CrmMerge.new
-      CrmMerge.should_receive(:new).with(parent_id: father.id, son_id: son.id).and_return(mock)
-      CrmMerge.any_instance.should_receive(:create).and_return(true)
 
-      m = Merge.new(first_contact_id: son.id, second_contact_id: father.id)
-      expect{m.save!}.not_to raise_exception
-      m.start
+    describe "delegates to CRM service" do
+      let(:merge){Merge.new(first_contact_id: father.id, second_contact_id: son.id)}
+      before do
+        mock = CrmMerge.new
+        CrmMerge.should_receive(:new).and_return(mock)
+        merge.save
+      end
+      context "when connection is successfull" do
+        context "and merge succesfull" do
+          before { CrmMerge.any_instance.should_receive(:create).and_return(true) }
+          it "sets services['crm'] to true" do
+            merge.start
+            merge.services['crm'].should be_true
+          end
+        end
+        context "and merge fails" do
+          before { CrmMerge.any_instance.should_receive(:create).and_return(false) }
+          it "leaves services['crm'] in false" do
+            merge.start
+            merge.services['crm'].should be_false
+          end
+          it "stores message 'errors.merge.services.merge_failed' in :crm_service" do
+            merge.start
+            merge.reload
+            merge.messages['crm_service'].should == I18n.t('errors.merge.services.merge_failed')
+          end
+        end
+      end
+      context "when connection fails" do
+        before { CrmMerge.any_instance.should_receive(:create).and_return(nil) }
+        it "leaves services['crm'] in false" do
+          merge.start
+          merge.services['crm'].should be_false
+        end
+        it "stores message 'errors.merge.services.connection_failed' in :crm_service" do
+          merge.start
+          merge.reload
+          merge.messages['crm_service'].should == I18n.t('errors.merge.services.connection_failed')
+        end
+      end
     end
+
     it "should persist services progress" do
       m = Merge.make(first_contact_id: son.id, second_contact_id: father.id)
 
-      activities_merge = ActivitiesMerge.new
-      ActivitiesMerge.should_receive(:new).with(parent_id: father.id.to_s, son_id: son.id.to_s).and_return(activities_merge)
-      ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
+      activities_merge = ActivityStream::Merge.new
+      ActivityStream::Merge.should_receive(:new).with(parent_id: father.id.to_s, son_id: son.id.to_s).and_return(activities_merge)
+      ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
 
       crm_merge = CrmMerge.new
       CrmMerge.should_receive(:new).with(parent_id: father.id, son_id: son.id).and_return(crm_merge)
@@ -294,9 +362,9 @@ describe Merge do
       @son.save
 
       # it should call ActivityStream API (expectation has to be befare call to @m.start)
-      mock = ActivitiesMerge.new
-      ActivitiesMerge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
-      ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
+      mock = ActivityStream::Merge.new
+      ActivityStream::Merge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
+      ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
 
       # it should call Crm API
       mock = CrmMerge.new
@@ -386,9 +454,9 @@ describe Merge do
       @son.save
 
       # it should call ActivityStream API (expectation has to be befare call to @m.start)
-      mock = ActivitiesMerge.new
-      ActivitiesMerge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
-      ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
+      mock = ActivityStream::Merge.new
+      ActivityStream::Merge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
+      ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
 
       # it should call Crm API
       mock = CrmMerge.new

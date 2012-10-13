@@ -18,6 +18,7 @@ class Merge
 
   field :services, :type => Hash, :default => SERVICES
   field :warnings, :type => Hash, :default => {}
+  field :messages, type: Hash, default: {}
 
   validates :first_contact_id, presence: true
   validates :second_contact_id, presence: true
@@ -88,6 +89,11 @@ class Merge
     self.update_attribute :services, self.services
   end
 
+  def update_message(message_key, message)
+    self.messages[message_key.to_s] = message
+    self.update_attribute :messages, self.messages
+  end
+
   def finished?
     self.services.select{|service, finished| not finished }.count == 0
   end
@@ -153,16 +159,30 @@ class Merge
 
   def crm_service_merge(father, son)
     crm_merge = CrmMerge.new(:parent_id => father.id, :son_id => son.id)
-    if crm_merge.create
-      self.update_service('crm', true)
+    res = crm_merge.create
+    case res
+      when true
+        self.update_service('crm', true)
+      when false
+        self.update_message :crm_service, I18n.t('errors.merge.services.merge_failed')
+      when nil
+        self.update_message :crm_service, I18n.t('errors.merge.services.connection_failed')
     end
+    res
   end
 
   def activity_stream_service_merge(father,son)
     am = ActivityStream::Merge.new(parent_id: father._id.to_s, son_id: son._id.to_s)
-    if am.create
-      self.update_service 'activity_stream', true
+    res = am.create
+    case res
+      when true
+        self.update_service 'activity_stream', true
+      when false
+        self.update_message :activity_stream_service, I18n.t('errors.merge.services.merge_failed')
+      when nil
+        self.update_message :activity_stream_service, I18n.t('errors.merge.services.connection_failed')
     end
+    res
   end
 
   # Validate existence and similarity of contacts.
