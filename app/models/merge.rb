@@ -81,6 +81,9 @@ class Merge
   end
 
   # updates value of service
+  #
+  # in state transitions this is used to to update #services because simple assignment doesn't persist
+  #
   # @param service_name [String]
   # @param new_value [True, False]
   # @return [True, False]
@@ -89,6 +92,9 @@ class Merge
     self.update_attribute :services, self.services
   end
 
+  #
+  # in state transitions this is used to to update #messages because simple assignment doesn't persist
+  #
   def update_message(message_key, message)
     self.messages[message_key.to_s] = message
     self.update_attribute :messages, self.messages
@@ -292,6 +298,15 @@ class Merge
           end
           self.warnings['local_statuses'].push(ls.account_id)
         end
+      end
+
+      # warn if contacts are students in different accounts.
+      if ls.value == :student && !father.local_statuses.where(value: :student).excludes(account_id: ls.account.id).empty?
+        if !self.warnings.has_key?('local_statuses')
+          self.warnings['local_statuses'] = Array.new
+        end
+        self.warnings['local_statuses'].push(ls.account_id)
+        self.messages['multi_student'] = I18n.t('errors.merge.student_in_multiple_accounts')
       end
     end
 

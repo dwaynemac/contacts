@@ -203,6 +203,29 @@ describe Merge do
           @m.warnings.should == {}
         end
       end
+
+      context "when both contacts are :student in different accounts" do
+        let(:account_a){Account.make}
+        let(:account_b){Account.make}
+        before do
+          contact_a = Contact.make
+          contact_b = Contact.make(first_name: contact_a.first_name, last_name: contact_a.last_name)
+
+          contact_a.local_unique_attributes << LocalStatus.make(value: :student, account: account_a)
+          contact_b.local_unique_attributes << LocalStatus.make(value: :student, account: account_b)
+
+          contact_b.owner = account_a
+
+          contact_a.save!
+          contact_b.save!
+
+          @merge = Merge.new(first_contact: contact_a, second_contact: contact_b)
+          @merge.save
+        end
+        it "should set warnings" do
+          @merge.warnings.should_not be_empty
+        end
+      end
     end
   end
 
