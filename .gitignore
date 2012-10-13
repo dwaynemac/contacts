@@ -9,3 +9,5 @@ tmp/
 *.swp
 doc/
 .yardoc/
+.env
+Procfile.dev
