@@ -4,7 +4,7 @@ class CrmMerge < LogicalModel
 
   self.hydra = HYDRA
   self.use_ssl = (Rails.env == "production")
-  self.resource_path = "api/v0/merges"
+  self.resource_path = "/api/v0/merges"
   self.attribute_keys = [:parent_id, :son_id]
   self.use_api_key = false
   self.api_key_name = "token"
