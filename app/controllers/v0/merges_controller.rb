@@ -46,6 +46,9 @@ class V0::MergesController < V0::ApplicationController
     if @merge.save
       @merge.start
       if @merge.merged? || @merge.merging? || @merge.pending?
+
+        post_to_activity_stream
+
         render json: {id: @merge.id }, status: 201
       else # pending_confirmation
         render json: {id: @merge.id}, status: 202
@@ -57,6 +60,26 @@ class V0::MergesController < V0::ApplicationController
           errors: @merge.errors.messages
       }, status: 400
     end
+  end
+
+  private
+
+  def post_to_activity_stream
+    entry = ActivityStream::Activity.new(
+        target_id: @merge.father._id, target_type: 'Contact',
+        object_id: @merge.son._id, object_type: 'Contact',
+        generator: 'contacts',
+        verb: 'merged',
+        content: "#{params[:username]} merged #{@merge.son.full_name} into #{@merge.father.full_name}",
+        public: true,
+        username: params[:username] || 'system',
+        account_name: params[:account_name] || 'system',
+        created_at: @merge.created_at.to_s,
+        updated_at: @merge.updated_at.to_s
+    )
+    res = entry.create(username:  params[:username], account_name: params[:account_name])
+    1+1
+    1+1
   end
 
 end

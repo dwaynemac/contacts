@@ -167,27 +167,24 @@ describe Merge do
         expect{m.save}.not_to raise_exception
       end
 
-      context "when contacts have same status in same account" do
-        let(:account){Account.make}
-        let(:contact_a){Contact.make(owner: account, first_name: 'Bob', last_name: 'Marley')}
-        let(:contact_b){Contact.make(owner: account, first_name: 'Bobby', last_name: 'Marley')}
-        let(:set_local_statuses) do
-          contact_a.local_unique_attributes << LocalStatus.make(value: status, account: account)
-          contact_b.local_unique_attributes << LocalStatus.make(value: status, account: account)
-        end
-        let(:merge){Merge.new(first_contact: contact_a, second_contact: contact_b)}
+      context "for contacts :prospect and :'' in same account" do
+        before do
+          account = Account.make
 
-        (Contact::VALID_STATUSES+['']).each do |st|
-          context "when status is #{st}" do
-            let(:status){st}
-            before{ set_local_statuses }
-            it "should not set warnings" do
-              merge.save
-              merge.should_not have_warnings
-            end
-          end
+          @a = Contact.make(owner: @acc, first_name: 'Bob', last_name: 'Marley')
+          @b = Contact.make(owner: @acc, first_name: 'Bobby', last_name: 'Marley')
+
+          @a.local_unique_attributes << LocalStatus.make(value: :prospect, account: account)
+          @b.local_unique_attributes << LocalStatus.make(value: '', account: account)
+
+          @m = Merge.new(first_contact_id: @a.id, second_contact_id: @b.id)
+          expect{@m.save}.not_to raise_exception
+        end
+        it "should not set warnings" do
+          @m.warnings.should == {}
         end
       end
+
 
       context "for contacts :student and :prospect in same account" do
         before do
@@ -210,10 +207,9 @@ describe Merge do
   end
 
   describe "#merge" do
+    let(:father){Contact.make(first_name: 'dwayne 2', last_name: 'macgowan')}
+    let(:son){Contact.make(first_name: 'dwayne', last_name: 'macgowan')}
     it "should call ActivityStream API" do
-      father = Contact.make(first_name: 'dwayne 2', last_name: 'macgowan')
-      son = Contact.make(first_name: 'dwayne', last_name: 'macgowan')
-
       mock = ActivitiesMerge.new
       ActivitiesMerge.should_receive(:new).with(parent_id: father.id.to_s, son_id: son.id.to_s).and_return(mock)
       ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
@@ -223,9 +219,6 @@ describe Merge do
       m.start
     end
     it "should call Crm API" do
-      father = Contact.make(first_name: 'a', last_name: 'by')
-      son = Contact.make(first_name: 'a b', last_name: 'by')
-
       mock = CrmMerge.new
       CrmMerge.should_receive(:new).with(parent_id: father.id, son_id: son.id).and_return(mock)
       CrmMerge.any_instance.should_receive(:create).and_return(true)
@@ -233,6 +226,26 @@ describe Merge do
       m = Merge.new(first_contact_id: son.id, second_contact_id: father.id)
       expect{m.save!}.not_to raise_exception
       m.start
+    end
+    it "should persist services progress" do
+      m = Merge.make(first_contact_id: son.id, second_contact_id: father.id)
+
+      activities_merge = ActivitiesMerge.new
+      ActivitiesMerge.should_receive(:new).with(parent_id: father.id.to_s, son_id: son.id.to_s).and_return(activities_merge)
+      ActivitiesMerge.any_instance.should_receive(:create).and_return(true)
+
+      crm_merge = CrmMerge.new
+      CrmMerge.should_receive(:new).with(parent_id: father.id, son_id: son.id).and_return(crm_merge)
+      CrmMerge.any_instance.should_receive(:create).and_return(true)
+
+      m.start
+
+      backup_services = m.services.dup
+
+      m.reload
+
+      m.services.should == backup_services
+
     end
   end
 
@@ -389,10 +402,16 @@ describe Merge do
     end
 
     it "should keep record of migrated services" do
+      @m.reload
       @m.services['activity_stream'].should be_true
       @m.services['crm'].should be_true
       @m.services['contacts'].should be_true
       @m.should be_finished
+    end
+
+    it "should end in state :merged" do
+      @m.reload
+      @m.state.should == 'merged'
     end
 
     it "should keep global_teacher" do
@@ -406,6 +425,36 @@ describe Merge do
       end
     end
 
+  end
+
+  describe "#finished?" do
+    let(:merge){Merge.make}
+    subject{merge}
+    context "when all services are merged" do
+      before do
+        Merge::SERVICES.keys.each{|s|merge.services[s]=true}
+        merge.save
+      end
+      it { should be_finished }
+    end
+    context "when no services are merged" do
+      before do
+        Merge::SERVICES.keys.each{|s|merge.services[s]=false}
+        merge.save
+      end
+      it { should_not be_finished }
+    end
+    context "when some services are merged" do
+      before do
+        Merge::SERVICES.keys.each{|s|merge.services[s]=false}
+        merge.services['contacts']=true
+        merge.save
+      end
+      it { should_not be_finished }
+    end
+    context "on a vanilla merge" do
+      it { should_not be_finished }
+    end
   end
 
   # creates a merge that has warnings.

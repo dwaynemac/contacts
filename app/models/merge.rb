@@ -39,9 +39,10 @@ class Merge
 
   state_machine :initial => :embryonic do
     after_transition [:ready, :pending] => :merging, :do => :merge
+    after_transition :merging => :merged, :do => :destroy_son
 
     event :confirm do
-      transition [:pending_confirmation] => :ready, :if => :father_has_been_chosen?
+      transition [:pending_confirmation] => :ready, :if => lambda {|merge| merge.father_has_been_chosen? }
     end
 
     event :start do
@@ -49,15 +50,15 @@ class Merge
     end
 
     event :stop do
-      transition :merging => :merged, :if => :finished?
+      transition :merging => :merged, :if => lambda {|merge| merge.finished? }
       transition :merging => :pending
     end
 
     # To avoid maliciuos usage :embryonic => :ready only happens when
     # father has been chosen
     event :merge_initialization_finished do
-      transition :embryonic => :pending_confirmation, :if => :has_warnings?
-      transition :embryonic => :ready, :if => :father_has_been_chosen?
+      transition :embryonic => :pending_confirmation, :if => lambda {|merge| merge.has_warnings? }
+      transition :embryonic => :ready, :if => lambda {|merge| merge.father_has_been_chosen? }
     end
   end
 
@@ -78,6 +79,23 @@ class Merge
     return true
   end
 
+  # updates value of service
+  # @param service_name [String]
+  # @param new_value [True, False]
+  # @return [True, False]
+  def update_service(service_name, new_value)
+    self.services[service_name.to_s] = new_value
+    self.update_attribute :services, self.services
+  end
+
+  def finished?
+    self.services.select{|service, finished| not finished }.count == 0
+  end
+
+  def father_has_been_chosen?
+    self.father_id
+  end
+
   private
 
   def merge
@@ -85,11 +103,14 @@ class Merge
       contacts_service_merge(father, son) unless self.services['contacts']
       crm_service_merge(father, son) unless self.services['crm']
       activity_stream_service_merge(father,son) unless self.services['activity_stream']
-      son.destroy if finished?
+    ensure
       self.stop
-    rescue
-      son.destroy if finished?
-      self.stop
+    end
+  end
+
+  def destroy_son
+    if finished?
+      son.destroy
     end
   end
 
@@ -127,29 +148,21 @@ class Merge
     son.contact_attributes.delete_all
     father.save
 
-    self.services['contacts'] = true
+    self.update_service('contacts', true)
   end
 
   def crm_service_merge(father, son)
     crm_merge = CrmMerge.new(:parent_id => father.id, :son_id => son.id)
     if crm_merge.create
-      self.services['crm'] = true
+      self.update_service('crm', true)
     end
   end
 
   def activity_stream_service_merge(father,son)
     am = ActivitiesMerge.new(parent_id: father.id.to_s, son_id: son.id.to_s)
     if am.create
-      self.services['activity_stream'] = true
+      self.update_service 'activity_stream', true
     end
-  end
-
-  def finished?
-    self.services.select{|service, finished| not finished }.count == 0
-  end
-
-  def father_has_been_chosen?
-    self.father_id
   end
 
   # Validate existence and similarity of contacts.
