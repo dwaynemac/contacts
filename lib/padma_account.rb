@@ -4,6 +4,8 @@ class PadmaAccount < LogicalModel
   self.hydra = HYDRA
   self.use_ssl = (Rails.env=="production")
 
+  self.log_path = (Rails.env=="production")? STDOUT : "log/logical_model.log"
+
   self.resource_path = "/v0/accounts"
   self.attribute_keys = [:id, :name, :enabled ]
   self.use_api_key = true

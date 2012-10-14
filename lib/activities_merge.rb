@@ -2,6 +2,8 @@
 # Configuration for LogicalModel on /config/initializers/logical_model.rb
 class ActivitiesMerge < LogicalModel
 
+  self.log_path = (Rails.env=="production")? STDOUT : "log/logical_model.log"
+
   self.hydra = HYDRA
   self.use_ssl = (Rails.env == "production")
   self.resource_path = "/v0/merges"
