@@ -2,6 +2,8 @@ class PadmaUser < LogicalModel
   self.hydra = HYDRA
   self.use_ssl = (Rails.env=="production")
 
+  self.log_path = (Rails.env=="production")? STDOUT : "log/logical_model.log"
+
   self.resource_path = "/v0/users"
   self.attribute_keys = [:drc_login, :locale, :accounts ]
   self.use_api_key = true

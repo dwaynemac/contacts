@@ -2,6 +2,8 @@ source 'http://rubygems.org'
 
 gem 'rails', '3.1.6'
 
+gem 'unicorn'
+
 gem "mongoid", "2.3.3"
 gem 'bson', '= 1.4.0'
 gem "bson_ext", "= 1.4.0"
@@ -26,8 +28,11 @@ group :documentation do
   gem 'yard-rest', :git => "git://github.com/dwaynemac/yard-rest-plugin.git"
 end
 
+group :production do
+  gem 'newrelic_rpm'
+end
+
 group :development, :test do
-  gem 'thin'
   gem "timecop", '0.3.5'
 
   # Guard

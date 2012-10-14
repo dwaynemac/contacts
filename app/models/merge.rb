@@ -18,6 +18,7 @@ class Merge
 
   field :services, :type => Hash, :default => SERVICES
   field :warnings, :type => Hash, :default => {}
+  field :messages, type: Hash, default: {}
 
   validates :first_contact_id, presence: true
   validates :second_contact_id, presence: true
@@ -80,12 +81,23 @@ class Merge
   end
 
   # updates value of service
+  #
+  # in state transitions this is used to to update #services because simple assignment doesn't persist
+  #
   # @param service_name [String]
   # @param new_value [True, False]
   # @return [True, False]
   def update_service(service_name, new_value)
     self.services[service_name.to_s] = new_value
     self.update_attribute :services, self.services
+  end
+
+  #
+  # in state transitions this is used to to update #messages because simple assignment doesn't persist
+  #
+  def update_message(message_key, message)
+    self.messages[message_key.to_s] = message
+    self.update_attribute :messages, self.messages
   end
 
   def finished?
@@ -153,16 +165,30 @@ class Merge
 
   def crm_service_merge(father, son)
     crm_merge = CrmMerge.new(:parent_id => father.id, :son_id => son.id)
-    if crm_merge.create
-      self.update_service('crm', true)
+    res = crm_merge.create
+    case res
+      when true
+        self.update_service('crm', true)
+      when false
+        self.update_message :crm_service, I18n.t('errors.merge.services.merge_failed')
+      when nil
+        self.update_message :crm_service, I18n.t('errors.merge.services.connection_failed')
     end
+    res
   end
 
   def activity_stream_service_merge(father,son)
-    am = ActivitiesMerge.new(parent_id: father.id.to_s, son_id: son.id.to_s)
-    if am.create
-      self.update_service 'activity_stream', true
+    am = ActivityStream::Merge.new(parent_id: father._id.to_s, son_id: son._id.to_s)
+    res = am.create
+    case res
+      when true
+        self.update_service 'activity_stream', true
+      when false
+        self.update_message :activity_stream_service, I18n.t('errors.merge.services.merge_failed')
+      when nil
+        self.update_message :activity_stream_service, I18n.t('errors.merge.services.connection_failed')
     end
+    res
   end
 
   # Validate existence and similarity of contacts.
@@ -272,6 +298,15 @@ class Merge
           end
           self.warnings['local_statuses'].push(ls.account_id)
         end
+      end
+
+      # warn if contacts are students in different accounts.
+      if ls.value == :student && !father.local_statuses.where(value: :student).excludes(account_id: ls.account.id).empty?
+        if !self.warnings.has_key?('local_statuses')
+          self.warnings['local_statuses'] = Array.new
+        end
+        self.warnings['local_statuses'].push(ls.account_id)
+        self.messages['multi_student'] = I18n.t('errors.merge.student_in_multiple_accounts')
       end
     end
 
