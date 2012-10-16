@@ -5,7 +5,7 @@ describe StudentsCount do
   let(:account_a){Account.make}
   let(:account_b){Account.make}
 
-  describe ".calculate" do
+  describe ".count_students" do
     before do
 
       Contact.make # non student
@@ -19,13 +19,13 @@ describe StudentsCount do
     end
     context 'when not scoped' do
       it "counts all students" do
-        StudentsCount.calculate.should == 42
+        Contact.count_students.should == 42
       end
 
     end
     context "with teacher_name option" do
       it "returns teachers students across all accounts" do
-        StudentsCount.calculate(teacher_name: 'teacher-1').should == 6
+        Contact.count_students(teacher_name: 'teacher-1').should == 6
       end
       context "with :year" do
         it "returns teachers students at the end of the year across all accounts"
@@ -35,9 +35,9 @@ describe StudentsCount do
       end
     end
     context "with account_name option" do
-      specify{ StudentsCount.calculate(account_name: account_a.name).should == 7 }
+      specify{ Contact.count_students(account_name: account_a.name).should == 7 }
       context "and teacher_name option" do
-        specify{ StudentsCount.calculate(account_name: account_a.name, teacher_name: 'teacher-1').should == 5 }
+        specify{ Contact.count_students(account_name: account_a.name, teacher_name: 'teacher-1').should == 5 }
       end
       context "with :year option" do
         let(:history_account){Account.make(name: 'history_account')}
@@ -57,28 +57,28 @@ describe StudentsCount do
         end
 
         it "returns count at the last day of the year" do
-          StudentsCount.calculate(year: 2012, account_name: history_account.name).should == 2
+          Contact.count_students(year: 2012, account_name: history_account.name).should == 2
         end
 
         context "and :teacher_name" do
-          specify { StudentsCount.calculate(year: 2012, account_name: 'history_account', teacher_name: 't1').should == 1 }
-          specify { StudentsCount.calculate(year: 2012, account_name: 'history_account', teacher_name: 't2').should == 0 }
+          specify { Contact.count_students(year: 2012, account_name: 'history_account', teacher_name: 't1').should == 1 }
+          specify { Contact.count_students(year: 2012, account_name: 'history_account', teacher_name: 't2').should == 0 }
         end
 
         context "and :month option" do
           it "returns count at the last day of the month" do
-            StudentsCount.calculate(year: 2012, month: 11, account_name: history_account.name).should == 3
+            Contact.count_students(year: 2012, month: 11, account_name: history_account.name).should == 3
           end
           context "and :teacher_name" do
-            specify { StudentsCount.calculate(year: 2012, month: 9, account_name: 'history_account', teacher_name: 't2').should == 1 }
-            specify { StudentsCount.calculate(year: 2012, month: 11, account_name: 'history_account', teacher_name: 't1').should == 2 }
+            specify { Contact.count_students(year: 2012, month: 9, account_name: 'history_account', teacher_name: 't2').should == 1 }
+            specify { Contact.count_students(year: 2012, month: 11, account_name: 'history_account', teacher_name: 't1').should == 2 }
           end
         end
       end
     end
     context "with :month option" do
       it "raises exception" do
-        expect{ StudentsCount.calculate month: 1 }.to raise_exception
+        expect{ Contact.count_students month: 1 }.to raise_exception
       end
     end
   end

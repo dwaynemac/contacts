@@ -1,6 +1,24 @@
-class StudentsCount
+module StudentsCount
 
-  # TODO tern into a Mixin module for Contact
+  # @param options [Hash]
+  # @option options store_in_overmind [Boolean]
+  # @option options account_name [String] account's global identifier.
+  # @option options account [Account]
+  # @option options account_id [String] accounts local id in contacts-ws
+  # @option options teacher_name [String]
+  # @option options year [Integer]
+  # @option options month [Integer]
+  #
+  # @return [Integer]
+  def count_students(options={})
+    val = calculate(options)
+    if options[:store_in_overmind]
+      store_in_overmind(val,options)
+    end
+    val
+  end
+
+  private
 
   # @param options [Hash]
   # @option options account_name [String] account's global identifier.
@@ -11,7 +29,7 @@ class StudentsCount
   # @option options month [Integer]
   #
   # @return [Integer]
-  def self.calculate(options={})
+  def calculate(options={})
     raise_if_invalid(options)
 
     teacher_name = options[:teacher_name]
@@ -73,9 +91,8 @@ class StudentsCount
   end
 
   # @return [TrueClass,FalseClass,NilClass] for success, failure or connection-error
-  def self.store_in_overmind(options={})
+  def store_in_overmind(value,options={})
     raise_if_invalid_for_storing(options)
-    value = calculate(options)
     stat = Overmind::MonthlyStat.new(
       value: value,
       name: 'students',
@@ -89,9 +106,7 @@ class StudentsCount
   end
 
 
-  private
-
-  def self.raise_if_invalid(op)
+  def raise_if_invalid(op)
 
     if ((op[:account].nil?? 0 : 1) + (op[:account_name].nil?? 0 : 1) + (op[:account_id].nil?? 0 : 1)) > 1
       raise 'you have to specify account in only one way'
@@ -102,7 +117,7 @@ class StudentsCount
     end
   end
 
-  def self.raise_if_invalid_for_storing(op)
+  def raise_if_invalid_for_storing(op)
     unless (op[:month] && op[:year])
       raise 'storing in Overmind only available for MonthlyStats'
     end
@@ -116,7 +131,7 @@ class StudentsCount
     end
   end
 
-  def self.get_account_id(op)
+  def get_account_id(op)
     if op[:account_id]
       op[:account_id]
     elsif op[:account]
@@ -128,7 +143,7 @@ class StudentsCount
     end
   end
 
-  def self.get_account_name(op)
+  def get_account_name(op)
     if op[:account_name]
       op[:account_name]
     elsif op[:account]

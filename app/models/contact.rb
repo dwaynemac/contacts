@@ -11,6 +11,8 @@ class Contact
   embeds_many :attachments, cascade_callbacks: true
   accepts_nested_attributes_for :attachments, allow_destroy: true
 
+  extend StudentsCount
+
   embeds_many :contact_attributes, :validate => true, :cascade_callbacks => true
   validates_associated :contact_attributes
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
