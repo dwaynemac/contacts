@@ -85,15 +85,39 @@ describe HistoryEntry do
       res.should_not include(s._id)
     end
 
-    it "should returns elements without history entries after specified date that currently match expected attribute" do
-      s = Contact.make(status: :student)
-      s.history_entries.create(attribute: :status, old_value: :former_student,  changed_at: 1.month.ago.to_time)
+    context "attribute: :status" do
+      it "should returns elements without history entries after specified date that currently match expected attribute" do
+        s = Contact.make(status: :student)
+        s.history_entries.create(attribute: :status, old_value: :former_student,  changed_at: 1.month.ago.to_time)
 
-      cs = Contact.make(status: :student, owner: Account.make(name: 'account'))
+        cs = Contact.make(status: :student, owner: Account.make(name: 'account'))
 
-      res = HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact')
-      res.should include(cs._id)
+        res = HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact')
+        res.should include(cs._id)
+      end
     end
+    context "with attribute :local_status_for_accountName" do
+
+      let(:contact){ Contact.make }
+
+      before do
+        Contact.skip_callback :save, :after, :keep_history_of_changes
+        LocalStatus.skip_callback(:save, :after, :keep_history_of_changes)
+        LocalTeacher.skip_callback(:save, :after, :keep_history_of_changes)
+
+        s = Contact.make
+        s.history_entries.create(attribute: :local_status_for_accountname, old_value: :student,  changed_at: 1.month.ago.to_time)
+
+        contact.local_unique_attributes << LocalStatus.new(value: 'student', account: Account.make(name: 'accountname'))
+      end
+
+
+      it "returns elements without history entries after specified date that currently match expected attribute" do
+        res = HistoryEntry.element_ids_with(local_status_for_accountname: 'student', at: Date.civil(2012,12,20).to_time, class: 'Contact')
+        res.should include(contact._id)
+      end
+    end
+
 
     it "should not include this object" do
       s = Contact.make(status: :student)

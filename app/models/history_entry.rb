@@ -82,6 +82,7 @@ class HistoryEntry
     raise ArgumentError if options.keys.size < 2
     raise ArgumentError unless options[:at]
 
+    # use first key of options as attribute
     ref_attribute = options.keys.first
     ref_date      = options[:at].to_time
     if options[:account_name] && !options[:account]
@@ -110,8 +111,29 @@ class HistoryEntry
         elems_wout_hist = options[:account].send(options[:class].underscore.pluralize)
       else
         elems_wout_hist = options[:class].constantize
-      end                     # third DB hit
-      ids_array = ids_array + elems_wout_hist.where(ref_attribute => ref_value).not_in(_id: ids_array).only('_id').map{|doc|doc._id} if elems_wout_hist
+      end
+
+      attribute_filter = {}
+      # local_unique_attributes need to be treated differently
+      # because they are not attributes of contacts. they are embeded documents.
+      if ref_attribute =~ /local_(.+)_for_(.+)/
+        lua_type = "Local#{$1.camelize}"
+        account = Account.where(name: $2).first
+        if account.nil?
+          raise 'account not found'
+        end
+
+        attribute_filter = {local_unique_attributes: {'$elemMatch' => {
+            '_type' => lua_type,
+            'value' => ref_value,
+            'account_id' => account.id
+        }}}
+      else
+        attribute_filter = {ref_attribute => ref_value}
+      end
+
+                              # third DB hit
+      ids_array = ids_array + elems_wout_hist.where(attribute_filter).not_in(_id: ids_array).only('_id').map{|doc|doc._id} if elems_wout_hist
     end
 
     ids_array
