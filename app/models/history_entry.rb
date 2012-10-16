@@ -59,7 +59,7 @@ class HistoryEntry
   end
 
 
-  # Returns all elements with given value in given attribute at a given date
+  # Returns all element ids for elements with given value in given attribute at a given date
   #
   # TODO benchmark
   #
@@ -74,7 +74,7 @@ class HistoryEntry
   #
   # @raise ArgumentError if attribute_name and :at options not given
   #
-  # @example HistoryEntry.element_ids_with status: 'student', at: 1.month.ago, class: 'People', account_name: 'belgrano'
+  # @example HistoryEntry.element_ids_with status: 'student', at: 1.month.ago, class: 'Contact', account_name: 'belgrano'
   #
   # @return [Array<String>] element_ids
   def self.element_ids_with(options = {})
