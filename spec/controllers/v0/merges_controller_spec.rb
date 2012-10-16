@@ -94,7 +94,7 @@ describe V0::MergesController do
           ActivityStream::Activity.any_instance.should_receive(:create).with(hash_including(:account_name, :username))
 
           CrmMerge.any_instance.stub(:create).and_return(true)
-          ActivitiesMerge.any_instance.stub(:create).and_return(true)
+          ActivityStream::Activity.any_instance.stub(:create).and_return(true)
 
 
           @post_args = {account_name: @acc.name,
