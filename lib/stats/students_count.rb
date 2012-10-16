@@ -9,6 +9,8 @@ class StudentsCount
   # @option options teacher_name [String]
   # @option options year [Integer]
   # @option options month [Integer]
+  #
+  # @return [Integer]
   def self.calculate(options={})
     raise_if_invalid(options)
 
@@ -70,6 +72,23 @@ class StudentsCount
     end
   end
 
+  # @return [TrueClass,FalseClass,NilClass] for success, failure or connection-error
+  def self.store_in_overmind(options={})
+    raise_if_invalid_for_storing(options)
+    value = calculate(options)
+    stat = Overmind::MonthlyStat.new(
+      value: value,
+      name: 'students',
+      ref_date: Date.civil(options[:year].to_i,
+                           options[:month].to_i,
+                           1).end_of_month,
+      account_name: get_account_name(options),
+      service: 'contacts'
+    )
+    stat.create
+  end
+
+
   private
 
   def self.raise_if_invalid(op)
@@ -80,6 +99,20 @@ class StudentsCount
 
     if (op[:month] && !op[:year])
       raise 'cant specify month without year'
+    end
+  end
+
+  def self.raise_if_invalid_for_storing(op)
+    unless (op[:month] && op[:year])
+      raise 'storing in Overmind only available for MonthlyStats'
+    end
+
+    unless op[:account] || op[:account_name] || op[:account_id]
+      raise 'storing in Overmind needs to be scoped to an account'
+    end
+
+    if op[:teacher_name]
+      raise 'storing in Overmind not available for teacher stats yet'
     end
   end
 

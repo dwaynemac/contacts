@@ -34,3 +34,8 @@ class LogicalModel
     end
   end
 end
+
+module Overmind
+  HYDRA = ::HYDRA
+  API_KEY = "secret-key"
+end
