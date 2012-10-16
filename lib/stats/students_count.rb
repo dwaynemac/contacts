@@ -12,25 +12,40 @@ class StudentsCount
   def self.calculate(options={})
     raise_if_invalid(options)
 
+    teacher_name = options[:teacher_name]
+
     if options[:year]
+      ids = []
       ref_date = Date.civil(options[:year],options[:month]||12,1).to_time.end_of_month
 
       account_name = get_account_name(options)
       if account_name
-        criteria = HistoryEntry.element_ids_with(
+
+        ids = HistoryEntry.element_ids_with(
             "local_status_for_#{account_name}" => 'student',
             at: ref_date,
             class: 'Contact'
         )
+
+        if teacher_name
+          intersection_ids = HistoryEntry.element_ids_with(
+              "local_teacher_for_#{account_name}" => teacher_name,
+              at: ref_date,
+              class: 'Contact'
+          )
+          # TODO make a HistoryEntry method that receives multiple attribute to avoid this memory expensive intersection
+          ids = ids & intersection_ids
+        end
+
       else
-        criteria = HistoryEntry.element_ids_with(
+        ids = HistoryEntry.element_ids_with(
             attribute_name: 'status',
             at: ref_date,
             class: 'Contact',
         )
       end
 
-
+      ids.count
     else
       criteria = Contact
       account_id = get_account_id(options)
@@ -42,17 +57,17 @@ class StudentsCount
         criteria = criteria.where(status: :student)
       end
 
-      if options[:teacher_name]
+      if teacher_name
         local_teacher_matcher = { '_type' => 'LocalTeacher',
-                                  'value' => options[:teacher_name]}
+                                  'value' => teacher_name}
         if account_id
           local_teacher_matcher.merge!({'account_id' => account_id})
         end
         criteria = criteria.where(local_unique_attributes: { '$elemMatch' => local_teacher_matcher})
       end
-    end
 
-    criteria.count
+      criteria.count
+    end
   end
 
   private
@@ -61,6 +76,10 @@ class StudentsCount
 
     if ((op[:account].nil?? 0 : 1) + (op[:account_name].nil?? 0 : 1) + (op[:account_id].nil?? 0 : 1)) > 1
       raise 'you have to specify account in only one way'
+    end
+
+    if (op[:month] && !op[:year])
+      raise 'cant specify month without year'
     end
   end
 
