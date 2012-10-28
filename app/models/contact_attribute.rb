@@ -39,7 +39,7 @@ class ContactAttribute
     super(options)
   end
 
-  %W(email telephone address custom_attribute date_attribute identification).each do |k|
+  %W(email telephone address custom_attribute date_attribute identification contact_attachment).each do |k|
     scope k.pluralize, where( _type: k.camelcase )
   end
   scope :mobiles, where(_type: 'Telephone', category: 'mobile' )
@@ -98,6 +98,7 @@ class ContactAttribute
   end
 
   def ensure_at_least_one_primary
+    puts "#{self.inspect}"
     if self.contact.contact_attributes.where(_type: self._type, account_id: self.account_id, primary: true).count == 0
       copy_primary_to_contact
       self.primary = true

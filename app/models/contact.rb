@@ -8,8 +8,8 @@ class Contact
   include Mongoid::Search
   search_in :first_name, :last_name, {:contact_attributes => :value }, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
-  embeds_many :image_attachments, cascade_callbacks: true
-  accepts_nested_attributes_for :image_attachments, allow_destroy: true
+  embeds_many :contact_attachments, cascade_callbacks: true
+  accepts_nested_attributes_for :contact_attachments, allow_destroy: true
 
   embeds_many :contact_attributes, :validate => true, :cascade_callbacks => true
   validates_associated :contact_attributes
@@ -101,7 +101,7 @@ class Contact
 
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
   # they all return a Criteria scoping to according _type
-  %W(email telephone address custom_attribute date_attribute identification).each do |k|
+  %W(email telephone address custom_attribute date_attribute identification contact_attachment).each do |k|
     delegate k.pluralize, to: :contact_attributes
   end
 
