@@ -10,4 +10,6 @@ tmp/
 doc/
 .yardoc/
 .env
+public/uploads/*.jpg
+public/uploads/*.gif
 Procfile.dev
