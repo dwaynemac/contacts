@@ -11,12 +11,12 @@ Contacts::Application.routes.draw do
       resource :avatar, :only => [:create, :destroy]
     end
     resources :contact_attributes
-    resources :contact_attachments
+    resources :attachments
     resource :avatar, :only => [:create, :destroy]
     scope "/accounts/:account_name" do
       resources :contacts do
         resources :contact_attributes
-        resources :contact_attachments
+        resources :attachments
       end
     end
     resources :merges do
