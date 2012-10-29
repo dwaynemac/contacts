@@ -1,42 +1,43 @@
-# @topic Attributes
-# @url /v0/contact_attributes
+# @topic Attachments
+# @url /v0/attachments
 class V0::AttachmentsController < V0::ApplicationController
 
   before_filter :get_contact
   before_filter :set_scope
 
   ##
-  # Returns an attribute of a contact
-  # @url [GET] /v0/contact_attributes/:id
+  # Returns an attachment of a contact
+  # @url [GET] /v0/attachments/:id
   #
-  # @argument id [String] id of contact_attribute
+  # @argument id [String] id of attachment
   # @argument contact_id [String] id of contact
   # @optional_argument account_name [String]
   #
   # @response_code 200
-  # @example_response { _type: 'Email', value: 'anemail@server.com', public: false}
+  # @example_response { _type: 'Attachment', file: 'amazom.com/uploads/file.jpg', public: false}
   #
-  # @author Luis Perichon
+  # @author Alex Falke
   def show
-    @contact_attribute = @scope.find(params[:id])
+    @attachment = @scope.find(params[:id])
     respond_to do |type|
-      type.json {render :json => @contact_attribute}
+      type.json {render :json => @attachment}
     end
   end
 
   ##
-  #  Updates specified values of a contact attribute
+  #  Updates specified values of an attachment
   #
-  # @url [PUT] /v0/contact_attributes/:id/
-  # @url [PUT] /v0/accounts/:account_name/contact_attributes/:id
+  # @url [PUT] /v0/attachment/:id/
+  # @url [PUT] /v0/accounts/:account_name/attachment/:id
   #
   # @optional_argument account_name [String]: (account name) scopes account
   # @argument contact_id [String]: (account name) change de account the contact belongs to
   # @argument id [String]
   #
-  # @argument contact_attribute [Hash]
-  # @key_for contact_attribute [String] category
-  # @key_for contact_attribute [String] value change the value of the contact attribute
+  # @argument contact_attributes [Hash]
+  # @key_for contact_attributes [String] category
+  # @key_for contact_attributes [String] file changes the file associated with this attachment
+  # @key_for contact_attributes [String] value change the value of the contact attribute
   #
   # @example_response == Code: 200
   #   "OK"
@@ -46,33 +47,33 @@ class V0::AttachmentsController < V0::ApplicationController
   #   { message: 'Sorry, contact attribute not updated', errors: [ ... ]}
   # @response_code 400
   #
-  # @author Luis Perichon
-  # @author Dwayne Macgowan
+  # @author Alex Falke
   def update
     authorize! :update, Attachment
     @attachment = @scope.find(params[:id])
-    #@attachment.file = params[:contact_attributes][:file]
+
     if @attachment.update_attributes(params[:contact_attributes])
       @contact.index_keywords!
-      render :json => "OK"# , :status => :updated
+      render :json => "OK"
     else
-      render :json => { :message => "Sorry, contact attribute not updated",
+      render :json => { :message => "Sorry, attachment not updated",
        :error_codes => [],
        :errors => @contact_attribute.errors }.to_json, :status => 400
     end
   end
 
   ##
-  #  Returns a new contact attribute
+  #  Returns a new attachment
   #
-  # @url [POST] /v0/contact_attribute_attributes
-  # @url [POST] /v0/accounts/:account_name/contact_attributes
+  # @url [POST] /v0/attachments
+  # @url [POST] /v0/accounts/:account_name/attachments
   #
   # @argument contact_id [String] contact id
   # @optional_argument account_name [String]: account which the contact will belong to
+  # @optional_argument file [File]: file to be attached
   #
   # @response_code 201
-  # @response_field contact_attribute_id [Integer] id of the contact attribute created
+  # @response_field attachment_id [Integer] id of the attachment created
   #
   # @response_code 400
   # @response_field message [String] (for code: 400)
@@ -83,14 +84,8 @@ class V0::AttachmentsController < V0::ApplicationController
     @contact_attachment = @scope.new(params[:contact_attributes])
     @contact_attachment._type = "Attachment"
     @contact_attachment.account = @account
-    #attach.attachment = params[:contact_attribute][:attachment]
 
-    # puts "ANTES DE GRABAR ATTACHMENT: #{@contact_attachment.inspect}"
-    # puts "EL CONTACT es: #{@contact.inspect}"
     if @contact_attachment.save
-      # puts "GENERO UNO NUEVO"
-      # puts "ESTOY GRABANDO ATTACHMENT CON #{@contact_attachment.inspect}"
-      # puts "ATTACHMENT URL QUEDO: #{@contact_attachment.file.url}"
       @contact.index_keywords!
 
       render :json => { :id => @contact_attachment.id }.to_json, :status => :created
@@ -102,11 +97,11 @@ class V0::AttachmentsController < V0::ApplicationController
   end
 
   ##
-  #  Destroys the contact attribute
+  #  Destroys the attachment
   #
   #  == Request
-  # @url [DELETE] /v0/contact?attributes/:id
-  # @url [DELETE] /v0/accounts/:account_name/contacts/:contact_id/contact_attributes/:id
+  # @url [DELETE] /v0/attachments/:id
+  # @url [DELETE] /v0/accounts/:account_name/contacts/:contact_id/attachments/:id
   #
   # @optional_argument account_name [String] scope to this accounts contacts
   # @argument contact_id [String] contact id
