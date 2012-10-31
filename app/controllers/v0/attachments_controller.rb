@@ -52,7 +52,7 @@ class V0::AttachmentsController < V0::ApplicationController
     authorize! :update, Attachment
     @attachment = @scope.find(params[:id])
 
-    if @attachment.update_attributes(params[:contact_attributes])
+    if @attachment.update_attributes(params[:contact_attribute])
       @contact.index_keywords!
       render :json => "OK"
     else
@@ -81,11 +81,16 @@ class V0::AttachmentsController < V0::ApplicationController
   def create
     authorize! :create, Attachment
 
-    @contact_attachment = @scope.new(params[:contact_attributes])
+    @contact_attachment = @scope.new(params[:contact_attribute])
     @contact_attachment._type = "Attachment"
     @contact_attachment.account = @account
 
+    puts "ENTRE EN CONTACT WEBSERVICE"
+    puts "el contacto es: #{@contact.inspect}"
+    puts "Y ATTACHMENT QUEDA: #{@contact_attachment.inspect}"
+
     if @contact_attachment.save
+      puts "JUSTO DESPUES DEL SAVE ATTACHMENT QUEDA: #{@contact_attachment.inspect}"
       @contact.index_keywords!
 
       render :json => { :id => @contact_attachment.id }.to_json, :status => :created
