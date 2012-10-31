@@ -22,7 +22,7 @@ describe V0::AttachmentsController do
       before do
         new_attach = fixture_file_upload('spec/support/robot3.jpg', 'image/jpg')
         put :update, :account_name => @contact.owner.name, :contact_id => @contact.id,
-            :id => @contact.attachments.first.id, :contact_attributes => {:file => new_attach},
+            :id => @contact.attachments.first.id, :contact_attribute => {:file => new_attach},
             :app_key => V0::ApplicationController::APP_KEY
       end
       it { should respond_with :success }
@@ -46,7 +46,7 @@ describe V0::AttachmentsController do
         before do
           attach = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
           post :create, :account_name => @contact.owner.name, :contact_id => @contact.id,
-               :contact_attributes => {:category => :home, :value => "New Attachment", :file => attach},
+               :contact_attribute => {:category => :home, :value => "New Attachment", :file => attach},
                :app_key => V0::ApplicationController::APP_KEY
         end
         it { should respond_with :created }
@@ -64,7 +64,7 @@ describe V0::AttachmentsController do
       before do
         attach = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
         post :create, :account_name => other_account.name, :contact_id => @contact.id,
-             :contact_attributes => {
+             :contact_attribute => {
                 :category => :home,
                 :file => attach
              },
@@ -78,7 +78,7 @@ describe V0::AttachmentsController do
         other_account.link(@contact)
         attach = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
         post :create, :account_name => other_account.name, :contact_id => @contact.id,
-             :contact_attributes => {
+             :contact_attribute => {
                 :category => :home,
                 :value => "New Attach",
                 :file => attach
