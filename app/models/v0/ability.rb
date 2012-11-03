@@ -22,6 +22,7 @@ class V0::Ability
 
       cannot :destroy, Contact
       cannot :destroy, ContactAttribute
+      cannot :destroy, Attachment
       cannot :create, Merge
     else
 
@@ -41,6 +42,17 @@ class V0::Ability
       can [:update, :destroy], ContactAttribute, account: account
       can :create, ContactAttribute do |ca|
         ca.contact.linked_to?(account)
+      end
+
+      # Attachment
+      cannot :manage, Attachment
+      can :read, Attachment do |a|
+        # TODO refactor from block into argument so we can use Attachment#accesible_by(account)
+        a.public? || a.account == account
+      end
+      can [:update, :destroy], Attachment, account: account
+      can :create, Attachment do |a|
+        c.contact.linked_to?(account)
       end
 
       # Merge

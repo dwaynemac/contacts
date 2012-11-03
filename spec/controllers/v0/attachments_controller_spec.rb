@@ -9,9 +9,9 @@ describe V0::AttachmentsController do
     attach = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
     @contact.attachments << Attachment.new(
       :account => @contact.owner, 
-      :category => :home, 
-      :value => "value",
-      :file => attach)
+      :name => "name",
+      :file => attach,
+      :descripton => "description")
     @contact.save
     @contact.reload
   end
@@ -22,11 +22,11 @@ describe V0::AttachmentsController do
       before do
         new_attach = fixture_file_upload('spec/support/robot3.jpg', 'image/jpg')
         put :update, :account_name => @contact.owner.name, :contact_id => @contact.id,
-            :id => @contact.attachments.first.id, :contact_attribute => {:file => new_attach},
+            :id => @contact.attachments.first.id, :attachment => {:file => new_attach},
             :app_key => V0::ApplicationController::APP_KEY
       end
       it { should respond_with :success }
-      it "should change the value" do
+      it "should change the name" do
         @contact.reload.attachments.first.file.url.should match /robot3\.jpg/
       end
     end
@@ -42,16 +42,16 @@ describe V0::AttachmentsController do
 
   describe "#create" do
     context "called by contact owner" do
-      context "sending :category, :value" do
+      context "sending :name" do
         before do
           attach = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
           post :create, :account_name => @contact.owner.name, :contact_id => @contact.id,
-               :contact_attribute => {:category => :home, :value => "New Attachment", :file => attach},
+               :attachment => { :name => "New Attachment", :file => attach},
                :app_key => V0::ApplicationController::APP_KEY
         end
         it { should respond_with :created }
         it "should create a new file" do
-          @contact.reload.attachments.count.should == 2 #last.attachment.url.should match /ghibli_main_logo\.gif/
+          @contact.reload.attachments.count.should == 2
           @contact.reload.attachments.last.file.url.should match /ghibli_main_logo\.gif/
         end
         it "should assign attachment to account" do
@@ -64,8 +64,7 @@ describe V0::AttachmentsController do
       before do
         attach = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
         post :create, :account_name => other_account.name, :contact_id => @contact.id,
-             :contact_attribute => {
-                :category => :home,
+             :attachment => {
                 :file => attach
              },
              :app_key => V0::ApplicationController::APP_KEY
@@ -78,9 +77,8 @@ describe V0::AttachmentsController do
         other_account.link(@contact)
         attach = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
         post :create, :account_name => other_account.name, :contact_id => @contact.id,
-             :contact_attribute => {
-                :category => :home,
-                :value => "New Attach",
+             :attachment => {
+                :name => "New Attach",
                 :file => attach
              },
              :app_key => V0::ApplicationController::APP_KEY
@@ -107,13 +105,13 @@ describe V0::AttachmentsController do
                     :account_name => @contact.owner.name,
                     :app_key => V0::ApplicationController::APP_KEY}.to change{@contact.reload.attachments.count}.by(-1)
       end
-      it "should remove value from _keywords" do
+      it "should remove name from _keywords" do
         post :destroy, :method => :delete,
              :id => @attachment.id,
              :contact_id => @contact.id,
              :account_name => @contact.owner.name,
              :app_key => V0::ApplicationController::APP_KEY
-        @contact.reload._keywords.should_not include(@attachment.value)
+        @contact.reload._keywords.should_not include(@attachment.name)
       end
     end
     describe "as a viewer/editor" do

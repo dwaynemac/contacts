@@ -52,7 +52,7 @@ class V0::AttachmentsController < V0::ApplicationController
     authorize! :update, Attachment
     @attachment = @scope.find(params[:id])
 
-    if @attachment.update_attributes(params[:contact_attribute])
+    if @attachment.update_attributes(params[:attachment])
       @contact.index_keywords!
       render :json => "OK"
     else
@@ -81,23 +81,23 @@ class V0::AttachmentsController < V0::ApplicationController
   def create
     authorize! :create, Attachment
 
-    @contact_attachment = @scope.new(params[:contact_attribute])
-    @contact_attachment._type = "Attachment"
-    @contact_attachment.account = @account
+    @attachment = @scope.new(params[:attachment])
+    @attachment._type = "Attachment"
+    @attachment.account = @account
 
     puts "ENTRE EN CONTACT WEBSERVICE"
     puts "el contacto es: #{@contact.inspect}"
-    puts "Y ATTACHMENT QUEDA: #{@contact_attachment.inspect}"
+    puts "Y ATTACHMENT QUEDA: #{@attachment.inspect}"
 
-    if @contact_attachment.save
-      puts "JUSTO DESPUES DEL SAVE ATTACHMENT QUEDA: #{@contact_attachment.inspect}"
+    if @attachment.save
+      puts "JUSTO DESPUES DEL SAVE ATTACHMENT QUEDA: #{@attachment.inspect}"
       @contact.index_keywords!
 
-      render :json => { :id => @contact_attachment.id }.to_json, :status => :created
+      render :json => { :id => @attachment.id }.to_json, :status => :created
     else
       render :json => { :message => "Sorry, attachment was not created",
        :error_codes => [],
-       :errors => @contact_attachment.errors }.to_json, :status => 400
+       :errors => @attachment.errors }.to_json, :status => 400
     end
   end
 
@@ -114,9 +114,9 @@ class V0::AttachmentsController < V0::ApplicationController
   #
   # @example_response "OK"
   def destroy
-    @contact_attachment = @scope.find(params[:id])
-    if can?(:destroy, @contact_attachment)
-      if @contact_attachment.destroy
+    @attachment = @scope.find(params[:id])
+    if can?(:destroy, @attachment)
+      if @attachment.destroy
         @contact.index_keywords!
       end
     end
