@@ -85,12 +85,7 @@ class V0::AttachmentsController < V0::ApplicationController
     @attachment._type = "Attachment"
     @attachment.account = @account
 
-    puts "ENTRE EN CONTACT WEBSERVICE"
-    puts "el contacto es: #{@contact.inspect}"
-    puts "Y ATTACHMENT QUEDA: #{@attachment.inspect}"
-
     if @attachment.save
-      puts "JUSTO DESPUES DEL SAVE ATTACHMENT QUEDA: #{@attachment.inspect}"
       @contact.index_keywords!
 
       render :json => { :id => @attachment.id }.to_json, :status => :created
