@@ -36,6 +36,4 @@ class Attachment
   def contact_id
     contact.id
   end
-
-
 end
