@@ -105,32 +105,46 @@ module StudentsCount
     stat.create
   end
 
-
+  # Validates options and raises exception if invalid.
+  # Validates:
+  # - only one of :account, :account_name or :account_id has been specified
+  # - if :month present, :year should be present too.
+  # @raises ArgumentError
   def raise_if_invalid(op)
 
     if ((op[:account].nil?? 0 : 1) + (op[:account_name].nil?? 0 : 1) + (op[:account_id].nil?? 0 : 1)) > 1
-      raise 'you have to specify account in only one way'
+      raise ArgumentError, 'you have to specify account in only one way'
     end
 
     if (op[:month] && !op[:year])
-      raise 'cant specify month without year'
+      raise ArgumentError, 'cant specify month without year'
     end
   end
 
+  # Ensures options are valid for storing in overmind
+  # Validates:
+  # - presence of :month and :year
+  # - account specified
+  # - :teacher_name not specified
+  # if any fail ArgumentError is raised
+  # @raises ArgumentError
   def raise_if_invalid_for_storing(op)
     unless (op[:month] && op[:year])
-      raise 'storing in Overmind only available for MonthlyStats'
+      raise ArgumentError, 'storing in Overmind only available for MonthlyStats'
     end
 
     unless op[:account] || op[:account_name] || op[:account_id]
-      raise 'storing in Overmind needs to be scoped to an account'
+      raise ArgumentError, 'storing in Overmind needs to be scoped to an account'
     end
 
     if op[:teacher_name]
-      raise 'storing in Overmind not available for teacher stats yet'
+      raise ArgumentError, 'storing in Overmind not available for teacher stats yet'
     end
   end
 
+  # Gets local account_id from options
+  # This is the id of the local Account object.
+  # @return [Integer]
   def get_account_id(op)
     if op[:account_id]
       op[:account_id]
@@ -143,6 +157,8 @@ module StudentsCount
     end
   end
 
+  # Gets account_name from options
+  # @return [String]
   def get_account_name(op)
     if op[:account_name]
       op[:account_name]
