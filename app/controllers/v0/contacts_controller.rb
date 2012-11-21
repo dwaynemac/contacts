@@ -219,6 +219,40 @@ class V0::ContactsController < V0::ApplicationController
     render json: 'OK'
   end
 
+  # Calculates a given statistic and returns value
+  # @url [GET] /v0/contacts/calculate
+  #
+  # @argument [String] name. Statistic code name.
+  # @value_for name students Will calculate number of students
+  #
+  # @argument [String] account_name. Account to scope to
+  # @argument [Integer] year. Year to scope to
+  # @argument [Integer] month. Month to scope to
+  #
+  # @response_example {value: 12}
+  # @status_code 200
+  def calculate
+
+    required_arguments = %W(account_name year month)
+
+    required_arguments.each do |required_argument|
+      unless params.keys.include?(required_argument)
+        raise ArgumentError
+      end
+    end
+
+    case params[:name]
+      when 'students'
+        value = Contact.count_students(params.select{|k,v|k.to_s.in?(required_arguments)})
+      else
+        raise ArgumentError
+    end
+
+    render json: { value: value }, status: 200
+  rescue ArgumentError
+    render text: "error", status: 404
+  end
+
   private
 
   # Converts

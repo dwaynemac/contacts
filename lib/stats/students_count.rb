@@ -18,6 +18,9 @@ module StudentsCount
   # @option options year [Integer]
   # @option options month [Integer]
   #
+  # @raises ArgumentError. @see raise_if_invalid
+  # @raises ArgumentError. @see raise_if_invalid_for_storing
+  #
   # @return [Integer]
   def count_students(options={})
     val = calculate(options)
