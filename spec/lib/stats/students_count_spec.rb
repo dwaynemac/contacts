@@ -21,7 +21,11 @@ describe StudentsCount do
       it "counts all students" do
         Contact.count_students.should == 42
       end
-
+      context "called with :store_in_overmind" do
+        it "raises exception" do
+          expect{Contact.count_students(store_in_overmind: true)}.to raise_exception
+        end
+      end
     end
     context "with teacher_name option" do
       it "returns teachers students across all accounts" do
@@ -72,6 +76,18 @@ describe StudentsCount do
           context "and :teacher_name" do
             specify { Contact.count_students(year: 2012, month: 9, account_name: 'history_account', teacher_name: 't2').should == 1 }
             specify { Contact.count_students(year: 2012, month: 11, account_name: 'history_account', teacher_name: 't1').should == 2 }
+          end
+          context "with :store_in_overmind" do
+            it "should call Overmind::MonthlyStat#create" do
+              Overmind::MonthlyStat.any_instance.should_receive(:create).and_return true
+              Contact.count_students(year: 2012, month: 11, account_name: history_account.name, store_in_overmind: true)
+            end
+          end
+          context "without :store_in_overmind" do
+            it "should not call Overmind::MonthlyStat#create" do
+              Overmind::MonthlyStat.any_instance.should_not_receive(:create)
+              Contact.count_students(year: 2012, month: 11, account_name: history_account.name)
+            end
           end
         end
       end

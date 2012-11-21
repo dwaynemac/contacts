@@ -5,7 +5,7 @@ require 'machinist/mongoid'
 Contact.blueprint do
   first_name { Faker::Name.first_name }
   last_name { Faker::Name.last_name }
-  owner { Account.make }
+  owner { Account.first || Account.make }
 end
 
 Merge.blueprint do

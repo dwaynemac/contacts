@@ -1,25 +1,34 @@
 module StudentsCount
 
+  # Counts students scoped according to given options and pushes result to Overmind if :store_in_overmind is given.
+  #
+  # @example
+  #     # Count students of dwayne.macgowan on Cerviño at the end of Octobre 2012
+  #     Contact.count_students(account_name: 'cervino',
+  #                            teacher_name: 'dwayne.macgowan',
+  #                            year: 2012,
+  #                            month: 10)
+  #
   # @param options [Hash]
-  # @option options store_in_overmind [Boolean]
+  # @option options store_in_overmind [Boolean] POST result to Overmind-ws
   # @option options account_name [String] account's global identifier.
   # @option options account [Account]
   # @option options account_id [String] accounts local id in contacts-ws
-  # @option options teacher_name [String]
+  # @option options teacher_name [String] teacher's username
   # @option options year [Integer]
   # @option options month [Integer]
   #
   # @return [Integer]
   def count_students(options={})
     val = calculate(options)
-    if options[:store_in_overmind]
-      store_in_overmind(val,options)
-    end
+    store_in_overmind(val, options) if options[:store_in_overmind] && val
     val
   end
 
   private
 
+  # Makes the stat calculation
+  #
   # @param options [Hash]
   # @option options account_name [String] account's global identifier.
   # @option options account [Account]
@@ -90,6 +99,7 @@ module StudentsCount
     end
   end
 
+  # POSTs value to Overmind-ws
   # @return [TrueClass,FalseClass,NilClass] for success, failure or connection-error
   def store_in_overmind(value,options={})
     raise_if_invalid_for_storing(options)
@@ -102,7 +112,9 @@ module StudentsCount
       account_name: get_account_name(options),
       service: 'contacts'
     )
-    stat.create
+    unless stat.create
+      Rails.logger.warn stat.errors.full_messages
+    end
   end
 
   # Validates options and raises exception if invalid.
