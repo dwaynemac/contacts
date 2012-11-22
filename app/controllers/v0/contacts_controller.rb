@@ -229,8 +229,10 @@ class V0::ContactsController < V0::ApplicationController
   # @argument [Integer] year. Year to scope to
   # @argument [Integer] month. Month to scope to
   #
-  # @response_example {value: 12}
-  # @status_code 200
+  #
+  # @example_response {value: 12}
+  # @response_field value [Integer]
+  # @response_code 200
   def calculate
 
     required_arguments = %W(account_name year month)
