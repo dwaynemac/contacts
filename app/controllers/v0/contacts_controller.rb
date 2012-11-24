@@ -260,6 +260,7 @@ class V0::ContactsController < V0::ApplicationController
   # Converts
   #   local_status -> local_status_for_CurrentAccountName
   #   coefficient  -> coefficient_for_CurrentAccountName
+  # If there is no current_account (@account) then key is removed from attributes hash.
   def convert_local_attributes
     %w(local_status coefficient local_teacher).each do |la|
       if @account
