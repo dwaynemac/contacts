@@ -223,7 +223,6 @@ class V0::ContactsController < V0::ApplicationController
   # @url [GET] /v0/contacts/calculate
   #
   # @argument [String] name. Statistic code name.
-  # @value_for name students Will calculate number of students
   #
   # @argument [String] account_name. Account to scope to
   # @argument [Integer] year. Year to scope to
@@ -244,8 +243,8 @@ class V0::ContactsController < V0::ApplicationController
     end
 
     case params[:name]
-      when 'students'
-        value = Contact.count_students(params.select{|k,v|k.to_s.in?(required_arguments)})
+      when 'xxx'
+        # calculate xxx statistic
       else
         raise ArgumentError
     end

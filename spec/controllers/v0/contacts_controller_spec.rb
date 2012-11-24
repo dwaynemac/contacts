@@ -650,7 +650,7 @@ describe V0::ContactsController do
   end
 
   describe "#calculate" do
-    let(:full_params){{name: 'students',
+    let(:full_params){{name: 'xxx',
                        account_name: 'test-account',
                        year: 2012,
                        month: 10,
@@ -661,12 +661,6 @@ describe V0::ContactsController do
         before { get :calculate, full_params.delete_if{|k,v|k==key}}
         it { should respond_with 404 }
       end
-    end
-
-    context "with valid arguments" do
-      subject { get :calculate, full_params }
-      its(:status) { should == 200 }
-      its(:body) { should match /value/ }
     end
   end
 
