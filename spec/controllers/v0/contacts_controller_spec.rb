@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'spec_helper'
 
 describe V0::ContactsController do
@@ -303,6 +304,29 @@ describe V0::ContactsController do
         @email.save
 
         @last_name = Contact.make(first_name: "asdf", last_name: "dwayne")
+      end
+
+      context ":attribute_values_at" do
+        before do
+
+          HistoryEntry.create(attribute: 'level', old_value: 2, changed_at: Date.civil(2013,1,1).to_time, historiable: @first_name)
+
+          post :search,
+               app_key: V0::ApplicationController::APP_KEY,
+               attribute_values_at: [
+                   {
+                       attribute: 'level',
+                       value: 'yôgin',
+                       ref_date: Date.civil(2012,12,31)
+                   }
+               ]
+        end
+        specify {HistoryEntry.value_at(:level, Date.civil(2012,12,31), class: 'Contact', id: @email.id).should_not == 2}
+        specify { HistoryEntry.value_at(:level, Date.civil(2012,12,31), class: 'Contact', id: @first_name.id).should == 2 }
+        it "should only include contacts that had given attributes at given dates" do
+          assigns(:contacts).should include(@first_name)
+          assigns(:contacts).should_not include(@email)
+        end
       end
 
       context ":ids" do

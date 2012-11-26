@@ -364,6 +364,28 @@ class Contact
     error_messages
   end
 
+  # @param attribute [String]
+  # @param value
+  # @param ref_date [Date]
+  # @return [Mongoid::Criteria]
+  def self.with_attribute_value_at(attribute, value, ref_date)
+
+    # cast value
+    value = case attribute
+      when 'level'
+        VALID_LEVELS[value]
+      else
+        value
+    end
+
+    ids = HistoryEntry.element_ids_with(
+        attribute => value,
+        at: ref_date,
+        class: 'Contact'
+    )
+    self.any_in(_id: ids)
+  end
+
   # This is same as #where but will make some transformations on selector.
   # All first level value will be converted to Regular expressions
   #
@@ -376,6 +398,7 @@ class Contact
   # @option selector :local_status      only considered if account_id is specified
   # @option selector :local_teacher      only considered if account_id is specified
   # @option selector :birth_day
+  # @option selector :attribute_value_at [Hash] keys: attribute, value, ref_date
   #
   # @return [Mongoid::Criteria]
   def self.api_where(selector = nil, account_id = nil)
@@ -406,7 +429,7 @@ class Contact
             if account_id.present?
               new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: k.to_s.camelcase, value: v, account_id: account_id}}
             end
-          when 'level'
+          when 'level' # convert level name to level number
             new_selector['$and'] << {:level => VALID_LEVELS[v]}
           when /^(.+)_for_([^=]+)$/
             local_attribute = $1

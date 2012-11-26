@@ -21,6 +21,7 @@ class V0::ContactsController < V0::ApplicationController
   # @optional_argument per_page [Integer] will paginate contacts with this amount per page (default: 10)
   # @optional_argument full_text [String] will make a full_text search with this string.
   # @optional_argument where [Hash] Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status
+  # @optional_argument attributes_value_at [Array<Hash>] Array of hashes with keys: :attribute, :value, :ref_date. This will be ANDed, not ORed.
   #
   # @example_response { collection: [ {_id: 1234,name: ...} ], total: 1}
   #
@@ -28,6 +29,10 @@ class V0::ContactsController < V0::ApplicationController
   # @response_field total [Integer] total amount of contacts in query. (includes all pages.)
   #
   def index
+
+    params[:attribute_values_at].each do |ava|
+      @scope = @scope.with_attribute_value_at(ava['attribute'],ava['value'],ava['ref_date'])
+    end if params[:attribute_values_at]
 
     @scope = @scope.not_in(_id: params[:nids]) if params[:nids]
     @scope = @scope.any_in(_id: params[:ids]) if params[:ids]
