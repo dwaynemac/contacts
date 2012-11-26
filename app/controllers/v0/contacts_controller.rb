@@ -43,6 +43,12 @@ class V0::ContactsController < V0::ApplicationController
     render :json => { :collection => @contacts, :total => total}.as_json(account: @account)
   end
 
+  # @url [POST] /v0/contacts/search
+  # @see index
+  def search
+    index
+  end
+
   ##
   # Returns JSON for a contact
   # if account is provided following attributes will be inclueded:
@@ -286,7 +292,7 @@ class V0::ContactsController < V0::ApplicationController
   #  Sets the scope
   def set_scope
     @scope = case action_name.to_sym
-      when :index, :update
+      when :index, :search, :update
         @account.present?? (@list.present?? @list.contacts : @account.contacts ) : Contact
       when :create
         @account.present?? (@list.present?? @list.contacts : @account.owned_contacts) : Contact

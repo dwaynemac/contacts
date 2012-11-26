@@ -6,6 +6,7 @@ Contacts::Application.routes.draw do
         post :link
       end
       collection do
+        post :search
         get :calculate
         delete :destroy_multiple
       end

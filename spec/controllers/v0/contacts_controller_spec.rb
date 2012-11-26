@@ -9,6 +9,7 @@ describe V0::ContactsController do
     end
   end
 
+  
   describe "#index" do
     describe "paginates" do
       before do
@@ -207,6 +208,214 @@ describe V0::ContactsController do
 
             get :index, :app_key => V0::ApplicationController::APP_KEY,
                         :where => { :contact_attributes => {:value => "salti"} }
+          end
+          it "should match street" do
+            assigns(:contacts).to_a.should include(@addressed)
+          end
+          it "should match city"
+        end
+      end
+    end
+  end
+
+  describe "#search" do
+    describe "paginates" do
+      before do
+        9.times { Contact.make }
+        @isp = Contact.make(name: "in_second_page")
+      end
+      it "should return page 1" do
+        post :search, :app_key => V0::ApplicationController::APP_KEY, :page => 1
+        ActiveSupport::JSON.decode(response.body)["total"].should == Contact.count
+        assigns(:contacts).should_not include(@isp)
+      end
+      it "should return page 2" do
+        post :search, :app_key => V0::ApplicationController::APP_KEY, :page => 2
+        ActiveSupport::JSON.decode(response.body)["total"].should == Contact.count
+        assigns(:contacts).should include(@isp)
+      end
+    end
+    context "without params" do
+      before do
+        post :search, :app_key => V0::ApplicationController::APP_KEY
+      end
+      it { should respond_with(:success) } # response.should be_success
+      it { should assign_to(:contacts) }
+      it "should show total amount of contacts" do
+        result = ActiveSupport::JSON.decode(response.body)
+        result["total"].should == 2
+      end
+    end
+
+    context "specifying valid account and list_name" do
+      before do
+        account_a = Account.make(:name => "a")
+        account_b = Account.make(:name => "b")
+
+        3.times do
+          account_a.lists.first.contacts << Contact.make
+        end
+
+        @contact_b = Contact.make
+        account_b.lists.first.contacts << @contact_b
+
+        l = List.make(:account => account_a )
+        @contact_l = Contact.make
+        l.contacts << @contact_l
+
+        post :search, {:account_name => "a", :list_name => "a", :app_key => V0::ApplicationController::APP_KEY}
+      end
+      it { should respond_with(:success)}
+      it { should assign_to(:contacts) }
+      it "should return contacts of specified account and list" do
+        assigns(:contacts).size.should == 3
+      end
+      it "should not include contacts of account b" do
+        assigns(:contacts).should_not include(@contact_b)
+      end
+      it "should not include contact_attributes of account b" do
+        @response.body
+      end
+      it "should not include contacts of account a but of other lists" do
+        assigns(:contacts).should_not include(@contact_l)
+      end
+    end
+
+    context "specifying valid account with unexisting list_name" do
+      before do
+        Account.make(:name => "a")
+        post :search, {:account_name => "a", :list_name => "blah", :app_key => V0::ApplicationController::APP_KEY}
+      end
+      it { should respond_with(:not_found)}
+    end
+
+    describe "searches. Called with" do
+      before do
+        account = Account.make
+
+        @first_name = Contact.make(first_name: "dwayne")
+        @first_name.contact_attributes << Telephone.new(account_id: account._id, value: "1234")
+        @first_name.save
+
+        @email = Contact.make(last_name: "mac")
+        @email.contact_attributes << Email.new(account_id: account._id, value: "other@mail.com")
+        @email.contact_attributes << Email.new(account_id: account._id, value: "dwaynemac@gmail.com")
+        @email.save
+
+        @last_name = Contact.make(first_name: "asdf", last_name: "dwayne")
+      end
+
+      context ":ids" do
+        before do
+          post :search, :app_key => V0::ApplicationController::APP_KEY, :ids => [@first_name.id,@email.id]
+        end
+        it "should only include contacts specified by ids" do
+          assigns(:contacts).should include(@first_name)
+          assigns(:contacts).should include(@email)
+          assigns(:contacts).should_not include(@last_name)
+        end
+      end
+
+      context ":full_text it will make a full text search" do
+        before do
+          post :search, :app_key => V0::ApplicationController::APP_KEY, :full_text => "dwayne"
+        end
+        specify { assigns(:contacts).size.should == 3 }
+        specify "within first_names" do
+          assigns(:contacts).should include(@first_name)
+        end
+        specify "within last_names" do
+          assigns(:contacts).should include(@last_name)
+        end
+        specify "within emails" do
+          assigns(:contacts).should include(@email)
+        end
+      end
+
+      context "When full_text contains various words it should match all of them" do
+        before do
+          @goku_contact = Contact.make(first_name: "Son", last_name: "Goku")
+          @gohan_contact = Contact.make(first_name: "Son", last_name: "Gohan")
+
+          post :search, :app_key => V0::ApplicationController::APP_KEY, :full_text => "Son Gok"
+        end
+        it "should match all words" do
+          assigns(:contacts).should include(@goku_contact)
+          assigns(:contacts).should_not include(@gohan_contact)
+        end
+      end
+
+      context "with blank :full_text" do
+        before do
+          post :search, :app_key => V0::ApplicationController::APP_KEY, :full_text => ""
+        end
+        it { should respond_with(:success) } # response.should be_success
+        it { should assign_to(:contacts) }
+        it "should show total amount of contacts" do
+          result = ActiveSupport::JSON.decode(response.body)
+          result["total"].should == 5
+        end
+      end
+
+      context ":where => " do
+        before do
+          @diff_mail = Contact.make(:first_name => "ale")
+          @diff_mail.contact_attributes << Email.make(:value => "asdfasdf@asdf.com")
+
+          @regex = Contact.make(:first_name => "Alejandro")
+          @regex.contact_attributes << Email.make(:value => "dwanardo@lepes.com")
+          @regex.save
+
+          @w_phone = Contact.make(:first_name => "Aleman")
+          @w_phone.contact_attributes << Email.make(:value => "dwalico@mail.com")
+          @w_phone.contact_attributes << Telephone.make(:value => "12341234")
+        end
+
+        context "{:email => 'dwa', :first_name => 'Ale'}" do
+          before do
+            post :search, :app_key => V0::ApplicationController::APP_KEY,
+                :where => {:email => "dwa", :first_name => "Ale"}
+          end
+          it "should build Criteria" do
+            assigns(:contacts).selector.should == {
+                "first_name" => /Ale/i,
+                contact_attributes: { '$elemMatch' => { "_type" => "Email", "value" => /dwa/i}}
+            }
+          end
+          it "should return contacts that match ALL conditions." do
+            assigns(:contacts).should include(@regex)
+          end
+          it "should not return contacts that match only some of the conditions" do
+            assigns(:contacts).should_not include(@diff_mail)
+          end
+          it "should considers conditions as regex" do
+            assigns(:contacts).should include(@regex)
+          end
+        end
+
+        context "{:email => 'dwa', :first_name => 'Ale', :telephone => '1234'}" do
+          before do
+            post :search, :app_key => V0::ApplicationController::APP_KEY,
+                :where => {:email => "dwa", :first_name => "Ale", :telephone => "1234"}
+          end
+          it { assigns(:contacts).count.should == 1}
+          it "should return contacts that match ALL conditions." do
+            assigns(:contacts).should include(@w_phone)
+          end
+          it "should not return contacts that match only some of the conditions" do
+            assigns(:contacts).should_not include(@regex)
+            assigns(:contacts).should_not include(@diff_mail)
+          end
+        end
+
+        context "{ :value => 'salti'}" do
+          before do
+            @addressed = Contact.make
+            @addressed.contact_attributes << Address.make(:value => "saltin 23")
+            @addressed.save
+
+            post :search, :app_key => V0::ApplicationController::APP_KEY,
+                :where => { :contact_attributes => {:value => "salti"} }
           end
           it "should match street" do
             assigns(:contacts).to_a.should include(@addressed)
