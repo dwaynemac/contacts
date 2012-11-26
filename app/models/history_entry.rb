@@ -84,7 +84,7 @@ class HistoryEntry
       options[:account] = Account.where(name: options.delete(:account_name)).first
     end
 
-    conds = {attribute: ref_attribute, changed_at: {'$gte' => ref_date.to_time}}
+    conds = {attribute: ref_attribute, changed_at: {'$gte' => ref_date}}
     conds = conds.merge({historiable_type: options[:class]}) if options[:class]
 
     # first DB hit

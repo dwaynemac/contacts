@@ -364,8 +364,11 @@ class Contact
     error_messages
   end
 
+  ##
+  #
+  #
   # @param attribute [String]
-  # @param value
+  # @param value. Will be casted according to attribute. Level must be given as a string. eg: 'aspirante'
   # @param ref_date [Date]
   # @return [Mongoid::Criteria]
   def self.with_attribute_value_at(attribute, value, ref_date)
