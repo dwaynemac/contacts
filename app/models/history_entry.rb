@@ -22,17 +22,11 @@ class HistoryEntry
   # @return [depends on attribute type?] value
   def self.value_at(ref_attribute, ref_date, options = {})
 
-    scope = self
+    scope = self.where(attribute: ref_attribute, changed_at: {'$gte' => ref_date.to_time}).order_by([[:changed_at, :asc]])
     scope = scope.where(historiable_type: options[:class]) if options[:class]
     scope = scope.where(historiable_id: options[:id]) if options[:id]
 
-    # find first change after date
-    scope.first(
-      conditions: {
-        attribute: ref_attribute,
-        changed_at: { '$gte' => ref_date.to_time}},
-      sort: [[:changed_at, :asc]]
-    ).try :old_value
+    scope.first.try :old_value
   end
 
   # Returns last value for a given attribute
@@ -65,8 +59,8 @@ class HistoryEntry
   #
   # @param [Hash] options
   #
-  # @option options [Hash] :attribute_name (required) - first key-value will be used as attribute and value
-  # @option options [Time] :at (required) - ref_date
+  # @option options [Hash] :attribute_name - required - first key-value will be used as attribute(key) and value(value)
+  # @option options [Time] :at - required - ref_date
   # @option options [String] class        - historiable_type
   # @option options [String] id           - historiable_id
   # @option options [Account] account
@@ -74,7 +68,8 @@ class HistoryEntry
   #
   # @raise ArgumentError if attribute_name and :at options not given
   #
-  # @example HistoryEntry.element_ids_with status: 'student', at: 1.month.ago, class: 'Contact', account_name: 'belgrano'
+  # @example
+  #     HistoryEntry.element_ids_with status: 'student', at: 1.month.ago, class: 'Contact', account_name: 'belgrano'
   #
   # @return [Array<String>] element_ids
   def self.element_ids_with(options = {})
