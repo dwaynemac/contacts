@@ -87,51 +87,53 @@ class HistoryEntry
     conds = {attribute: ref_attribute, changed_at: {'$gte' => ref_date}}
     conds = conds.merge({historiable_type: options[:class]}) if options[:class]
 
-    # first DB hit
-    res = self.collection.map_reduce(map_js,reduce_js,query: conds,out: 'oldest_date')
-    res = filter_post_map_reduce(res,options) # TODO refactor to a finalize function in the mapreduce?
-    res = res.to_a.map{|rdoc| rdoc['_id']['historiable_id'] }
+    # DB hit
+    all_reduced_entries_for_date = self.collection.map_reduce(map_js,reduce_js,query: conds,out: 'oldest_date')
+    unfiltered_ids = all_reduced_entries_for_date.find().to_a.map{|rdoc|rdoc['_id']['historiable_id']}
 
-    add_elements_without_history(res,options)
+    reduced_entries_with_desired_value = filter_post_map_reduce(all_reduced_entries_for_date,options) # TODO refactor to a finalize function in the mapreduce?
+    ids_with_desired_value = reduced_entries_with_desired_value.to_a.map{|rdoc| rdoc['_id']['historiable_id'] }
+
+    ids_with_desired_value + elements_without_history(unfiltered_ids,options)
   end
 
   private
+  # @param [Array] ids_array
+  # @param [Hash] options
+  def self.elements_without_history(ids_array,options)
+    return [] unless options[:class]
 
-  def self.add_elements_without_history(ids_array,options)
     ref_attribute = options.keys.first
     ref_value     = options[options.keys.first]
 
-    if options[:class]
-      if options[:account]
-        elems_wout_hist = options[:account].send(options[:class].underscore.pluralize)
-      else
-        elems_wout_hist = options[:class].constantize
-      end
-
-      attribute_filter = {}
-      # local_unique_attributes need to be treated differently
-      # because they are not attributes of contacts. they are embeded documents.
-      if ref_attribute =~ /local_(.+)_for_(.+)/
-        lua_type = "Local#{$1.camelize}"
-        account = Account.where(name: $2).first
-        if account.nil?
-          raise 'account not found'
-        end
-
-        attribute_filter = {local_unique_attributes: {'$elemMatch' => {
-            '_type' => lua_type,
-            'value' => ref_value,
-            'account_id' => account.id
-        }}}
-      else
-        attribute_filter = {ref_attribute => ref_value}
-      end
-
-                              # third DB hit
-      ids_array = ids_array + elems_wout_hist.where(attribute_filter).not_in(_id: ids_array).only('_id').map{|doc|doc._id} if elems_wout_hist
+    if options[:account]
+      elems_wout_hist = options[:account].send(options[:class].underscore.pluralize)
+    else
+      elems_wout_hist = options[:class].constantize
     end
 
-    ids_array
+    attribute_filter = {}
+    # local_unique_attributes need to be treated differently
+    # because they are not attributes of contacts. they are embeded documents.
+    if ref_attribute =~ /local_(.+)_for_(.+)/
+      lua_type = "Local#{$1.camelize}"
+      account = Account.where(name: $2).first
+      if account.nil?
+        raise 'account not found'
+      end
+
+      attribute_filter = {local_unique_attributes: {'$elemMatch' => {
+          '_type' => lua_type,
+          'value' => ref_value,
+          'account_id' => account.id
+      }}}
+    else
+      attribute_filter = {ref_attribute => ref_value}
+    end
+
+
+    # DB hit
+    elems_wout_hist.where(attribute_filter).not_in(_id: ids_array).only('_id').map { |doc| doc._id }
   end
 
   # Filteres mapreduce result according to expected value and scoping to account

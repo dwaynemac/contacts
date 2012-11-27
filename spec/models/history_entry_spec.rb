@@ -53,12 +53,47 @@ describe HistoryEntry do
 
   describe "#element_ids_with" do
 
+    context "when option class" do
+      let(:contact_without_history){Contact.make(level: 'aspirante')}
+      let(:contact_with_history){Contact.make(level: 'aspirante')}
+
+      before do
+        contact_without_history.history_entries.delete_all
+
+        contact_with_history.history_entries.delete_all
+        contact_with_history.history_entries.create(attribute: 'level', old_value: Contact::VALID_LEVELS['sádhaka'], changed_at: 1.month.ago.to_time)
+      end
+
+      context "is given" do
+        it "should include elements without history" do
+          HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'],
+                                        at: 1.year.ago,
+                                        class: 'Contact').should include contact_without_history.id
+        end
+        it "should not include elements that currently have desired value but didnt on given date" do
+          HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'],
+                                        at: 1.year.ago,
+                                        class: 'Contact').should_not include contact_with_history.id
+        end
+      end
+      context "is NOT given" do
+        it "should not include elements without history" do
+          HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'],
+                                        at: 1.year.ago).should_not include contact_without_history.id
+        end
+        it "should not include elements that currently have desired value but didnt on given date" do
+          HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'],
+                                        at: 1.year.ago).should_not include contact_with_history.id
+        end
+      end
+    end
+
     it "should ignore other attribute entries" do
       c = Contact.make(level: 'sádhaka')
       # this one should be ignored for its attribute
-      c.history_entries.create(attribute: :level,  old_value: 'student',        changed_at: 1.month.ago.to_time)
+      c.history_entries.create(attribute: :level,  old_value: 'student', changed_at: 1.month.ago.to_time)
 
-      HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago).should_not include(c._id)
+      HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact').should_not include(c._id)
     end
 
     it "should ignore other class entries" do
@@ -91,6 +126,7 @@ describe HistoryEntry do
         s.history_entries.create(attribute: :status, old_value: :former_student,  changed_at: 1.month.ago.to_time)
 
         cs = Contact.make(status: :student, owner: Account.make(name: 'account'))
+        cs.history_entries.delete_all
 
         res = HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact')
         res.should include(cs._id)
@@ -131,25 +167,60 @@ describe HistoryEntry do
       res.should_not include(s)
     end
 
-    it "should scope to account if specified" do
-      account = Account.make
-      cs = Contact.make(status: :student, owner: account)
-      account.link(cs) # this shouldn't be necessary
-      other_account = Account.make
-      other_acc_cs = Contact.make(status: :student, owner: other_account)
-      other_account.link(other_acc_cs)
+    context "filters by account" do
+      before do
+        account = Account.make
+        cs = Contact.make(status: :student, owner: account)
+        account.link(cs) # this shouldn't be necessary
+        cs.history_entries.delete_all
 
-      fs = Contact.make(status: :former_student, owner: account)
-      fs.history_entries.create(attribute: :status, old_value: :student, changed_at: 3.weeks.ago.to_time)
-      ofs = Contact.make(status: :former_student, owner: other_account)
-      ofs.history_entries.create(attribute: :status, old_value: :student,changed_at: 3.weeks.ago.to_time)
+        other_account = Account.make
+        other_acc_cs = Contact.make(status: :student, owner: other_account)
+        other_account.link(other_acc_cs)
+        other_acc_cs.history_entries.delete_all
 
-      res = HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact', account_name: account.name)
+        fs = Contact.make(status: :former_student, owner: account)
+        fs.history_entries.create(attribute: :status, old_value: :student, changed_at: 3.weeks.ago.to_time)
 
-      res.should include(cs._id)
-      res.should include(fs._id)
-      res.should_not include(other_acc_cs._id)
-      res.should_not include(ofs._id)
+        ofs = Contact.make(status: :former_student, owner: other_account)
+        ofs.history_entries.create(attribute: :status, old_value: :student,changed_at: 3.weeks.ago.to_time)
+
+        @cs = cs
+        @fs = fs
+        @ocs = other_acc_cs
+        @ofs = ofs
+        @account = account
+      end
+      context "with account_name" do
+        subject { HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact', account_name: @account.name) }
+        it "includes account's elements with desired value in desired moment" do
+          should include @fs._id
+        end
+        it "includes account's elements without history with desired value" do
+          should include(@cs._id)
+        end
+        it "doesnt include other accounts elements with desired value in desired moment" do
+          should_not include @ofs
+        end
+        it "doesnt include other accounts elements without history with desired value" do
+          should_not include @ocs.id
+        end
+      end
+      context "with account" do
+        subject { HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact', account: @account) }
+        it "includes account's elements with desired value in desired moment" do
+          should include @fs._id
+        end
+        it "includes account's elements without history with desired value" do
+          should include(@cs._id)
+        end
+        it "doesnt include other accounts elements with desired value in desired moment" do
+          should_not include @ofs
+        end
+        it "doesnt include other accounts elements without history with desired value" do
+          should_not include @ocs.id
+        end
+      end
     end
 
     it "should not raise exception when there are no records" do
