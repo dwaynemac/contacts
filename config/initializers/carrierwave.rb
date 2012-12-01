@@ -14,7 +14,7 @@ else
       #:region                 => 'eu-west-1'  # optional, defaults to 'us-east-1'
     }
     if Rails.env.production?
-      config.fog_director = 'contacts-prod'
+      config.fog_directory = 'contacts-prod'
     else
       config.fog_directory  = 'contacts-dev'                     # required
     end
