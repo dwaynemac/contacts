@@ -11,6 +11,7 @@ Contacts::Application.routes.draw do
         delete :destroy_multiple
       end
       resource :avatar, :only => [:create, :destroy]
+      resources :history_entries
     end
     resources :contact_attributes
     resources :attachments
