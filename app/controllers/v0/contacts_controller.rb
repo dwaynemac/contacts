@@ -115,6 +115,9 @@ class V0::ContactsController < V0::ApplicationController
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
+    #set again check duplicates virtual attribute (lost after reloading)
+    @contact.check_duplicates = params[:contact][:check_duplicates]
+
     if @contact.save
 
       entry = ActivityStream::Activity.new(
