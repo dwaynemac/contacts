@@ -18,6 +18,7 @@ class V0::AvatarsController < V0::ApplicationController
 
     contact = Contact.find(params[:contact_id])
     contact.avatar = params[:avatar][:file]
+    contact.check_duplicates = false
     if contact.save!
       render :json => "OK", :status => :created
     else
