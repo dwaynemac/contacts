@@ -19,7 +19,7 @@ class Telephone < ContactAttribute
   private
 
   def mobile_uniqueness
-    return unless category.to_s == 'mobile'
+    return unless category.to_s == 'mobile' && self.contact.check_duplicates
 
     r = Contact.excludes(_id: self.contact._id).where(
                        'contact_attributes._type' => 'Telephone',

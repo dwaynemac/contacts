@@ -332,6 +332,10 @@ class Contact
     end
   end
 
+  def check_duplicates
+    @check_duplicates.nil? ? true : @check_duplicates
+  end
+
   # @return [Hash] Returns the minimal representation of this contact
   # A hash including :_id, :first_name and :last_name
   def minimum_representation
