@@ -394,7 +394,8 @@ class Contact
   end
 
   # This is same as #where but will make some transformations on selector.
-  # All first level value will be converted to Regular expressions
+  #
+  # first_name and last_name are converted to Regex
   #
   # @param selector   [ Hash ]      query
   # @param account_id    [ BSON / String ] account id with wich to interpret local attributes
@@ -447,8 +448,10 @@ class Contact
                 :local_unique_attributes => {'$elemMatch' => {_type: local_attribute.to_s.camelcase, value: v, account_id: a.id}}
               }
             end
-          else
+          when 'first_name', 'last_name'
             new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
+          else
+            new_selector[k] = v
         end
       end
     end
@@ -521,7 +524,11 @@ class Contact
 
   def keep_history_of_changes
     # level, global_status and teacher_username
-    %W(level status global_teacher_username).each do |att|
+    %W(level st
+
+
+     Mark as readMove to Inbox  More
+atus global_teacher_username).each do |att|
       if self.send("#{att}_changed?")
         self.history_entries.create(attribute: att,
                                     changed_at: Time.zone.now.to_time,

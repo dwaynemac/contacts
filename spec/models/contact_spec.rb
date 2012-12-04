@@ -151,6 +151,12 @@ describe Contact do
                                                              ]}
       end
     end
+    context "status: 'student'" do
+      let(:sel){{status: 'student'}}
+      it "should not set a regex" do
+        Contact.api_where(sel).selector.should == {status: :student}
+      end
+    end
     context "{local_status: 'student'}, account" do
       it "should return local_unique_attribute criteria" do
         account = Account.make
