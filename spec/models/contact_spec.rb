@@ -167,6 +167,21 @@ describe Contact do
         }
       end
     end
+    context "{local_status: 'student', local_teacher: 'dwayne'}, account" do
+      it "should return local_unique_attribute criteria" do
+        account = Account.make
+        Contact.api_where({local_status: 'student', local_teacher: 'dwayne'}, account.id).selector.should == {
+            '$and' => [
+                {local_unique_attributes: {
+                    '$elemMatch' => {_type: 'LocalStatus', value: 'student', account_id: account.id}
+                }},
+                {local_unique_attributes: {
+                    '$elemMatch' => {_type: 'LocalTeacher', value: 'dwayne', account_id: account.id}
+                }}
+            ]
+        }
+      end
+    end
     context "{coefficient: 'perfil'}, account" do
       it "should return local_unique_attribute criteria" do
         account = Account.make

@@ -435,7 +435,9 @@ class Contact
             new_selector['$and'] << aux unless aux.nil?
           when 'local_status', 'coefficient', 'local_teacher'
             if account_id.present?
-              new_selector[:local_unique_attributes] = {'$elemMatch' => {_type: k.to_s.camelcase, value: v, account_id: account_id}}
+              new_selector['$and'] << {
+                  :local_unique_attributes => {'$elemMatch' => {_type: k.to_s.camelcase, value: v, account_id: account_id}}
+              }
             end
           when 'level' # convert level name to level number
             new_selector['$and'] << {:level => VALID_LEVELS[v]}
