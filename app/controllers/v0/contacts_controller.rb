@@ -112,6 +112,9 @@ class V0::ContactsController < V0::ApplicationController
 
     @contact =  @scope.new(params[:contact])
 
+    @contact.request_account = params[:account_name]
+    @contact.request_user = params[:username]
+
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
@@ -120,6 +123,7 @@ class V0::ContactsController < V0::ApplicationController
 
     if @contact.save
 
+      # TODO move this into Contact using Contact#request_user and Contact#request_account
       entry = ActivityStream::Activity.new(
           target_id: @contact.owner_name, target_type: 'Account',
           object_id: @contact._id, object_type: 'Contact',
@@ -162,6 +166,9 @@ class V0::ContactsController < V0::ApplicationController
   #   }
   def update
     @contact = @scope.find(params[:id])
+
+    @contact.request_user = params[:username]
+    @contact.request_account = params[:account_name]
 
     if @contact.update_attributes(params[:contact])
       render :json => "OK"# , :status => :updated

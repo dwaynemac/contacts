@@ -707,6 +707,14 @@ describe Contact do
     end
   end
 
+  it "creates an activity when level changes" do
+    c = Contact.make(status: 'student')
+    c.level = 'sádhaka'
+    ActivityStream::Activity.any_instance.should_receive(:create)
+    c.save
+  end
+
+
   describe "History" do
     let(:contact) { Contact.make(level: "yôgin", status: :student) }
 

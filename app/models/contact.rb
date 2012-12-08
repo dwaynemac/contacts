@@ -22,6 +22,8 @@ class Contact
   has_many :history_entries, as: 'historiable', dependent: :delete
   after_save :keep_history_of_changes
 
+  after_save :post_activity_if_level_changed
+
   field :first_name
   field :last_name
 
@@ -68,6 +70,9 @@ class Contact
 
   attr_accessor :check_duplicates
   validate :validate_duplicates, :if => :check_duplicates
+
+  attr_accessor :request_user
+  attr_accessor :request_account
 
   # @return [Mongoid::Criteria]
   def active_merges
@@ -521,6 +526,26 @@ class Contact
     teacher_in_owner_accounts = self.local_teachers.for_account(self.owner.id).first
     if !teacher_in_owner_accounts.nil? && (teacher_in_owner_accounts.teacher_username != self.global_teacher_username)
       self.global_teacher_username= teacher_in_owner_accounts.teacher_username
+    end
+  end
+
+  def post_activity_if_level_changed
+    if level_changed?
+      activity_username = request_user    || global_teacher_username
+      activity_account  = request_account || owner_name
+
+      a = ActivityStream::Activity.new(
+        username: activity_username,
+        account_name: activity_account,
+        content: "#{level}",
+        generator: 'contacts',
+        verb: 'updated',
+        target_id: id, target_type: 'Contact',
+        object_id: id, object_type: 'Contact',
+        public: true,
+      )
+      a.create(username: activity_username, account_name: activity_account)
+
     end
   end
 

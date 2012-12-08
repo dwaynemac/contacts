@@ -12,8 +12,8 @@ gem 'mongoid_search'
 gem 'cancan', '~> 1.6.7'
 
 
-gem "logical_model", '0.3.5'
-gem 'activity_stream_client', '~> 0.0.5'
+gem "logical_model", '~> 0.4.1'
+gem 'activity_stream_client', '~> 0.0.10'
 gem 'overmind_client', '~> 0.0.1'
 
 gem 'kaminari', '~> 0.13'
