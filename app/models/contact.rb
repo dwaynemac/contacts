@@ -57,6 +57,8 @@ class Contact
   before_validation :set_status
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
 
+  before_save :set_beginner_on_enrollment
+
   belongs_to :owner, :class_name => "Account"
   before_validation :assign_owner
 
@@ -99,7 +101,7 @@ class Contact
   end
 
   # Setter for level overriden to keep integers values for proper sorting
-  # param s [String]
+  # @param s [String]
   def level=(s)
     write_attribute(:level, VALID_LEVELS[s])
   end
@@ -567,6 +569,12 @@ class Contact
     unless duplicates.empty?
       self.errors[:duplicates] << I18n.t('errors.messages.could_have_duplicates')
       self.errors[:possible_duplicates] = duplicates.map {|c| c.minimum_representation}
+    end
+  end
+
+  def set_beginner_on_enrollment
+    if status_changed? && status == :student && self.level.nil?
+      self.level = 'aspirante'
     end
   end
 

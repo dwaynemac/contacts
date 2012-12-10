@@ -840,4 +840,11 @@ describe Contact do
     c = Contact.make_unsaved
     c.save
   end
+
+  it "sets level aspirante when first turned student" do
+    c = Contact.make
+    c.status = :student
+    c.save
+    c.level.should == 'aspirante'
+  end
 end
