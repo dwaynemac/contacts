@@ -835,10 +835,35 @@ describe Contact do
     end
   end
 
-  it "posts creation to activity stream" do
-    ActivityStream::Activity.any_instance.should_receive(:create)
-    c = Contact.make_unsaved
-    c.save
+  describe "when level changes" do
+
+    context "and :skip_level_change_activity is not set" do
+      it "posts activity" do
+        ActivityStream::Activity.any_instance.should_receive(:create)
+        c = Contact.make_unsaved
+        c.level = 'sádhaka'
+        c.save
+      end
+    end
+
+    context "and :skip_level_change_activity is false" do
+      it "posts activity" do
+        ActivityStream::Activity.any_instance.should_receive(:create)
+        c = Contact.make_unsaved(skip_level_change_activity: false)
+        c.level = 'sádhaka'
+        c.save
+      end
+    end
+
+    context "and :skip_level_change_activity is true" do
+      it "doesnt post activity" do
+        ActivityStream::Activity.any_instance.should_not_receive(:create)
+        c = Contact.make_unsaved(skip_level_change_activity: true)
+        c.level = 'sádhaka'
+        c.save
+      end
+    end
+
   end
 
   it "sets level aspirante when first turned student" do

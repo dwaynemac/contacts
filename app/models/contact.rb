@@ -23,6 +23,7 @@ class Contact
   after_save :keep_history_of_changes
 
   after_save :post_activity_if_level_changed
+  attr_accessor :skip_level_change_activity # default: false
 
   field :first_name
   field :last_name
@@ -532,22 +533,24 @@ class Contact
   end
 
   def post_activity_if_level_changed
-    if level_changed?
-      activity_username = request_user    || global_teacher_username
-      activity_account  = request_account || owner_name
+    unless skip_level_change_activity
+      if level_changed?
+        activity_username = request_user    || global_teacher_username
+        activity_account  = request_account || owner_name
 
-      a = ActivityStream::Activity.new(
-        username: activity_username,
-        account_name: activity_account,
-        content: "#{level}",
-        generator: 'contacts',
-        verb: 'updated',
-        target_id: id, target_type: 'Contact',
-        object_id: id, object_type: 'Contact',
-        public: true,
-      )
-      a.create(username: activity_username, account_name: activity_account)
+        a = ActivityStream::Activity.new(
+            username: activity_username,
+            account_name: activity_account,
+            content: "#{level}",
+            generator: 'contacts',
+            verb: 'updated',
+            target_id: id, target_type: 'Contact',
+            object_id: id, object_type: 'Contact',
+            public: true,
+        )
+        a.create(username: activity_username, account_name: activity_account)
 
+      end
     end
   end
 
