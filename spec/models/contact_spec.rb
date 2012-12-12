@@ -731,11 +731,13 @@ describe Contact do
       contact.history_entries.last.old_value.should == Contact::VALID_LEVELS["yôgin"]
       contact.history_entries.last.changed_at.should be_within(1.second).of(Time.now)
     end
+
     it "should record status changes" do
       expect{ contact.update_attribute(:status, :former_student) }.to change{contact.history_entries.count}.by(1)
       contact.history_entries.last.old_value.should == :student
       contact.history_entries.last.changed_at.should be_within(1.second).of(Time.now)
     end
+
     it "should record local_status changes" do
       account = Account.make
 
@@ -761,6 +763,28 @@ describe Contact do
       contact.reload
       contact.history_entries.count.should == y+2 # .status(:student -> :former_student) and .local_status(:prospect -> :former_student)
       HistoryEntry.count.should == global_y+2
+    end
+
+    context "when :skip_history_entries is true" do
+      it "doesnt record changes" do
+        contact.skip_history_entries = true
+        expect{contact.update_attribute(:global_teacher_username,'dwayne.macgowan')}.not_to change{contact.history_entries.count}
+      end
+
+      it "doesnt record local_status changes" do
+        account = Account.make
+
+        x = contact.history_entries.count
+        global_x = HistoryEntry.count
+
+        contact.local_status={account_id: account.id, status: :prospect}
+        contact.skip_history_entries = true
+        expect{contact.save}.not_to change{HistoryEntry.count}
+
+        # updating embedded local_status wont trigger local_status after_save
+        contact.local_status=({account_id: account.id, status: :former_student})
+        expect{contact.save}.not_to change{HistoryEntry.count}
+      end
     end
   end
 

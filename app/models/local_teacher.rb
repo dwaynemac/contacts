@@ -6,6 +6,7 @@ class LocalTeacher < LocalUniqueAttribute
 
   private
   def keep_history_of_changes
+    return if self.contact.try(:skip_history_entries)
     if self.teacher_username_changed? && !self.contact.nil?
       self.contact.history_entries.create(
           attribute: "local_teacher_for_#{self.account_name}",

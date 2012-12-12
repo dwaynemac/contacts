@@ -21,9 +21,10 @@ class Contact
 
   has_many :history_entries, as: 'historiable', dependent: :delete
   after_save :keep_history_of_changes
+  attr_accessor :skip_history_entries # default: nil
 
   after_save :post_activity_if_level_changed
-  attr_accessor :skip_level_change_activity # default: false
+  attr_accessor :skip_level_change_activity # default: nil
 
   field :first_name
   field :last_name
@@ -555,16 +556,18 @@ class Contact
   end
 
   def keep_history_of_changes
-    # level, global_status and teacher_username
-    %W(level status global_teacher_username).each do |att|
-      if self.send("#{att}_changed?")
-        self.history_entries.create(attribute: att,
-                                    changed_at: Time.zone.now.to_time,
-                                    old_value: self.changes[att][0])
+    unless skip_history_entries
+      # level, global_status and teacher_username
+      %W(level status global_teacher_username).each do |att|
+        if self.send("#{att}_changed?")
+          self.history_entries.create(attribute: att,
+                                      changed_at: Time.zone.now.to_time,
+                                      old_value: self.changes[att][0])
+        end
       end
+      # local_status changes are tracked in LocalStatus model
+      # local_teacher changes are tracked in LocalTeacher model
     end
-    # local_status changes are tracked in LocalStatus model
-    # local_teacher changes are tracked in LocalTeacher model
   end
 
   def validate_duplicates

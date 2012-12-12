@@ -90,6 +90,7 @@ class V0::ContactsController < V0::ApplicationController
   #
   # @argument account_name [String] account which the contact will belong to
   # @argument name [String] name of the contact
+  # @argument
   #
   # @example_response == Successfull (status: created)
   #   { id: '245po46sjlka' }
