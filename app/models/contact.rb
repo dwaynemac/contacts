@@ -449,7 +449,11 @@ class Contact
               }
             end
           when 'level' # convert level name to level number
-            new_selector['$and'] << {:level => VALID_LEVELS[v]}
+            if v.is_a? Array
+              new_selector['$and'] << {:level => { '$in' => v.map {|lvl| VALID_LEVELS[lvl]} }}
+            else
+              new_selector['$and'] << {:level => VALID_LEVELS[v]}
+            end
           when /^(.+)_for_([^=]+)$/
             local_attribute = $1
             account_name    = $2
