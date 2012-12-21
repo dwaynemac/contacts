@@ -45,7 +45,7 @@ class V0::ContactsController < V0::ApplicationController
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
 
     response.headers['Content-type'] = 'application/json; charset=utf-8'
-    render :json => { :collection => @contacts, :total => total}.as_json(account: @account)
+    render :json => { :collection => @contacts, :total => total}.as_json(account: @account, except_linked:true, except_last_local_status: true)
   end
 
   # @url [POST] /v0/contacts/search

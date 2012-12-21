@@ -218,7 +218,7 @@ class Contact
       options = options.merge({:except => [:contact_attributes, :local_unique_attributes]})
     end
 
-    options = options.merge({:except => :owner_id,
+    options = options.merge({:except => [:owner_id, :history_entries],
                              :methods => [:owner_name,
                                           :local_statuses,
                                           :coefficients_counts,
@@ -233,8 +233,8 @@ class Contact
       %w{local_status coefficient local_teacher}.each do |local_attribute|
         json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
       end
-      json[:linked] = self.linked_to?(account)
-      json[:last_local_status] = self.history_entries.last_value("local_status_for_#{account.name}".to_sym)
+      json[:linked] = self.linked_to?(account) unless options[:except_linked]
+      json[:last_local_status] = self.history_entries.last_value("local_status_for_#{account.name}".to_sym) unless options[:except_last_local_status]
     end
     json
   end
