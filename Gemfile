@@ -12,7 +12,7 @@ gem 'mongoid_search'
 gem 'cancan', '~> 1.6.7'
 
 
-gem "logical_model", '~> 0.4.3'
+gem "logical_model", '~> 0.4.4'
 gem 'activity_stream_client', '~> 0.0.10'
 gem 'overmind_client', '~> 0.0.1'
 
