@@ -279,7 +279,13 @@ class Contact
   def similar
     contacts = Contact.all
 
-    unless self.last_name.blank?
+    if self.last_name.blank?
+      unless self.first_name.blank?
+        self.first_name.split.each do |first_name|
+          contacts = contacts.any_of(:normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+        end
+      end
+    else
       self.last_name.split.each do |last_name|
         self.first_name.split.each do |first_name|
           contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},

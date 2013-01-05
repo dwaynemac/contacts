@@ -453,6 +453,7 @@ describe Contact do
   end
 
   describe "#similar" do
+
     describe "when Homer Simpson exists" do
       before do
         contact = Contact.make(first_name: "Homer", last_name: "Simpson")
@@ -465,6 +466,13 @@ describe Contact do
 
         it "should not have possible duplicates" do
           @contact.similar.should be_empty
+        end
+      end
+
+      describe "a new contact named Marge" do
+        let(:contact){ Contact.new(first_name: 'Marge')}
+        it "should not have possible duplicates" do
+          contact.similar.should be_empty
         end
       end
 
