@@ -33,6 +33,7 @@ end
 
 group :production do
   gem 'newrelic_rpm'
+  gem 'dalli' # memcache support on heroku
 end
 
 group :development, :test do
