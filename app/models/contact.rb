@@ -577,8 +577,8 @@ class Contact
           verb: 'created',
           content: "#{self.request_user} created #{self.full_name} on #{self.owner_name}",
           public: true,
-          username: self.request_user || 'system',
-          account_name: self.request_account || 'system',
+          username: self.request_user,
+          account_name: self.request_account,
           created_at: Time.zone.now.to_s,
           updated_at: Time.zone.now.to_s
       )
