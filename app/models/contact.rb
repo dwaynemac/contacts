@@ -26,6 +26,8 @@ class Contact
   after_save :post_activity_if_level_changed
   attr_accessor :skip_level_change_activity # default: nil
 
+  after_create :post_activity_of_creation
+
   field :first_name
   field :last_name
 
@@ -562,6 +564,25 @@ class Contact
         a.create(username: activity_username, account_name: activity_account)
 
       end
+    end
+  end
+
+  # POSTs an Activity to ActivityStream if request_user && request_account are set.
+  def post_activity_of_creation
+    unless self.request_user.blank? || self.request_account.blank?
+      entry = ActivityStream::Activity.new(
+          target_id: self.owner_name, target_type: 'Account',
+          object_id: self._id, object_type: 'Contact',
+          generator: 'contacts',
+          verb: 'created',
+          content: "#{self.request_user} created #{self.full_name} on #{self.owner_name}",
+          public: true,
+          username: self.request_user || 'system',
+          account_name: self.request_account || 'system',
+          created_at: Time.zone.now.to_s,
+          updated_at: Time.zone.now.to_s
+      )
+      entry.create(username:  self.request_user, account_name: self.request_account)
     end
   end
 

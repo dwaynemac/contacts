@@ -123,22 +123,6 @@ class V0::ContactsController < V0::ApplicationController
     @contact.check_duplicates = params[:contact][:check_duplicates]
 
     if @contact.save
-
-      # TODO move this into Contact using Contact#request_user and Contact#request_account
-      entry = ActivityStream::Activity.new(
-          target_id: @contact.owner_name, target_type: 'Account',
-          object_id: @contact._id, object_type: 'Contact',
-          generator: 'contacts',
-          verb: 'created',
-          content: "#{params[:username]} created #{@contact.full_name} on #{@contact.owner_name}",
-          public: true,
-          username: params[:username] || 'system',
-          account_name: params[:account_name] || 'system',
-          created_at: @contact.created_at.to_s,
-          updated_at: @contact.updated_at.to_s
-      )
-      entry.create(username:  params[:username], account_name: params[:account_name])
-
       render :json => { :id => @contact.id }.to_json, :status => :created
     else
       render :json => { :message => "Sorry, contact not created",
