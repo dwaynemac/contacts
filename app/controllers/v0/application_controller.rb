@@ -37,16 +37,30 @@ class V0::ApplicationController < ApplicationController
     if params[:account_name]
       @account = Account.find_or_create_by(:name => params[:account_name])
 
-      if @account.id.nil?
-        render :json => "Not Found".to_json, :status => 404
-      elsif params[:username]
-        @user = PadmaUser.find(params[:username])
+      if @account
 
-        # set locale
-        if @user
-          I18n.locale = @user.try :locale
-          # TODO: check account with user
+        @padma_account = Rails.cache.fetch("accountname:#{params[:account_name]}") do
+          PadmaAccount.find(params[:account_name])
         end
+
+        # set timezone
+        if @padma_account
+          Time.zone = @padma_account.timezone
+        end
+
+        if params[:username]
+          @user = Rails.cache.fetch("username:#{params[:username]}") do
+            PadmaUser.find(params[:username])
+          end
+
+          # set locale
+          if @user
+            I18n.locale = @user.try :locale
+            # TODO: check account with user
+          end
+        end
+      else
+        render :json => "Not Found".to_json, :status => 404
       end
     end
   end

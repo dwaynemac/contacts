@@ -3,6 +3,7 @@ require 'spec_helper'
 
 describe V0::ContactsController do
   it_should_behave_like "Secure API Controller"
+  it_should_behave_like 'Localized API'
 
   before(:each) do
     2.times do
