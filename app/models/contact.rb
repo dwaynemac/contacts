@@ -473,6 +473,8 @@ class Contact
             end
           when 'first_name', 'last_name'
             new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
+          when 'updated_at'
+            new_selector['$and'] << {:updated_at => { '$gt' => v }}
           else
             new_selector[k] = v
         end
