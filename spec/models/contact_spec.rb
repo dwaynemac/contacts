@@ -904,4 +904,9 @@ describe Contact do
     c.save
     c.level.should == 'aspirante'
   end
+
+  it "should be able to use estimated age" do
+    c = Contact.make(first_name: "alex", last_name: "falke", estimated_age: 30)
+    c.should be_valid
+  end
 end
