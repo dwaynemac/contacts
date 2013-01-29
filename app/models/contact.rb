@@ -43,6 +43,9 @@ class Contact
 
   field :level, type: Integer
 
+  field :estimated_age, type: Integer
+  validates_numericality_of :estimated_age, allow_nil: true
+
   # ordered by hierarchy (last is higher)
   VALID_LEVELS = {
     "aspirante" => 0,
