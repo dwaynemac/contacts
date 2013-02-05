@@ -3,7 +3,7 @@ class HomeToPersonal
 		Contact.all.each do |c|
 			c.emails.where(:category => "home").each do |em|
 				em.category = "personal"
-				em.save!
+				em.save
 			end
 		end
 	end
