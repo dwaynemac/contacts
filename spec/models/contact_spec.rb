@@ -162,7 +162,7 @@ describe Contact do
         account = Account.make
         Contact.api_where({local_status: 'student'}, account.id).selector.should == {
           local_unique_attributes: {
-            '$elemMatch' => {_type: 'LocalStatus', value: 'student', account_id: account.id}
+            '$elemMatch' => {_type: 'LocalStatus', value: {'$in' => ['student']}, account_id: account.id}
           }
         }
       end
@@ -173,10 +173,10 @@ describe Contact do
         Contact.api_where({local_status: 'student', local_teacher: 'dwayne'}, account.id).selector.should == {
             '$and' => [
                 {local_unique_attributes: {
-                    '$elemMatch' => {_type: 'LocalStatus', value: 'student', account_id: account.id}
+                    '$elemMatch' => {_type: 'LocalStatus', value: {'$in' => ['student']}, account_id: account.id}
                 }},
                 {local_unique_attributes: {
-                    '$elemMatch' => {_type: 'LocalTeacher', value: 'dwayne', account_id: account.id}
+                    '$elemMatch' => {_type: 'LocalTeacher', value: {'$in' => ['dwayne']}, account_id: account.id}
                 }}
             ]
         }
@@ -187,25 +187,38 @@ describe Contact do
         account = Account.make
         Contact.api_where({coefficient: 'perfil'}, account.id).selector.should == {
           local_unique_attributes: {
-            '$elemMatch' => {_type: 'Coefficient', value: 'perfil', account_id: account.id}
+            '$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['perfil']}, account_id: account.id}
           }
         }
       end
     end
+    context "{coefficient: ['perfil','pmas']}, account" do
+      it "should return local_unique_attribute criteria" do
+        account = Account.make
+        Contact.api_where({coefficient: ['perfil','pmas']}, account.id).selector.should == {
+            local_unique_attributes: {
+              '$elemMatch' => {_type: 'Coefficient',
+                               value: {'$in' => ['perfil','pmas']},
+                               account_id: account.id}
+            }
+        }
+      end
+    end
+
     context "{coefficient_for_belgrano: 'pmas'}" do
       it "should return local_unique_attribute criteria inside $and if there are other criterias" do
         account = Account.make(name: 'belgrano')
         Contact.api_where({email: 'asdf', coefficient_for_belgrano: 'pmas'}).selector.should == {
           '$and' => [
             {contact_attributes: {'$elemMatch' => {'_type' => 'Email', 'value' => /asdf/i}}},
-            {local_unique_attributes: {'$elemMatch' => {_type: 'Coefficient', value: 'pmas', account_id: account.id}}}
+            {local_unique_attributes: {'$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: account.id}}}
           ]
         }
       end
       it "should return local_unique_attribute criteria if there are no other criterias" do
         account = Account.make(name: 'belgrano')
         Contact.api_where({coefficient_for_belgrano: 'pmas'}).selector.should == {local_unique_attributes: {
-            '$elemMatch' => {_type: 'Coefficient', value: 'pmas', account_id: account.id}
+            '$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: account.id}
           }
         }
       end

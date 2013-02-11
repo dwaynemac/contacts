@@ -456,9 +456,12 @@ class Contact
           when 'local_status', 'coefficient', 'local_teacher'
             if account_id.present?
               new_selector['$and'] << {
-                  :local_unique_attributes => {'$elemMatch' => {_type: k.to_s.camelcase, value: v, account_id: account_id}}
+                  :local_unique_attributes => {'$elemMatch' => {_type: k.to_s.camelcase,
+                                                                value: {'$in' => v.to_a},
+                                                                account_id: account_id}}
               }
             end
+
           when 'level' # convert level name to level number
             if v.is_a? Array
               new_selector['$and'] << {:level => { '$in' => v.map {|lvl| VALID_LEVELS[lvl]} }}
@@ -471,7 +474,7 @@ class Contact
             a = Account.where(name: account_name).first
             if a
               new_selector['$and'] << {
-                :local_unique_attributes => {'$elemMatch' => {_type: local_attribute.to_s.camelcase, value: v, account_id: a.id}}
+                :local_unique_attributes => {'$elemMatch' => {_type: local_attribute.to_s.camelcase, value: {'$in' => v.to_a}, account_id: a.id}}
               }
             end
           when 'first_name', 'last_name'
