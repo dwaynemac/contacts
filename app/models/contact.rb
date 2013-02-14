@@ -115,7 +115,7 @@ class Contact
 
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
   # they all return a Criteria scoping to according _type
-  %W(email telephone address custom_attribute date_attribute identification contact_attachment).each do |k|
+  %W(email telephone address custom_attribute date_attribute identification contact_attachment social_network_id).each do |k|
     delegate k.pluralize, to: :contact_attributes
   end
 
