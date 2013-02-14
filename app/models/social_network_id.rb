@@ -1,4 +1,4 @@
-class SocialNetworkID < ContactAttribute
+class SocialNetworkId < ContactAttribute
   field :category
   field :value
 
