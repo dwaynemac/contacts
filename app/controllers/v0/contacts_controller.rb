@@ -152,6 +152,8 @@ class V0::ContactsController < V0::ApplicationController
   def update
     @contact = @scope.find(params[:id])
 
+    @contact.check_duplicates = false
+
     @contact.request_user = params[:username]
     @contact.request_account = params[:account_name]
 

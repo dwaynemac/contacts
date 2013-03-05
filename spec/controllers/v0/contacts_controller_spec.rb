@@ -622,6 +622,19 @@ describe V0::ContactsController do
           app_key: V0::ApplicationController::APP_KEY
     end
 
+    it "should not check for duplicates" do
+      a = Account.make
+      c = Contact.make(first_name: 'dwayne', last_name: '')
+      similar = Contact.make(first_name: 'dwayne', last_name: '', check_duplicates: false)
+
+      similar.gender.should_not == 'male'
+
+      put :update, id: similar.id, contact: {gender: 'male'},
+          app_key: V0::ApplicationController::APP_KEY
+
+      similar.reload.gender.should == 'male'
+    end
+
     #Commenting out these tests as this functionality is not being used, but they reflect the issue correctly. LP
     #
     #describe "contact: {contact_attributes_attributes: ['....']}" do
