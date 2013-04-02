@@ -108,6 +108,8 @@ GEM
       guard (>= 1.1)
       spork (>= 0.8.4)
       sys-proctable
+    heroku-mongo-backup (0.4.3)
+      mongo
     hike (1.2.1)
     i18n (0.6.1)
     jruby-pageant (1.1.1)
@@ -256,6 +258,7 @@ DEPENDENCIES
   fog
   guard-rspec
   guard-spork
+  heroku-mongo-backup (~> 0.4.3)
   kaminari (~> 0.13)
   libnotify
   logical_model (~> 0.4.4)
