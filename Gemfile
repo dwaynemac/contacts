@@ -29,8 +29,9 @@ gem 'ethon', '0.4.2'
 gem 'heroku-mongo-backup', '~> 0.4.3' # Gem for making mongo -> AmazonS3 backups
 
 group :documentation do
-  gem 'yard', '~> 0.7.4'
-  gem 'yard-rest', :git => "git://github.com/dwaynemac/yard-rest-plugin.git"
+  gem 'yard', '~> 0.8.3'
+  gem 'yard-restful'
+  gem 'redcarpet'
 end
 
 group :production do

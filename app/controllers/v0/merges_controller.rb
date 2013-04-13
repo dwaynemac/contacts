@@ -1,14 +1,16 @@
+# @restful_api v0
 class V0::MergesController < V0::ApplicationController
   load_and_authorize_resource except: [:create]
 
   ##
   # Gets merge
   #
-  # @url [GET] /v0/merges/:id
+  # @url /v0/merges/:id
+  # @action GET
   #
-  # @argument id [String] merge id
+  # @required [String] id merge id
   #
-  # @example_response { id: '4trd3f1e', state: 'ready', ... }
+  # @response [Merge]
   def show
     render json: @merge
   end
@@ -16,10 +18,11 @@ class V0::MergesController < V0::ApplicationController
   ##
   # Creates and starts merge
   #
-  # @url [POST] /v0/merges
+  # @url /v0/merges
+  # @action POST
   #
-  # @argument merge [Hash] merge attributes
-  # @argument account_name [String] current account_name
+  # @required [Hash] merge  merge attributes
+  # @required [String] account_name  current account_name
   #
   # @key_for merge first_contact_id [String] a contact id
   # @key_for merge second_contact_id [String] a contact id

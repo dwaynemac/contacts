@@ -1,6 +1,5 @@
 ##
-# @url  /v0/contacts
-# @topic Contacts
+# @restful_api v0
 class V0::ContactsController < V0::ApplicationController
 
   before_filter :set_list
@@ -10,23 +9,24 @@ class V0::ContactsController < V0::ApplicationController
   ##
   # Returns list of contacts in JSON
   #
-  # @url [GET] /v0/contacts
-  # @url [GET] /v0/accounts/:account_name/contacts
+  # @url /v0/contacts
+  # @url /v0/accounts/:account_name/contacts
+  # @action GET
   #
-  # @optional_argument nids [Array] return contacts without id in this array
-  # @optional_argument ids [Array] return contacts with id in this array
-  # @optional_argument account_name [String] will scope contacts to this account
-  # @optional_argument list_name [String] scope to this list. Will be ignored if no :account_name is given.
-  # @optional_argument page [Integer] will return this page (default: 1)
-  # @optional_argument per_page [Integer] will paginate contacts with this amount per page (default: 10)
-  # @optional_argument full_text [String] will make a full_text search with this string.
-  # @optional_argument where [Hash] Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status
-  # @optional_argument attributes_value_at [Array<Hash>] Array of hashes with keys: :attribute, :value, :ref_date. This will be ANDed, not ORed.
+  # @optional [Array] nids return contacts without id in this array
+  # @optional [Array] ids return contacts with id in this array
+  # @optional [String] account_name will scope contacts to this account
+  # @optional [String] list_name scope to this list. Will be ignored if no :account_name is given.
+  # @optional [Integer] page will return this page (default: 1)
+  # @optional [Integer] per_page will paginate contacts with this amount per page (default: 10)
+  # @optional [String] full_text will make a full_text search with this string.
+  # @optional [Hash] where Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status
+  # @optional [Array<Hash>] attributes_value_at Array of hashes with keys: :attribute, :value, :ref_date. This will be ANDed, not ORed.
   #
   # @example_response { collection: [ {_id: 1234,name: ...} ], total: 1}
   #
-  # @response_field collection [Array <Contact>] corresponding to chosen :page
-  # @response_field total [Integer] total amount of contacts in query. (includes all pages.)
+  # @response_field [Array <Contact>] collection corresponding to chosen :page
+  # @response_field [Integer] total total amount of contacts in query. (includes all pages.)
   #
   def index
 
@@ -48,7 +48,8 @@ class V0::ContactsController < V0::ApplicationController
     render :json => { :collection => @contacts, :total => total}.as_json(account: @account, except_linked:true, except_last_local_status: true)
   end
 
-  # @url [POST] /v0/contacts/search
+  # @url /v0/contacts/search
+  # @action POST
   # @see index
   def search
     index
@@ -61,11 +62,13 @@ class V0::ContactsController < V0::ApplicationController
   #   * public attributes
   #   * masked attributes
   #
-  # @url [GET] /v0/contacts/:id
-  # @url [GET] /v0/accounts/:account_name/contacts/:id
+  # @url /v0/contacts/:id
+  # @action GET
+  # @url /v0/accounts/:account_name/contacts/:id
+  # @action GET
   #
-  # @argument id [String] contact_id
-  # @optional_argument account_name [String] scope search to this account. Fields will be added to response when this is sent.
+  # @required [String] id contact_id
+  # @optional [String] account_name scope search to this account. Fields will be added to response when this is sent.
   #
   # @example_response
   #   if account_name is provided
@@ -85,12 +88,13 @@ class V0::ContactsController < V0::ApplicationController
   ##
   # Creates a contact
   #
-  # @url [POST] /v0/contacts
-  # @url [POST] /v0/accounts/:account_name/contacts
+  # @url /v0/contacts
+  # @action POST
+  # @url /v0/accounts/:account_name/contacts
+  # @action POST
   #
-  # @argument account_name [String] account which the contact will belong to
-  # @argument name [String] name of the contact
-  # @argument
+  # @required [String] account_name account which the contact will belong to
+  # @required [String] name name of the contact
   #
   # @example_response == Successfull (status: created)
   #   { id: '245po46sjlka' }
@@ -101,9 +105,9 @@ class V0::ContactsController < V0::ApplicationController
   #     errors: [ email: 'not valid' ]
   #   }
   #
-  # @response_field id [Integer] id of the contact created. (only for status: 201)
-  # @response_field message [String] error message. (only for status: 400)
-  # @response_field errors [Hash] model message errors
+  # @response_field [Integer] id id of the contact created. (only for status: 201)
+  # @response_field [String] message error message. (only for status: 400)
+  # @response_field [Hash] errors model message errors
   # @response_code success 201
   # @response_code failure 400
   #
@@ -134,12 +138,14 @@ class V0::ContactsController < V0::ApplicationController
   ##
   # Updates specified values of a contact
   #
-  # @url [PUT] /v0/contacts/:id
-  # @url [PUT] /v0/accounts/:account_name/contacts/:id
+  # @url /v0/contacts/:id
+  # @action PUT
+  # @url /v0/accounts/:account_name/contacts/:id
+  # @action PUT
   #
-  # @argument id [String] contact id
-  # @optional_argument account_name [String] scopes account
-  # @argument contact [hash] contact attributes
+  # @required [String] id contact id
+  # @optional [String] account_name scopes account
+  # @required [hash] contact contact attributes
   #
   # @example_response == Successfull
   #   "OK"
@@ -168,9 +174,10 @@ class V0::ContactsController < V0::ApplicationController
 
   ##
   # Links contact to account
-  # @url [POST] v0/contacts/:id/link
-  # @argument id [String]
-  # @argument account_name [String]
+  # @url v0/contacts/:id/link
+  # @action POST
+  # @required [String] id
+  # @required [String] account_name
   # @example_response == Successfull
   #   "OK"
   # @example_response == Failure (status: 400)
@@ -189,8 +196,9 @@ class V0::ContactsController < V0::ApplicationController
 
   # Will destory contact if no account specified or unlink it from specified account
   #
-  # @url [DELETE] /v0/contacts/:id
-  # @url [DELETE] /v0/accounts/:account_name/contacts/:id
+  # @url /v0/contacts/:id
+  # @url /v0/accounts/:account_name/contacts/:id
+  # @action DELETE
   #
   # @argument [String] account_name - scope to this accounts contacts
   # @argument [String] id - contact id
@@ -208,11 +216,12 @@ class V0::ContactsController < V0::ApplicationController
 
   # Deletes multiple contacts
   #
-  # @url [DELETE] /v0/contacts/destroy_multiple
+  # @url /v0/contacts/destroy_multiple
+  # @action DELETE
   #
-  # @argument ids [Array <String>] id of each contact to be destroyed/unlinked
+  # @required [Array <String>] ids id of each contact to be destroyed/unlinked
   #
-  # @optional_argument account_name [String]
+  # @optional [String] account_name
   #
   # @example_response "OK"
   def destroy_multiple
@@ -228,7 +237,8 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   # Calculates a given statistic and returns value
-  # @url [GET] /v0/contacts/calculate
+  # @url /v0/contacts/calculate
+  # @action GET
   #
   # @argument [String] name. Statistic code name.
   #
@@ -238,7 +248,7 @@ class V0::ContactsController < V0::ApplicationController
   #
   #
   # @example_response {value: 12}
-  # @response_field value [Integer]
+  # @response_field [Integer] value
   # @response_code 200
   def calculate
 
