@@ -896,19 +896,4 @@ describe V0::ContactsController do
     end
   end
 
-  describe "#calculate" do
-    let(:full_params){{name: 'xxx',
-                       account_name: 'test-account',
-                       year: 2012,
-                       month: 10,
-                       app_key: V0::ApplicationController::APP_KEY}}
-
-    [:account_name, :name, :year, :month].each do |key|
-      context "without #{key}" do
-        before { get :calculate, full_params.delete_if{|k,v|k==key}}
-        it { should respond_with 404 }
-      end
-    end
-  end
-
 end

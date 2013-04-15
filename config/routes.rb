@@ -7,7 +7,6 @@ Contacts::Application.routes.draw do
       end
       collection do
         post :search
-        get :calculate
         delete :destroy_multiple
       end
       resource :avatar, :only => [:create, :destroy]
