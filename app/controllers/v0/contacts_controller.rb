@@ -123,6 +123,7 @@ class V0::ContactsController < V0::ApplicationController
     @contact.check_duplicates = params[:contact][:check_duplicates]
 
     if @contact.save
+      @contact.index_keywords!
       render :json => { :id => @contact.id }.to_json, :status => :created
     else
       render :json => { :message => "Sorry, contact not created",
@@ -158,6 +159,7 @@ class V0::ContactsController < V0::ApplicationController
     @contact.request_account = params[:account_name]
 
     if @contact.update_attributes(params[:contact])
+      @contact.index_keywords!
       render :json => "OK"# , :status => :updated
     else
       render :json => { :message => "Sorry, contact not updated",

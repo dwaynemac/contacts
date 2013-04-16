@@ -6,7 +6,7 @@ class Contact
   include Mongoid::Timestamps
 
   include Mongoid::Search
-  search_in :first_name, :last_name, {:contact_attributes => :value }, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
+  search_in :first_name, :last_name, {:contact_attributes => :value },{:tags => :name}, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
   embeds_many :attachments, cascade_callbacks: true
   accepts_nested_attributes_for :attachments, allow_destroy: true
@@ -74,6 +74,8 @@ class Contact
 
   references_and_referenced_in_many :lists
   before_save :update_lists
+
+  references_and_referenced_in_many :tags
 
   validates :first_name, :presence => true
 
