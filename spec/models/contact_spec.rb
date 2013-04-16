@@ -121,6 +121,13 @@ describe Contact do
       c.save
       c._keywords.should_not include 'dwaynemac'
     end
+    it "should be updates with the user tag" do
+      a = Account.make
+      c = Contact.make
+      c.tags.create(account: a, name: "comple")
+      c.save
+      c._keywords.should include('comple')
+    end
     it "should ignore words: com net org ar br pt" do
       c = Contact.make
       %w(com net org ar br pt).each do |k|
