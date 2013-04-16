@@ -9,6 +9,8 @@ class Account
 
   has_many :lists, :autosave => true
 
+  has_many :tags, :autosave => true
+
   validates :name, :presence => true, :uniqueness => true, :existance_on_padma => true
 
   before_create :create_base_list
