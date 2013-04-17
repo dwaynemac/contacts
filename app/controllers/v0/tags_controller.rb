@@ -1,17 +1,18 @@
-# @topic Tags
-# @url /v0/tags
+# @restful_api v0
 class V0::TagsController < V0::ApplicationController
   before_filter :get_account
   before_filter :set_scope
 
   ##
   # Returns a specific tag of a contact or of an account
-  # @url [GET] /v0/tags/:id
-  # @url [GET] /v0/accounts/:account_name/tags/:id
+  # @url /v0/tags/:id
+  # @url /v0/accounts/:account_name/tags/:id
+  # @url /v0/accounts/:account_name/contacts/:contact_id/tags/:id
+  # @action GET
   #
-  # @argument id [String] id of tag
-  # @argument contact_id [String] id of contact
-  # @optional_argument account_name [String]
+  # @required [String] id id of tag
+  # @required [String] contact_id id of contact
+  # @optional [String] account_name
   #
   # @response_code 200
   # @example_response { name: 'tag_name' }
@@ -26,11 +27,12 @@ class V0::TagsController < V0::ApplicationController
 
   ##
   # Returns all the tags of a contact or of an account
-  # @url [GET] /v0/tags
-  # @url [GET] /v0/accounts/:account_name/tags
+  # @url /v0/tags
+  # @url /v0/accounts/:account_name/tags
+  # @action GET
   #
   # @argument account_name [String]
-  # @optional_argument contact_id [String] id of contact, sets the scope for the contacts tag
+  # @optional [String] contact_id id of contact, sets the scope for the contacts tag
   #
   # @response_code 200
   # @example_response { name: 'tag_name' }
@@ -46,10 +48,11 @@ class V0::TagsController < V0::ApplicationController
   ##
   #  Updates specified values of a tag
   #
-  # @url [PUT] /v0/tags/:id/
-  # @url [PUT] /v0/accounts/:account_name/tag/:id
+  # @url /v0/tags/:id/
+  # @url /v0/accounts/:account_name/tag/:id
+  # @action PUT
   #
-  # @optional_argument account_name [String]: (account name) scopes account
+  # @optional [String] account_name: (account name) scopes account
   # @argument id [String]
   #
   # @argument contact_attributes [Hash]
@@ -83,12 +86,13 @@ class V0::TagsController < V0::ApplicationController
   ##
   #  Returns a new tag
   #
-  # @url [POST] /v0/tags
-  # @url [POST] /v0/accounts/:account_name/tags
+  # @url /v0/tags
+  # @url /v0/accounts/:account_name/tags
+  # @action POST
   #
-  # @argument contact_id [String] contact id
-  # @optional_argument account_name [String]: account which the contact will belong to
-  # @optional_argument name [String]: name of the tag
+  # @required [String] contact_id contact id
+  # @optional [String] account_name: account which the contact will belong to
+  # @optional [String] name: name of the tag
   #
   # @response_code 201
   # @response_field tag_id [Integer] id of the tag created
@@ -119,12 +123,12 @@ class V0::TagsController < V0::ApplicationController
   ##
   #  Destroys the tag
   #
-  #  == Request
-  # @url [DELETE] /v0/tags/:id
-  # @url [DELETE] /v0/accounts/:account_name/tags/:id
+  # @url /v0/tags/:id
+  # @url /v0/accounts/:account_name/tags/:id
+  # @action DELETE
   #
-  # @optional_argument account_name [String] scope to this accounts contacts
-  # @argument contact_id [String] contact id
+  # @optional [String] account_name scope to this accounts contacts
+  # @required [String] contact_id contact id
   # @argument id [String]
   #
   # @example_response "OK"
