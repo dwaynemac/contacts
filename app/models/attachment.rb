@@ -1,3 +1,9 @@
+# @restful_api v0
+#
+# @property [String] name
+#
+# @example
+#  blah
 class Attachment
   include Mongoid::Document
   include ReadOnly

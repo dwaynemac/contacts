@@ -1,5 +1,9 @@
 # encoding: UTF-8
-
+#
+# @restful_api v0
+#
+# @property [String] father_id
+# @property [String] son_id
 class Merge
   include Mongoid::Document
   include Mongoid::Timestamps

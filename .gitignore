@@ -13,3 +13,4 @@ doc/
 public/uploads/*.jpg
 public/uploads/*.gif
 Procfile.dev
+public/documentation/

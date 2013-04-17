@@ -1,5 +1,4 @@
-# @topic Attachments
-# @url /v0/attachments
+# @restful_api v0
 class V0::AttachmentsController < V0::ApplicationController
 
   before_filter :get_contact
@@ -7,14 +6,14 @@ class V0::AttachmentsController < V0::ApplicationController
 
   ##
   # Returns an attachment of a contact
-  # @url [GET] /v0/attachments/:id
+  # @url /v0/attachments/:id
+  # @action GET
   #
-  # @argument id [String] id of attachment
-  # @argument contact_id [String] id of contact
-  # @optional_argument account_name [String]
+  # @required [String] id  id of attachment
+  # @required [String] contact_id  id of contact
+  # @optional [String] account_name
   #
-  # @response_code 200
-  # @example_response { _type: 'Attachment', file: 'amazom.com/uploads/file.jpg', public: false}
+  # @response [Attachment] selected attachment
   #
   # @author Alex Falke
   def show
@@ -27,25 +26,19 @@ class V0::AttachmentsController < V0::ApplicationController
   ##
   #  Updates specified values of an attachment
   #
-  # @url [PUT] /v0/attachment/:id/
-  # @url [PUT] /v0/accounts/:account_name/attachment/:id
+  # @url /v0/attachment/:id/
+  # @url /v0/accounts/:account_name/attachment/:id
+  # @action PUT
   #
-  # @optional_argument account_name [String]: (account name) scopes account
-  # @argument contact_id [String]: (account name) change de account the contact belongs to
-  # @argument id [String]
+  # @required [String] contact_id change de account the contact belongs to
+  # @required [String] id
   #
-  # @argument contact_attributes [Hash]
-  # @key_for contact_attributes [String] category
-  # @key_for contact_attributes [String] file changes the file associated with this attachment
-  # @key_for contact_attributes [String] value change the value of the contact attribute
+  # @optional [String] account_name scopes account
   #
-  # @example_response == Code: 200
-  #   "OK"
-  # @response_code 200
-  #
-  # @example_response == Code: 400
-  #   { message: 'Sorry, contact attribute not updated', errors: [ ... ]}
-  # @response_code 400
+  # @required [ContactAttribute] contact_attributes
+  # @optional [String] contact_attributes[category]
+  # @optional [String] contact_attributes[file] changes the file associated with this attachment
+  # @optional [String] contact_attributes[value] change the value of the contact attribute
   #
   # @author Alex Falke
   def update
@@ -65,19 +58,15 @@ class V0::AttachmentsController < V0::ApplicationController
   ##
   #  Returns a new attachment
   #
-  # @url [POST] /v0/attachments
-  # @url [POST] /v0/accounts/:account_name/attachments
+  # @url /v0/attachments
+  # @url /v0/accounts/:account_name/attachments
   #
-  # @argument contact_id [String] contact id
-  # @optional_argument account_name [String]: account which the contact will belong to
-  # @optional_argument file [File]: file to be attached
+  # @action POST
   #
-  # @response_code 201
-  # @response_field attachment_id [Integer] id of the attachment created
+  # @required [String] contact id
+  # @optional [String] account_name account which the contact will belong to
+  # @optional [File] file file to be attached
   #
-  # @response_code 400
-  # @response_field message [String] (for code: 400)
-  # @response_field errors [Array] (for code: 400)
   def create
     authorize! :create, Attachment
 
@@ -100,12 +89,13 @@ class V0::AttachmentsController < V0::ApplicationController
   #  Destroys the attachment
   #
   #  == Request
-  # @url [DELETE] /v0/attachments/:id
-  # @url [DELETE] /v0/accounts/:account_name/contacts/:contact_id/attachments/:id
+  # @url /v0/attachments/:id
+  # @url /v0/accounts/:account_name/contacts/:contact_id/attachments/:id
+  # @action DELETE
   #
-  # @optional_argument account_name [String] scope to this accounts contacts
-  # @argument contact_id [String] contact id
-  # @argument id [String]
+  # @optional [String] account_name  scope to this accounts contacts
+  # @required [String] contact_id  contact id
+  # @required [String] id
   #
   # @example_response "OK"
   def destroy

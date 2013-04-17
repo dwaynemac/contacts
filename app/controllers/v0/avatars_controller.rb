@@ -1,13 +1,12 @@
-# @topic Avatar
-# @url /v0/contacts/:contact_id/avatar
+# @restful_api v0
 class V0::AvatarsController < V0::ApplicationController
 
   ##
   # Sets contact avatar overriding if there is already one
-  # @url [POST] /v0/contacts/:contact_id/avatar
-  # @argument contact_id [String]
-  # @argument avatar [Hash]
-  # @key_for avatar [File] file
+  # @url /v0/contacts/:contact_id/avatar
+  # @action POST
+  # @required [String] contact_id
+  # @required [Avatar] avatar
   # @response_code 201
   # @example_response == Code: 201
   #   "OK"
@@ -29,8 +28,9 @@ class V0::AvatarsController < V0::ApplicationController
   ##
   # Removes contact's avatar
   #
-  # @url [DELETE] /v0/contacts/:contact_id/avatar
-  # @argument contact_id [String]
+  # @url /v0/contacts/:contact_id/avatar
+  # @action DELETE
+  # @required [String] contact_id
   # @example_response "OK"
   def destroy
     contact = Contact.find(params[:contact_id])

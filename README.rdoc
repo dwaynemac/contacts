@@ -14,7 +14,5 @@ then open doc/index.html
 == WS API Documentation
 
 Run
-    bundle exec yardoc --plugin rest
-
-then open doc/index.html
+    ./script/build_api_documentation.sh
 
