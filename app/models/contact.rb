@@ -132,6 +132,14 @@ class Contact
     delegate lua.pluralize, to: :local_unique_attributes
   end
 
+  def tag_ids_for_request_account
+    if request_account.nil?
+      return nil
+    else
+      tags.where(account_id: request_account.id).map(&:id)
+    end
+  end
+
   # Setter for local_status of a certain account_id
   # This allows a cleaner API for update /accounts/account_id/contacts usage
   # @author Dwayne Macgowan
@@ -237,6 +245,7 @@ class Contact
     if account
       # add these data when account_id specified
       json[:contact_attributes] = self.contact_attributes.for_account(account, options)
+      json[:tags] = self.tags
       %w{local_status coefficient local_teacher}.each do |local_attribute|
         json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
       end

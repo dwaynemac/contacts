@@ -15,13 +15,13 @@ describe V0::TagsController do
       context "sending :name" do
         before do
           post :create, :account_name => @contact.owner.name, :contact_id => @contact.id,
-               :tag => { :name => "comple", :account_name => @contact.owner.name },
+               :tag => { :name => "complementacion" },
                :app_key => V0::ApplicationController::APP_KEY
         end
         it { should respond_with :created }
         it "should create a new tag" do
           @contact.reload.tags.count.should == 1
-          @contact.reload.tags.last.name.should == "comple"
+          @contact.reload.tags.last.name.should == "complementacion"
           @account.reload.tags.count.should == 1
         end
         it "should assign tag to account" do
@@ -40,7 +40,7 @@ describe V0::TagsController do
         it { should respond_with :created }
         it "should create a new tag" do
           @account.reload.tags.count.should == 1
-          @account.reload.tags.last.should == "febrero"
+          @account.reload.tags.last.name.should == "febrero"
         end
         it "should assign tag to account" do
           @account.reload.tags.last.account.should == @contact.owner
@@ -51,15 +51,6 @@ describe V0::TagsController do
       end
     end
 
-    context "called by another account" do
-      let(:other_account){Account.make}
-      before do
-        post :create, :account_name => other_account.name, :contact_id => @contact.id,
-             :tag => { :name => "profu", :account_name => other_account.name },
-             :app_key => V0::ApplicationController::APP_KEY
-      end
-      it { should respond_with :missing }
-    end
     context "called by linked, non-owner account" do
       let(:other_account){Account.make}
       before do
@@ -70,7 +61,7 @@ describe V0::TagsController do
       end
       it { should respond_with :created }
       it "should create a new attachment" do
-        @contact.reload.tags.last.should == "exalumno"
+        @contact.reload.tags.last.name.should == "exalumno"
       end
       it "should assign attribute to account" do
         @contact.reload.tags.last.account.should == other_account
@@ -80,18 +71,18 @@ describe V0::TagsController do
 
   describe "#delete" do
     before do
-      @tag = @contact.tags.create(name: "marzo")
+      @tag = @contact.tags.create(name: "marzo", account_id: @contact.owner.id)
     end
     describe "as the owner" do
       it "should delete a contact attribute" do
-        expect{post :destroy, :method => :delete,
+        expect{delete :destroy,
                     :id => @tag.id,
                     :contact_id => @contact.id,
                     :account_name => @contact.owner.name,
                     :app_key => V0::ApplicationController::APP_KEY}.to change{@contact.reload.tags.count}.by(-1)
       end
       it "should remove name from _keywords" do
-        post :destroy, :method => :delete,
+        delete :destroy,
              :id => @tag.id,
              :contact_id => @contact.id,
              :account_name => @contact.owner.name,
@@ -101,15 +92,15 @@ describe V0::TagsController do
     end
     describe "as a viewer/editor" do
       before do
-        @account = Account.make
-        @account.lists.first.contacts << @contact
-        @account.save
+        @another_account = Account.make
+        @another_account.lists.first.contacts << @contact
+        @another_account.save
       end
-      it "should not delete the contact attribute" do
-        expect{post :destroy, :method => :delete,
+      it "should not delete the tag" do
+        expect{delete :destroy,
                     :id => @tag.id,
                     :contact_id => @contact.id,
-                    :account_name => @account.name,
+                    :account_name => @another_account.name,
                     :app_key => V0::ApplicationController::APP_KEY}.not_to change{@contact.reload.tags.count}
       end
     end

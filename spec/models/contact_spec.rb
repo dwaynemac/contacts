@@ -140,6 +140,31 @@ describe Contact do
     end
   end
 
+  describe "#tag_ids_for_request_account" do
+    before do
+      @account = Account.make(name: "belgrano")
+      @another_account = Account.make
+      @contact = Contact.make(account_name: @account.name)
+      @contact.tags.create(name: "first account", account_name: @account.name)
+      @contact.tags.create(name: "second account", account_name: @another_account.name)
+    end
+
+    context "with request account" do
+      before do
+        @contact.request_account = @account
+      end
+      it "returns tag_ids of request account" do
+        @contact.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id)
+      end
+    end
+    
+    context "without request account" do
+      it "returns nil" do
+        @contact.tag_ids_for_request_account.should be_nil
+      end
+    end
+  end
+
   describe "#api_where" do
     context "{:email => 'dwa', :first_name => 'Ale'}" do
       let(:selector){{:email => "dwa", :first_name => "Ale"}}
