@@ -133,10 +133,24 @@ class Contact
   end
 
   def tag_ids_for_request_account
-    if request_account.nil?
+    account = Account.where(name: request_account).first
+    if account.nil?
       return nil
     else
-      tags.where(account_id: request_account.id).map(&:id)
+      tags.where(account_id: account.id).map(&:id)
+    end
+  end
+
+  def tag_ids_for_request_account=(ids)
+    unless ids.is_a? Array
+      ids = []
+    end
+    account = Account.where(name: request_account).first
+    if account.nil?
+      raise 'missing account'
+    else
+      previous_ids = tags.where(account_id: {"$ne" => account.id}).map(&:id)
+      self.tag_ids = previous_ids + ids
     end
   end
 
@@ -230,7 +244,7 @@ class Contact
     account = options[:account]
     if account
       # add these options when account_id specified
-      options = options.merge({:except => [:contact_attributes, :local_unique_attributes]})
+      options = options.merge({:except => [:contact_attributes, :local_unique_attributes, :tag_ids]})
     end
 
     options = options.merge({:except => [:owner_id, :history_entries],
@@ -245,7 +259,7 @@ class Contact
     if account
       # add these data when account_id specified
       json[:contact_attributes] = self.contact_attributes.for_account(account, options)
-      json[:tags] = self.tags
+      json[:tags] = self.tags.where(account_id: account.id)
       %w{local_status coefficient local_teacher}.each do |local_attribute|
         json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
       end

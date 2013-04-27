@@ -145,22 +145,66 @@ describe Contact do
       @account = Account.make(name: "belgrano")
       @another_account = Account.make
       @contact = Contact.make(account_name: @account.name)
-      @contact.tags.create(name: "first account", account_name: @account.name)
-      @contact.tags.create(name: "second account", account_name: @another_account.name)
+      @contact.tags.create(name: "first account", account_id: @account.id)
+      @contact.tags.create(name: "second account", account_id: @another_account.id)
     end
 
     context "with request account" do
       before do
-        @contact.request_account = @account
+        @contact.request_account = @account.name
       end
       it "returns tag_ids of request account" do
-        @contact.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id)
+        @contact.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id).map(&:id)
       end
     end
     
     context "without request account" do
       it "returns nil" do
         @contact.tag_ids_for_request_account.should be_nil
+      end
+    end
+  end
+
+  describe "#tag_ids_for_request_account=" do
+    before do
+      @account = Account.make(name: "belgrano")
+      @another_account = Account.make
+      @contact = Contact.make(account_name: @account.name)
+      @contact.tags.create(name: "first account", account_id: @account.id)
+      @other_account_tag = @contact.tags.create(name: "second account", account_id: @another_account.id)
+    end
+
+    context "with request account" do
+      before do
+        @contact.request_account = @account.name
+        @tag = Tag.create(name: "new tag", account_id: @account.id)
+        @second_tag = Tag.create(name: "second tag", account_id: @account.id)
+      end
+      it "overriddes tags for request account" do
+        @contact.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id).map(&:id)
+        @contact.tag_ids_for_request_account = [@tag.id, @second_tag.id]
+        @contact.save
+        @contact.reload.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id).map(&:id)
+        @contact.tag_ids_for_request_account.should include(@second_tag.id)
+      end
+      it "doesnt remove tags from other accounts" do
+        @contact.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id).map(&:id)
+        @contact.tag_ids_for_request_account = [@tag.id, @second_tag.id]
+        @contact.save
+        @contact.reload.tags.where(account_id: @another_account.id).should == [@other_account_tag]
+      end
+      context "with it receives an empty string" do
+        it "should leave an empty array" do
+          @contact.tag_ids_for_request_account = ""
+          @contact.save
+          @contact.reload.tag_ids_for_request_account.should be_empty
+        end
+      end
+    end
+    
+    context "without request account" do
+      it "raises en exception" do
+        expect{@contact.tag_ids_for_request_account=[54]}.to raise_exception
       end
     end
   end
