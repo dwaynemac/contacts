@@ -6,7 +6,7 @@ class Contact
   include Mongoid::Timestamps
 
   include Mongoid::Search
-  search_in :first_name, :last_name, {:contact_attributes => :value },{:tags => :name}, {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
+  search_in :first_name, :last_name, {:contact_attributes => :value }, {:tags => :name} , {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
   embeds_many :attachments, cascade_callbacks: true
   accepts_nested_attributes_for :attachments, allow_destroy: true
@@ -150,7 +150,8 @@ class Contact
       raise 'missing account'
     else
       previous_ids = tags.where(account_id: {"$ne" => account.id}).map(&:id)
-      self.tag_ids = previous_ids + ids
+      # Initialice Tags for contact.index_keywords to work
+      self.tags = Tag.find(previous_ids+ids)
     end
   end
 

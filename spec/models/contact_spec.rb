@@ -179,6 +179,7 @@ describe Contact do
         @contact.request_account = @account.name
         @tag = Tag.create(name: "new tag", account_id: @account.id)
         @second_tag = Tag.create(name: "second tag", account_id: @account.id)
+        @third_tag = Tag.create(name: "testtag", account_id: @account.id)
       end
       it "overriddes tags for request account" do
         @contact.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id).map(&:id)
@@ -192,6 +193,15 @@ describe Contact do
         @contact.tag_ids_for_request_account = [@tag.id, @second_tag.id]
         @contact.save
         @contact.reload.tags.where(account_id: @another_account.id).should == [@other_account_tag]
+      end
+      it "should add the tags to the keywords" do
+        @contact.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id).map(&:id)
+        @contact.tag_ids_for_request_account = [@tag.id, @second_tag.id, @third_tag.id]
+        @contact.save
+        @contact.index_keywords!
+        @contact.reload.tag_ids_for_request_account.should include(@third_tag.id)
+        @contact.reload.tags.should include(@third_tag)
+        @contact.reload._keywords.should include(@third_tag.name)
       end
       context "with it receives an empty string" do
         it "should leave an empty array" do

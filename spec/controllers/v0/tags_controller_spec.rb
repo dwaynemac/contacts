@@ -14,7 +14,7 @@ describe V0::TagsController do
     context "called by contact" do
       context "sending :name" do
         before do
-          post :create, :account_name => @contact.owner.name, :contact_id => @contact.id,
+          post :create, :account_name => @contact.owner.name, :contact_ids => @contact.id,
                :tag => { :name => "complementacion" },
                :app_key => V0::ApplicationController::APP_KEY
         end
@@ -23,6 +23,9 @@ describe V0::TagsController do
           @contact.reload.tags.count.should == 1
           @contact.reload.tags.last.name.should == "complementacion"
           @account.reload.tags.count.should == 1
+        end
+        it "should be included in the contacts keywords" do
+          @contact.reload._keywords.should include("complementacion")
         end
         it "should assign tag to account" do
           @contact.reload.tags.last.account.should == @contact.owner
@@ -55,7 +58,7 @@ describe V0::TagsController do
       let(:other_account){Account.make}
       before do
         other_account.link(@contact)
-        post :create, :account_name => other_account.name, :contact_id => @contact.id,
+        post :create, :account_name => other_account.name, :contact_ids => @contact.id,
              :tag => { :name => "exalumno", :account_name => other_account.name },
              :app_key => V0::ApplicationController::APP_KEY
       end
