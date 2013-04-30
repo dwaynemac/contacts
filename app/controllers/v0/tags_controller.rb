@@ -70,11 +70,11 @@ class V0::TagsController < V0::ApplicationController
   # @response_field errors [Array] (for code: 400)
   def create
     @tag.account_id = @account.id
-    @tag.contact_ids = [params[:contact_id]]
+    @tag.contact_ids = [params[:contact_ids]]
 
-    if @tag.save!
-      if params[:contact_id]
-        contact = Contact.find(params[:contact_id])
+    if @tag.save
+      if params[:contact_ids]
+        contact = Contact.find(params[:contact_ids])
         contact.index_keywords! unless contact.nil?
       end
 
