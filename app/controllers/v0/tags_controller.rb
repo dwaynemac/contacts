@@ -144,6 +144,8 @@ class V0::TagsController < V0::ApplicationController
     render :json => "OK"
   end
 
+  private
+
   def get_account
     @account = Account.where(name: params[:account_name]).first
   end
