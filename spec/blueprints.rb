@@ -65,3 +65,8 @@ List.blueprint do
   name { Faker::Internet.user_name }
   account { Account.make }
 end
+
+Tag.blueprint do
+  name { Faker::Internet.user_name }
+  account { Account.make }
+end

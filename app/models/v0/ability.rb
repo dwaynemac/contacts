@@ -59,6 +59,10 @@ class V0::Ability
       cannot :create, Merge
       can :create, Merge, {first_contact: {owner: account}, second_contact: {owner: account}}
 
+      # Tags
+      cannot :manage, Tag
+      can :manage, Tag, account_id: account.id
+
     end
 
 

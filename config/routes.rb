@@ -14,11 +14,14 @@ Contacts::Application.routes.draw do
     end
     resources :contact_attributes
     resources :attachments
+    resources :tags
     resource :avatar, :only => [:create, :destroy]
     scope "/accounts/:account_name" do
+      resources :tags
       resources :contacts do
         resources :contact_attributes
         resources :attachments
+        resources :tags
       end
     end
     resources :merges do
