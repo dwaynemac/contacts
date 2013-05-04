@@ -11,11 +11,8 @@ class V0::TagsController < V0::ApplicationController
   # @url /v0/accounts/:account_name/tags
   # @action GET
   #
-  # @argument account_name [String]
+  # @required account_name [String]
   # @optional [String] contact_id id of contact, sets the scope for the contacts tag
-  #
-  # @response_code 200
-  # @example_response { name: 'tag_name' }
   #
   # @author Alex Falke
   def index
