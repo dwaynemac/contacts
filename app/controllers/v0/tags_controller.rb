@@ -110,10 +110,22 @@ class V0::TagsController < V0::ApplicationController
   #
   # @author Alex Falke
   def update
-    @contact = Contact.find(params[:contact_id])
+    @contacts = nil
 
-    if @tag.update_attributes(params[:tag])
-      @contact.index_keywords! unless @contact.nil?
+    # if no contact is specified, it means all have been erased from this tag
+    if params[:contact_ids].nil?
+      @tag.contacts = nil
+    else
+      @contacts = Contact.find(params[:contact_ids]) 
+      @tag.contacts = @contacts
+    end
+
+    if @tag.save
+      unless @contacts.nil?
+        @contacts.each do |contact|
+          contact.index_keywords!
+        end
+      end
       render :json => "OK"
     else
       render :json => { :message => "Sorry, tag not updated",

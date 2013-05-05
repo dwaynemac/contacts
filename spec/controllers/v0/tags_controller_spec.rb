@@ -72,6 +72,49 @@ describe V0::TagsController do
     end
   end
 
+  describe "#update" do
+    before do
+      @new_account = Account.make
+      @new_contact = Contact.make(owner: @new_account)
+      @another_contact = Contact.make(owner: @new_account)
+      @new_tag = Tag.make(account_id: @new_account.id)
+      @new_contact.tags << @new_tag
+      @another_contact.tags << @new_tag
+    end
+    it "should have its contact list correct before updated" do
+      @new_tag.contact_ids.should include(@new_contact.id, @another_contact.id)
+    end
+    context "when the contact list has been updated" do
+      before do
+        put :update, :account_name => @new_account.name, :contact_ids => [@another_contact.id],
+            :id => @new_tag.id,
+            :app_key => V0::ApplicationController::APP_KEY
+      end
+      it "should update its contact list" do
+        @new_tag.reload.contact_ids.count.should == 1
+        @new_tag.contact_ids.should_not include(@new_contact.id)
+        @new_tag.contact_ids.should include(@another_contact.id)
+      end
+    end
+    context "if the contact list is empty" do
+      before do
+        put :update, :account_name => @new_account.name,
+            :id => @new_tag.id,
+            :app_key => V0::ApplicationController::APP_KEY
+      end
+      it "should remove all associated contacts" do
+        @new_tag.reload.contact_ids.count.should == 0
+        @new_tag.contact_ids.should_not include(@new_contact.id, @another_contact.id)
+      end
+      it "should remove the tag name from the contacts keywords" do
+        @new_contact._keywords.should_not include(@new_tag.name)
+      end
+      it "should not remove contacts from database" do
+        Contact.find(@new_contact.id).should_not be_nil
+      end
+    end
+  end
+
   describe "#delete" do
     before do
       @tag = @contact.tags.create(name: "marzo", account_id: @contact.owner.id)
