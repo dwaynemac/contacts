@@ -926,43 +926,75 @@ describe Contact do
 
   # real life example
   describe ".with_attribute_value_at" do
-    before do
-      @contact = Contact.make
-      HistoryEntry.create(attribute: 'level',
-                          old_value: Contact::VALID_LEVELS[nil],
-                          changed_at: '2012-11-26 18:00:00 UTC'.to_time,
-                          historiable_type: 'Contact',
-                          historiable_id: @contact._id
-      )
-      HistoryEntry.create(attribute: 'level',
-                          old_value: Contact::VALID_LEVELS['sádhaka'],
-                          changed_at: '2012-11-26 18:58:21 UTC'.to_time,
-                          historiable_type: 'Contact',
-                          historiable_id: @contact._id
-      )
-      HistoryEntry.create(attribute: 'level',
-                          old_value: Contact::VALID_LEVELS['aspirante'],
-                          changed_at: '2012-11-26 23:41:16 UTC'.to_time,
-                          historiable_type: 'Contact',
-                          historiable_id: @contact._id
-      )
-    end
-    specify do
-      @contact.history_entries.where(attribute: 'level').each{|h|[
-          DateTime.civil(2012,11,26,18,0,0,0),
-          DateTime.civil(2012,11,26,18,58,21,0),
-          DateTime.civil(2012,11,26,23,41,16,0)
-      ].should include h.changed_at }
-    end
+    describe "with local_unique_attributes" do
+      before do
+        a = Account.make(name: 'martinez')
+        @contact = Contact.make
+        @contact.local_unique_attributes << LocalStatus.make(value: :student, account: a)
+        @contact.save
+        @contact.reload.history_entries.delete_all
+        @contact.local_status_for_martinez.should == :student
 
-    example { contacts_with_value_at('sádhaka', 1.year.ago).should_not include @contact }
-    example { contacts_with_value_at('sádhaka', DateTime.civil(2012,11,26,18,57,0,0)).should include @contact }
-    example { contacts_with_value_at(nil,1.year.ago).should include @contact }
-    example { contacts_with_value_at('aspirante','2012-11-26 23:00:00 UTC').should include @contact }
+        HistoryEntry.create(attribute: 'local_status_for_martinez',
+                            old_value: '',
+                            changed_at: DateTime.civil(2012,11,21,20,34,39).to_time,
+                            historiable_type: 'Contact',
+                            historiable_id: @contact._id
+        )
+        HistoryEntry.create(attribute: 'local_status_for_martinez',
+                            old_value: :prospect,
+                            changed_at: DateTime.civil(2012,11,21,20,35,50).to_time,
+                            historiable_type: 'Contact',
+                            historiable_id: @contact._id
+        )
+      end
+      example { contacts_with_value_at('student',Date.civil(2012,11,20)).should_not include @contact}
+      example { contacts_with_value_at('student',Date.civil(2012,11,22)).should include @contact}
+      example { contacts_with_value_at('prospect',DateTime.civil(2012,11,21,20,34,41).to_time).should include @contact }
+      # helper
+      def contacts_with_value_at(value,time)
+        Contact.with_attribute_value_at('local_status_for_martinez',value,time)
+      end
+    end
+    describe "with level" do
+      before do
+        @contact = Contact.make
+        HistoryEntry.create(attribute: 'level',
+                            old_value: Contact::VALID_LEVELS[nil],
+                            changed_at: '2012-11-26 18:00:00 UTC'.to_time,
+                            historiable_type: 'Contact',
+                            historiable_id: @contact._id
+        )
+        HistoryEntry.create(attribute: 'level',
+                            old_value: Contact::VALID_LEVELS['sádhaka'],
+                            changed_at: '2012-11-26 18:58:21 UTC'.to_time,
+                            historiable_type: 'Contact',
+                            historiable_id: @contact._id
+        )
+        HistoryEntry.create(attribute: 'level',
+                            old_value: Contact::VALID_LEVELS['aspirante'],
+                            changed_at: '2012-11-26 23:41:16 UTC'.to_time,
+                            historiable_type: 'Contact',
+                            historiable_id: @contact._id
+        )
+      end
+      specify do
+        @contact.history_entries.where(attribute: 'level').each{|h|[
+            DateTime.civil(2012,11,26,18,0,0,0),
+            DateTime.civil(2012,11,26,18,58,21,0),
+            DateTime.civil(2012,11,26,23,41,16,0)
+        ].should include h.changed_at }
+      end
 
-    # helper
-    def contacts_with_value_at(value,at)
-      Contact.with_attribute_value_at('level',value,at)
+      example { contacts_with_value_at('sádhaka', 1.year.ago).should_not include @contact }
+      example { contacts_with_value_at('sádhaka', DateTime.civil(2012,11,26,18,57,0,0)).should include @contact }
+      example { contacts_with_value_at(nil,1.year.ago).should include @contact }
+      example { contacts_with_value_at('aspirante','2012-11-26 23:00:00 UTC').should include @contact }
+
+      # helper
+      def contacts_with_value_at(value,at)
+        Contact.with_attribute_value_at('level',value,at)
+      end
     end
   end
 

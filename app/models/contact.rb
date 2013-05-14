@@ -423,6 +423,10 @@ class Contact
   # @return [Mongoid::Criteria]
   def self.with_attribute_value_at(attribute, value, ref_date)
 
+    if ref_date.is_a?(Date)
+      ref_date = ref_date.to_datetime.end_of_day
+    end
+
     # cast value
     value = case attribute
       when 'level'

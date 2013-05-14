@@ -11,20 +11,23 @@ describe V0::ContactsController do
     end
   end
 
-  
-  describe "#index" do
+
+    describe "#index" do
+    def do_request(params)
+      get :index, params.merge(app_key: V0::ApplicationController::APP_KEY)
+    end
     describe "paginates" do
       before do
         9.times { Contact.make }
         @isp = Contact.make(name: "in_second_page")
       end
       it "should return page 1" do
-        get :index, :app_key => V0::ApplicationController::APP_KEY, :page => 1
+        do_request(:page => 1)
         ActiveSupport::JSON.decode(response.body)["total"].should == Contact.count
         assigns(:contacts).should_not include(@isp)
       end
       it "should return page 2" do
-        get :index, :app_key => V0::ApplicationController::APP_KEY, :page => 2
+        do_request(:page => 2)
         ActiveSupport::JSON.decode(response.body)["total"].should == Contact.count
         assigns(:contacts).should include(@isp)
       end
@@ -101,7 +104,7 @@ describe V0::ContactsController do
 
       context ":ids" do
         before do
-          get :index, :app_key => V0::ApplicationController::APP_KEY, :ids => [@first_name.id,@email.id]
+          do_request(:ids => [@first_name.id,@email.id])
         end
         it "should only include contacts specified by ids" do
           assigns(:contacts).should include(@first_name)
@@ -112,7 +115,7 @@ describe V0::ContactsController do
 
       context ":full_text it will make a full text search" do
         before do
-          get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => "dwayne"
+          do_request(:full_text => "dwayne")
         end
         specify { assigns(:contacts).size.should == 3 }
         specify "within first_names" do
@@ -131,7 +134,7 @@ describe V0::ContactsController do
           @goku_contact = Contact.make(first_name: "Son", last_name: "Goku")
           @gohan_contact = Contact.make(first_name: "Son", last_name: "Gohan")
 
-          get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => "Son Gok"
+          do_request(:full_text => "Son Gok")
         end
         it "should match all words" do
           assigns(:contacts).should include(@goku_contact)
@@ -141,7 +144,7 @@ describe V0::ContactsController do
 
       context "with blank :full_text" do
         before do
-          get :index, :app_key => V0::ApplicationController::APP_KEY, :full_text => ""
+          do_request(:full_text => "")
         end
         it { should respond_with(:success) } # response.should be_success
         it { should assign_to(:contacts) }
@@ -167,8 +170,7 @@ describe V0::ContactsController do
 
         context "{:email => 'dwa', :first_name => 'Ale'}" do
           before do
-            get :index, :app_key => V0::ApplicationController::APP_KEY,
-                :where => {:email => "dwa", :first_name => "Ale"}
+            do_request(:where => {:email => "dwa", :first_name => "Ale"})
           end
           it "should build Criteria" do
             assigns(:contacts).selector.should == {
@@ -189,8 +191,7 @@ describe V0::ContactsController do
 
         context "{:email => 'dwa', :first_name => 'Ale', :telephone => '1234'}" do
           before do
-            get :index, :app_key => V0::ApplicationController::APP_KEY,
-                :where => {:email => "dwa", :first_name => "Ale", :telephone => "1234"}
+            do_request(:where => {:email => "dwa", :first_name => "Ale", :telephone => "1234"})
           end
           it { assigns(:contacts).count.should == 1}
           it "should return contacts that match ALL conditions." do
@@ -208,8 +209,7 @@ describe V0::ContactsController do
             @addressed.contact_attributes << Address.make(:value => "saltin 23")
             @addressed.save
 
-            get :index, :app_key => V0::ApplicationController::APP_KEY,
-                        :where => { :contact_attributes => {:value => "salti"} }
+            do_request(:where => { :contact_attributes => {:value => "salti"} })
           end
           it "should match street" do
             assigns(:contacts).to_a.should include(@addressed)
@@ -221,18 +221,21 @@ describe V0::ContactsController do
   end
 
   describe "#search" do
+    def do_request(params)
+      post :search, params.merge(app_key: V0::ApplicationController::APP_KEY)
+    end
     describe "paginates" do
       before do
         9.times { Contact.make }
         @isp = Contact.make(name: "in_second_page")
       end
       it "should return page 1" do
-        post :search, :app_key => V0::ApplicationController::APP_KEY, :page => 1
+        do_request(:page => 1)
         ActiveSupport::JSON.decode(response.body)["total"].should == Contact.count
         assigns(:contacts).should_not include(@isp)
       end
       it "should return page 2" do
-        post :search, :app_key => V0::ApplicationController::APP_KEY, :page => 2
+        do_request(:page => 2)
         ActiveSupport::JSON.decode(response.body)["total"].should == Contact.count
         assigns(:contacts).should include(@isp)
       end
@@ -332,7 +335,7 @@ describe V0::ContactsController do
 
       context ":ids" do
         before do
-          post :search, :app_key => V0::ApplicationController::APP_KEY, :ids => [@first_name.id,@email.id]
+          do_request(:ids => [@first_name.id,@email.id])
         end
         it "should only include contacts specified by ids" do
           assigns(:contacts).should include(@first_name)
@@ -343,7 +346,7 @@ describe V0::ContactsController do
 
       context ":full_text it will make a full text search" do
         before do
-          post :search, :app_key => V0::ApplicationController::APP_KEY, :full_text => "dwayne"
+          do_request(:full_text => "dwayne")
         end
         specify { assigns(:contacts).size.should == 3 }
         specify "within first_names" do
@@ -362,7 +365,7 @@ describe V0::ContactsController do
           @goku_contact = Contact.make(first_name: "Son", last_name: "Goku")
           @gohan_contact = Contact.make(first_name: "Son", last_name: "Gohan")
 
-          post :search, :app_key => V0::ApplicationController::APP_KEY, :full_text => "Son Gok"
+          do_request(:full_text => "Son Gok")
         end
         it "should match all words" do
           assigns(:contacts).should include(@goku_contact)
@@ -372,7 +375,7 @@ describe V0::ContactsController do
 
       context "with blank :full_text" do
         before do
-          post :search, :app_key => V0::ApplicationController::APP_KEY, :full_text => ""
+          do_request(:full_text => "")
         end
         it { should respond_with(:success) } # response.should be_success
         it { should assign_to(:contacts) }
@@ -398,8 +401,7 @@ describe V0::ContactsController do
 
         context "{:email => 'dwa', :first_name => 'Ale'}" do
           before do
-            post :search, :app_key => V0::ApplicationController::APP_KEY,
-                :where => {:email => "dwa", :first_name => "Ale"}
+            do_request(:where => {:email => "dwa", :first_name => "Ale"})
           end
           it "should build Criteria" do
             assigns(:contacts).selector.should == {
@@ -420,8 +422,7 @@ describe V0::ContactsController do
 
         context "{:email => 'dwa', :first_name => 'Ale', :telephone => '1234'}" do
           before do
-            post :search, :app_key => V0::ApplicationController::APP_KEY,
-                :where => {:email => "dwa", :first_name => "Ale", :telephone => "1234"}
+            do_request(:where => {:email => "dwa", :first_name => "Ale", :telephone => "1234"})
           end
           it { assigns(:contacts).count.should == 1}
           it "should return contacts that match ALL conditions." do
@@ -439,8 +440,7 @@ describe V0::ContactsController do
             @addressed.contact_attributes << Address.make(:value => "saltin 23")
             @addressed.save
 
-            post :search, :app_key => V0::ApplicationController::APP_KEY,
-                :where => { :contact_attributes => {:value => "salti"} }
+            do_request(:where => { :contact_attributes => {:value => "salti"} })
           end
           it "should match street" do
             assigns(:contacts).to_a.should include(@addressed)
