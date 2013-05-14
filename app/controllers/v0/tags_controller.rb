@@ -156,6 +156,19 @@ class V0::TagsController < V0::ApplicationController
     render :json => "OK"
   end
 
+  def batch_add
+    tags = Tag.find(params[:tags])
+    contacts = Contact.find(params[:contact_ids])
+    
+    contacts.each do |contact|
+      contact.tags += tags
+      contact.save
+      contact.index_keywords!
+    end
+
+    render :json => "OK"
+  end
+
   def get_account
     @account = Account.where(name: params[:account_name]).first
   end

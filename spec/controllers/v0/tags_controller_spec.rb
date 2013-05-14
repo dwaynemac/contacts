@@ -115,6 +115,62 @@ describe V0::TagsController do
     end
   end
 
+  describe "#batch_add" do
+    before do
+      @new_account = Account.make(name: "test_account")
+      @first_tag = Tag.make(account_name: @new_account.name, name: "abril")
+      @second_tag = Tag.make(account_name: @new_account.name, name: "mayo")
+      @third_tag = Tag.make(account_name: @new_account.name, name: "junio")
+      @first_contact = Contact.make(owner: @new_account)
+      @second_contact = Contact.make(owner: @new_account)
+    end
+    context "when adding only existing tags to contacts that didnt have those tags" do
+      before do
+        post :batch_add, :account_name => @new_account.name,
+        :tags => [@first_tag.id, @second_tag.id, @third_tag.id],
+        :contact_ids => [@first_contact.id, @second_contact.id],
+        :app_key => V0::ApplicationController::APP_KEY
+        @first_contact.save
+        @second_contact.save
+      end
+      it "should update contacts with these tags" do
+        @first_contact.reload.tags.should include(@first_tag, @second_tag, @third_tag)
+        @second_contact.reload.tags.should include(@first_tag, @second_tag, @third_tag)
+      end
+      it "should not have repeated tags" do
+        @first_contact.reload.tags.where(name: @first_tag.name).count.should == 1
+      end
+      it "should update the contact keywords" do
+        @first_contact.reload._keywords.should include(@first_tag.name, @second_tag.name, @third_tag.name)
+        @second_contact.reload._keywords.should include(@first_tag.name, @second_tag.name, @third_tag.name)
+      end
+    end
+
+    context "when adding only existing tags to contacts that did have those tags" do
+      before do
+        @first_contact.tags << @first_tag
+        @second_contact.tags << @third_tag
+        post :batch_add, :account_name => @new_account.name,
+        :tags => [@first_tag.id, @second_tag.id, @third_tag.id],
+        :contact_ids => [@first_contact.id, @second_contact.id],
+        :app_key => V0::ApplicationController::APP_KEY
+        @first_contact.save
+        @second_contact.save
+      end
+      it "should update contacts with these tags" do
+        @first_contact.reload.tags.should include(@first_tag, @second_tag, @third_tag)
+        @second_contact.reload.tags.should include(@first_tag, @second_tag, @third_tag)
+      end
+      it "should not have repeated tags" do
+        @first_contact.reload.tags.where(name: @first_tag.name).count.should == 1
+      end
+      it "should update the contact keywords" do
+        @first_contact.reload._keywords.should include(@first_tag.name, @second_tag.name, @third_tag.name)
+        @second_contact.reload._keywords.should include(@first_tag.name, @second_tag.name, @third_tag.name)
+      end
+    end
+  end
+
   describe "#delete" do
     before do
       @tag = @contact.tags.create(name: "marzo", account_id: @contact.owner.id)

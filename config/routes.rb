@@ -17,7 +17,11 @@ Contacts::Application.routes.draw do
     resources :tags
     resource :avatar, :only => [:create, :destroy]
     scope "/accounts/:account_name" do
-      resources :tags
+      resources :tags do
+        collection do
+          post 'batch_add'
+        end
+      end
       resources :contacts do
         resources :contact_attributes
         resources :attachments
