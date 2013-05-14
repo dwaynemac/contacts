@@ -10,6 +10,11 @@ class Tag
 
   validates_uniqueness_of :name, :scope => :account_id
 
+  def self.remove_all_empty
+    non_associated_tags = Tag.where(:contact_ids => nil, :contact_ids => [])
+    non_associated_tags.delete_all
+  end
+
   def as_json(options = nil)
     options = {} if options.nil?
     json = super options.merge({except: :account_id, methods: [:account_name]})
