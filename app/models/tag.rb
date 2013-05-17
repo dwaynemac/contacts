@@ -11,7 +11,7 @@ class Tag
   validates_uniqueness_of :name, :scope => :account_id
 
   def self.remove_all_empty
-    non_associated_tags = Tag.where(:contact_ids => nil, :contact_ids => [])
+    non_associated_tags = Tag.any_of({:contact_ids => nil}, {:contact_ids => []})
     non_associated_tags.delete_all
   end
 
