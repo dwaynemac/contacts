@@ -4,6 +4,11 @@ Web service for handling PADMA's Contacts.
 
 = Documentation
 
+== Deployment
+
+rake periodic:remove_empty_tags should be scheduled.
+rake mongo:backup should be scheduled
+
 == Development documentation
 
 Run
