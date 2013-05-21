@@ -662,6 +662,33 @@ describe V0::ContactsController do
         end
       end
 
+      describe "erasing a tag but leaving the contact with tags from another account" do
+        before do
+          @account = Account.make(name: "belgrano")
+          @another_account = Account.make(name: "cervino")
+          @contact = Contact.make(owner: @account)
+          @contact.request_account = @account.name
+          @tag = Tag.make(account_id: @account.id)
+          @another_tag = Tag.make(account_id: @another_account.id)
+          @contact.tags << @tag
+          @contact.tags << @another_tag
+          @contact.save
+          put :update, id: @contact.id, :contact => {tag_ids_for_request_account: ""},
+              :account_name => @account.name,
+              :app_key => V0::ApplicationController::APP_KEY
+        end
+        it "should be consecuent with tag_ids_for_request_account" do
+          @contact.save
+          @contact.reload.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id).map(&:id)
+          @contact.reload.tag_ids_for_request_account.should == []
+        end
+        it "should update the contact tags and leave one tag" do
+          @contact.save
+          @contact.reload.tags.count.should == 1
+          @contact.tags.last.should == @another_tag
+        end
+      end
+
       describe "erasing a tag and leaving the contact without tags" do
         before do
           @account = Account.make(name: "belgrano")
