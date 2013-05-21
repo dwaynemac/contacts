@@ -70,7 +70,7 @@ class V0::TagsController < V0::ApplicationController
     @tag.contact_ids = [params[:contact_ids]]
 
     if @tag.save
-      if params[:contact_ids]
+      unless params[:contact_ids].blank?
         contact = Contact.find(params[:contact_ids])
         contact.index_keywords! unless contact.nil?
       end

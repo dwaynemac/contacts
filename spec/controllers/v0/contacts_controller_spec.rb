@@ -635,6 +635,52 @@ describe V0::ContactsController do
       similar.reload.gender.should == 'male'
     end
 
+    context "#tag_ids_for_request_account" do
+      describe "erasing a tag but leaving the contact with tags" do
+        before do
+          @account = Account.make(name: "belgrano")
+          @contact = Contact.make(owner: @account)
+          @contact.request_account = @account.name
+          @tag = Tag.make(account_id: @account.id)
+          @another_tag = Tag.make(account_id: @account.id)
+          @contact.tags << @tag
+          @contact.tags << @another_tag
+          @contact.save
+          put :update, id: @contact.id, :contact => {tag_ids_for_request_account: [@tag.id]},
+              :account_name => @account.name,
+              :app_key => V0::ApplicationController::APP_KEY
+        end
+        it "should be consecuent with tag_ids_for_request_account" do
+          @contact.save
+          @contact.reload.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id).map(&:id)
+          @contact.reload.tag_ids_for_request_account.should == [@tag.id]
+        end
+        it "should update the contact tags and leave one tag" do
+          @contact.save
+          @contact.reload.tags.count.should == 1
+          @contact.tags.last.should == @tag
+        end
+      end
+
+      describe "erasing a tag and leaving the contact without tags" do
+        before do
+          @account = Account.make(name: "belgrano")
+          @contact = Contact.make(owner: @account)
+          @contact.request_account = @account.name
+          @tag = Tag.make(account_id: @account.id)
+          @contact.tags << @tag
+          @contact.save
+          put :update, id: @contact.id, :contact => {tag_ids_for_request_account: ""},
+              :account_name => @account.name,
+              :app_key => V0::ApplicationController::APP_KEY
+        end
+        it "should update the contact tags" do
+          @contact.save
+          @contact.reload.tags.count.should == 0
+        end
+      end
+    end
+
     #Commenting out these tests as this functionality is not being used, but they reflect the issue correctly. LP
     #
     #describe "contact: {contact_attributes_attributes: ['....']}" do

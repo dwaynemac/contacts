@@ -52,6 +52,25 @@ describe V0::TagsController do
           @account.reload.tags.last.contacts.should be_empty
         end
       end
+
+      context "sending :name with empty contact_ids" do
+        before do
+          post :create, :account_name => @contact.owner.name, :contact_ids => "",
+               :tag => { :name => "febrero"},
+               :app_key => V0::ApplicationController::APP_KEY
+        end
+        it { should respond_with :created }
+        it "should create a new tag" do
+          @account.reload.tags.count.should == 1
+          @account.reload.tags.last.name.should == "febrero"
+        end
+        it "should assign tag to account" do
+          @account.reload.tags.last.account.should == @contact.owner
+        end
+        it "should'n be assigned to contact" do
+          @account.reload.tags.last.contacts.should be_empty
+        end
+      end
     end
 
     context "called by linked, non-owner account" do

@@ -150,8 +150,10 @@ class Contact
       raise 'missing account'
     else
       previous_ids = tags.where(account_id: {"$ne" => account.id}).map(&:id)
+
       # Initialice Tags for contact.index_keywords to work
-      self.tags = Tag.find(previous_ids+ids)
+      new_tags = Tag.find(previous_ids+ids)
+      self.tags = new_tags.empty? ? nil : new_tags
     end
   end
 
