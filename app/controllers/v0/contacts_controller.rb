@@ -20,9 +20,13 @@ class V0::ContactsController < V0::ApplicationController
   # @optional [Integer] page will return this page (default: 1)
   # @optional [Integer] per_page will paginate contacts with this amount per page (default: 10)
   # @optional [String] full_text will make a full_text search with this string.
-  # @optional [Hash] where Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status
+  # @optional [Hash] where Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status, :date_attribute
   # @optional [Array<Hash>] attributes_value_at Array of hashes with keys: :attribute, :value, :ref_date. This will be ANDed, not ORed.
   #
+  # @example_request
+  #   -- "All contacts with birthdate on 21st May" --
+  #
+  #   POST /v0/contacts/search, { where: { date_attribute: {day: 21, month: 5, category: 'Birthday' } }  }
   # @example_response { collection: [ {_id: 1234,name: ...} ], total: 1}
   #
   # @response_field [Array <Contact>] collection corresponding to chosen :page

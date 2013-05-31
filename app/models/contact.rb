@@ -1,6 +1,13 @@
 # encoding: UTF-8
 require 'mongoid/criteria'
 
+##
+# @restful_api v0
+#
+# @property [String] first_name
+# @property [String] last_name
+#
+# @property [String] gender Valid values are '', 'male' and 'female'.
 class Contact
   include Mongoid::Document
   include Mongoid::Timestamps
