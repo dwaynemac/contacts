@@ -14,3 +14,4 @@ public/uploads/*.jpg
 public/uploads/*.gif
 Procfile.dev
 public/documentation/
+.ruby-gemset
