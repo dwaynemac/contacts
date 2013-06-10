@@ -49,7 +49,7 @@ class V0::ContactsController < V0::ApplicationController
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
 
     response.headers['Content-type'] = 'application/json; charset=utf-8'
-    render :json => { :collection => @contacts, :total => total}.as_json(account: @account, except_linked:true, except_last_local_status: true)
+    render :json => { :collection => @contacts, :total => total}.as_json(account: @account, except_linked:true, except_last_local_status: true, only_name: params[:only_name].present?)
   end
 
   # @url /v0/contacts/search
@@ -58,6 +58,19 @@ class V0::ContactsController < V0::ApplicationController
   def search
     index
   end
+
+  def search_for_select
+    @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
+    @scope = @scope.api_where(params[:where], @account.try(:id))   if params[:where].present?
+    @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
+
+    total = @scope.count
+    @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
+
+    respond_to do |format|
+      format.js { render :json => { :collection => @contacts, :total => total}.as_json(account: @account, except_linked:true, except_last_local_status: true, only_name: params[:only_name].present?), :callback => params[:callback] }
+    end    
+  end  
 
   ##
   # Returns JSON for a contact
@@ -274,7 +287,7 @@ class V0::ContactsController < V0::ApplicationController
   #  Sets the scope
   def set_scope
     @scope = case action_name.to_sym
-      when :index, :search, :update
+      when :index, :search, :search_for_select, :update
         @account.present?? (@list.present?? @list.contacts : @account.contacts ) : Contact
       when :create
         @account.present?? (@list.present?? @list.contacts : @account.owned_contacts) : Contact

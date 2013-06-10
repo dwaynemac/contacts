@@ -250,31 +250,37 @@ class Contact
   # @option options [TrueClass] include_masked
   def as_json(options = nil)
     options ||= {}
-
-    account = options[:account]
-    if account
-      # add these options when account_id specified
-      options = options.merge({:except => [:contact_attributes, :local_unique_attributes, :tag_ids]})
-    end
-
-    options = options.merge({:except => [:owner_id, :history_entries],
-                             :methods => [:owner_name,
-                                          :local_statuses,
-                                          :coefficients_counts,
-                                          :in_active_merge
-                             ]})
-
-    json = super options
-
-    if account
-      # add these data when account_id specified
-      json[:contact_attributes] = self.contact_attributes.for_account(account, options)
-      json[:tags] = self.tags.where(account_id: account.id)
-      %w{local_status coefficient local_teacher}.each do |local_attribute|
-        json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
+     
+    if options[:only_name]
+      json = {}
+      json[:id] = self.id
+      json[:name] = self.full_name
+    else
+      account = options[:account]
+      if account
+        # add these options when account_id specified
+        options = options.merge({:except => [:contact_attributes, :local_unique_attributes, :tag_ids]})
       end
-      json[:linked] = self.linked_to?(account) unless options[:except_linked]
-      json[:last_local_status] = self.history_entries.last_value("local_status_for_#{account.name}".to_sym) unless options[:except_last_local_status]
+
+      options = options.merge({:except => [:owner_id, :history_entries],
+                               :methods => [:owner_name,
+                                            :local_statuses,
+                                            :coefficients_counts,
+                                            :in_active_merge
+                               ]})
+
+      json = super options
+
+      if account
+        # add these data when account_id specified
+        json[:contact_attributes] = self.contact_attributes.for_account(account, options)
+        json[:tags] = self.tags.where(account_id: account.id)
+        %w{local_status coefficient local_teacher}.each do |local_attribute|
+          json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
+        end
+        json[:linked] = self.linked_to?(account) unless options[:except_linked]
+        json[:last_local_status] = self.history_entries.last_value("local_status_for_#{account.name}".to_sym) unless options[:except_last_local_status]
+      end      
     end
     json
   end
