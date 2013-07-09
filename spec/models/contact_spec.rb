@@ -1040,4 +1040,35 @@ describe Contact do
     c = Contact.make(first_name: "alex", last_name: "falke", estimated_age: 30)
     c.should be_valid
   end
+
+  describe "when receiving a value with extra white spaces" do
+    context "sending an email" do
+      before do
+        @c = Contact.make(first_name: "Alex")
+        @c.contact_attributes << Email.new(value: ' alex@mail.com ')
+      end
+      it "should should not raise an exception" do
+        expect{@c.save!}.not_to raise_exception
+      end
+      it "should trim the values before saving them to the database" do
+        @c.save
+        @c.emails.last.value.should == "alex@mail.com"
+      end
+    end
+    
+    context "sending a telephone" do
+      before do
+        @c = Contact.make(first_name: "Alex")
+        @c.save
+        @c.contact_attributes << Telephone.new(value: ' 1554665555 ')
+      end
+      it "should should not raise an exception" do
+        expect{@c.save!}.not_to raise_exception
+      end
+      it "should trim the values before saving them to the database" do
+        @c.save
+        @c.telephones.last.value.should == "1554665555"
+      end
+    end
+  end
 end
