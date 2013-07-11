@@ -1,5 +1,6 @@
 class Email < ContactAttribute
 
+  before_validation :strip_whitespace
   before_save :normalize_email
 
   field :category
@@ -9,5 +10,9 @@ class Email < ContactAttribute
   private
   def normalize_email
     value.downcase!
+  end
+
+  def strip_whitespace
+  	self.value = self.value.strip
   end
 end

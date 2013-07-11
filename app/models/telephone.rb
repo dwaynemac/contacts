@@ -3,6 +3,7 @@ class Telephone < ContactAttribute
   field :category
 
   #before_validation :camelize_category
+  before_validation :strip_whitespace
 
   validates_numericality_of :value, only_integer: true, greater_than: 0
   # validates_format_of :value, with: /^\d[\d| |\-]{4,16}.*\d$/
@@ -31,6 +32,10 @@ class Telephone < ContactAttribute
 
   def camelize_category
     self.category = self.category.to_s.camelcase
+  end
+
+  def strip_whitespace
+    self.value = self.value.strip
   end
 
 end
