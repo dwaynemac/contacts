@@ -151,7 +151,7 @@ describe Contact do
 
     context "with request account" do
       before do
-        @contact.request_account = @account.name
+        @contact.request_account_name = @account.name
       end
       it "returns tag_ids of request account" do
         @contact.tag_ids_for_request_account.should == @contact.tags.where(account_id: @account.id).map(&:id)
@@ -176,7 +176,7 @@ describe Contact do
 
     context "with request account" do
       before do
-        @contact.request_account = @account.name
+        @contact.request_account_name = @account.name
         @tag = Tag.create(name: "new tag", account_id: @account.id)
         @second_tag = Tag.create(name: "second tag", account_id: @account.id)
         @third_tag = Tag.create(name: "testtag", account_id: @account.id)

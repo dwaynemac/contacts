@@ -89,8 +89,8 @@ class Contact
   attr_accessor :check_duplicates
   validate :validate_duplicates, :if => :check_duplicates
 
-  attr_accessor :request_user
-  attr_accessor :request_account
+  attr_accessor :request_username
+  attr_accessor :request_account_name
 
   # @return [Mongoid::Criteria]
   def active_merges
@@ -140,7 +140,7 @@ class Contact
   end
 
   def tag_ids_for_request_account
-    account = Account.where(name: request_account).first
+    account = self.request_account
     if account.nil?
       return nil
     else
@@ -152,7 +152,7 @@ class Contact
     unless ids.is_a? Array
       ids = []
     end
-    account = Account.where(name: request_account).first
+    account = self.request_account
     if account.nil?
       raise 'missing account'
     else
@@ -200,7 +200,13 @@ class Contact
 
     # local_unique_attribute reader for an account_id
     if method_sym.to_s =~ /^(.+)_for_([^=]+)$/
-      a = Account.where(name: $2).first
+
+      #cache account to avoid multiple calls to accounts service
+      unless (a = instance_variable_get("@cached_account_#{$2}")).blank?
+        a = Account.where(name: $2).first
+        instance_variable_set("@cached_account_#{$2}", a)
+      end
+
       if a.nil?
         return nil
       else
@@ -209,7 +215,13 @@ class Contact
 
     # local_unique_attribute setter for an account_name
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
-      a = Account.where(name: $2).first
+      
+      #cache account to avoid multiple calls to accounts service
+      unless (a = instance_variable_get("@cached_account_#{$2}")).blank?
+        a = Account.where(name: $2).first
+        instance_variable_set("@cached_account_#{$2}", a)
+      end
+
       if a.nil?
         raise 'account_id not found'
       else
@@ -516,7 +528,13 @@ class Contact
           when /^(.+)_for_([^=]+)$/
             local_attribute = $1
             account_name    = $2
-            a = Account.where(name: account_name).first
+            
+            #cache account to avoid multiple calls to accounts service
+            unless (a = instance_variable_get("@cached_account_#{$2}")).blank?
+              a = Account.where(name: $2).first
+              instance_variable_set("@cached_account_#{$2}", a)
+            end
+            
             if a
               new_selector['$and'] << {
                 :local_unique_attributes => {'$elemMatch' => {_type: local_attribute.to_s.camelcase, value: {'$in' => v.to_a}, account_id: a.id}}
@@ -601,8 +619,8 @@ class Contact
   def post_activity_if_level_changed
     unless skip_level_change_activity
       if level_changed?
-        activity_username = request_user    || global_teacher_username
-        activity_account  = request_account || owner_name
+        activity_username = request_username     || global_teacher_username
+        activity_account  = request_account_name || owner_name
 
         a = ActivityStream::Activity.new(
             username: activity_username,
@@ -622,20 +640,20 @@ class Contact
 
   # POSTs an Activity to ActivityStream if request_user && request_account are set.
   def post_activity_of_creation
-    unless self.request_user.blank? || self.request_account.blank?
+    unless self.request_username.blank? || self.request_account.blank?
       entry = ActivityStream::Activity.new(
           target_id: self.owner_name, target_type: 'Account',
           object_id: self._id, object_type: 'Contact',
           generator: 'contacts',
           verb: 'created',
-          content: "#{self.request_user} created #{self.full_name} on #{self.owner_name}",
+          content: "#{self.request_username} created #{self.full_name} on #{self.owner_name}",
           public: true,
-          username: self.request_user,
-          account_name: self.request_account,
+          username: self.request_username,
+          account_name: self.request_account_name,
           created_at: Time.zone.now.to_s,
           updated_at: Time.zone.now.to_s
       )
-      entry.create(username:  self.request_user, account_name: self.request_account)
+      entry.create(username:  self.request_username, account_name: self.request_account_name)
     end
   end
 
@@ -668,4 +686,19 @@ class Contact
     end
   end
 
+  def owner
+    #cache account to avoid multiple calls to accounts service
+    unless @cached_owner.blank?
+      @cached_owner = self.owner
+    end
+    @cached_owner  
+  end
+
+  def request_account
+    #cache account to avoid multiple calls to accounts service
+    unless @cached_request_account.blank?
+      @cached_request_account = Account.where(name: self.request_account_name).first
+    end
+    @cached_request_account  
+  end 
 end

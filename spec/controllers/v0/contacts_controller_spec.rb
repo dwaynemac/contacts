@@ -640,7 +640,7 @@ describe V0::ContactsController do
         before do
           @account = Account.make(name: "belgrano")
           @contact = Contact.make(owner: @account)
-          @contact.request_account = @account.name
+          @contact.request_account_name = @account.name
           @tag = Tag.make(account_id: @account.id)
           @another_tag = Tag.make(account_id: @account.id)
           @contact.tags << @tag
@@ -693,7 +693,7 @@ describe V0::ContactsController do
         before do
           @account = Account.make(name: "belgrano")
           @contact = Contact.make(owner: @account)
-          @contact.request_account = @account.name
+          @contact.request_account_name = @account.name
           @tag = Tag.make(account_id: @account.id)
           @contact.tags << @tag
           @contact.save
