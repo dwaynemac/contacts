@@ -133,6 +133,10 @@ class Contact
     self.contact_attributes.telephones.mobiles
   end
 
+  def birthday
+    self.date_attributes.where("$elemMatch" => {category: 'birthday'}).first
+  end
+
   # defines Contact#coefficients/...
   # they all return a Criteria scoping to according _type
   %W(coefficient local_status local_teacher).each do |lua|
@@ -511,7 +515,6 @@ class Contact
   # @option selector :custom_attribute
   # @option selector :local_status      only considered if account_id is specified
   # @option selector :local_teacher      only considered if account_id is specified
-  # @option selector :birth_day
   # @option selector :attribute_value_at [Hash] keys: attribute, value, ref_date
   #
   # @return [Mongoid::Criteria]
