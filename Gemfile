@@ -16,6 +16,7 @@ gem "logical_model", '~> 0.5.8'
 gem 'activity_stream_client', '~> 0.0.14'
 gem 'overmind_client', '~> 0.0.1'
 gem 'accounts_client', '~> 0.0.18'
+gem 'messaging_client'
 
 gem 'kaminari', '~> 0.13'
 
