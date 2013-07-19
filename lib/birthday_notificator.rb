@@ -4,7 +4,7 @@ class BirthdayNotificator
 
   end
 
-  def self.deliver_notifications
+  def deliver_notifications
     all_birthdays.each do |contact|
       #TODO manage different responses: 201, 500, etc...
       Messaging::Client.post_message('birthday', json_for(contact))
@@ -20,7 +20,11 @@ class BirthdayNotificator
     contact.local_statuses.each do |ls|
       json.merge!({"local_status_for_#{ls.account_name}" => ls.value})
     end
-    json.merge!({status: contact.status, gender: contact.gender, birthday_at: Date.today})
+    json.merge!({
+                    status: contact.status,
+                    recipient_email: contact.email,
+                    gender: contact.gender,
+                    birthday_at: Date.today})
     json
   end
 end
