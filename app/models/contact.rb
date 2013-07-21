@@ -260,14 +260,39 @@ class Contact
   # @param [Hash] options
   # @option options [Account] account
   # @option options [TrueClass] include_masked
-  def as_json(options = nil)
-    options ||= {}
-     
+  def as_json(options = {})
+    options.reverse_merge!({select: [:first_name, :last_name]})
+    # only_name option is a special case used for typeahead selection (for example on attendance app)
+    # TODO: move this option as a select param (same as 'all')
     if options[:only_name]
       json = {}
       json[:id] = self.id
       json[:name] = self.full_name
-    else
+    # if select is an array (of attribute names)  
+    elsif options[:select].present? && options[:select].kind_of?(Array)
+      #always include id
+      options[:select] << :_id unless options[:select].include? :_id
+      
+      # select all attributes except for special ones
+      options = options.merge({:only => options[:select], :except => [:contact_attributes, :tags, :local_status, :coefficient, :local_teacher, :local_unique_attributes, :tag_ids, :owner_id, :history_entries]})
+
+      json = super options
+      
+      account = options[:account]
+      if account
+        #select contact_attributes for the calling account
+        json[:contact_attributes] = self.contact_attributes.for_account(account, options) if options[:select].include? :contact_attributes
+        # tags
+        json[:tags] = self.tags.where(account_id: account.id) if options[:select].include? :tags
+        # local_attributes
+        %w{local_status coefficient local_teacher}.each do |local_attribute|
+          json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")  if options[:select].include? local_attribute
+        end
+      end
+      json
+    # if select is present and wants all attributes, behave as before.
+    # TODO: should probably do this also if select isnt present.
+    elsif options[:select].present? && options[:select] == "all"
       account = options[:account]
       if account
         # add these options when account_id specified
@@ -700,5 +725,5 @@ class Contact
       @cached_request_account = Account.where(name: self.request_account_name).first
     end
     @cached_request_account  
-  end 
+  end
 end

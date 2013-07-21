@@ -49,7 +49,7 @@ class V0::ContactsController < V0::ApplicationController
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
 
     response.headers['Content-type'] = 'application/json; charset=utf-8'
-    render :json => { :collection => @contacts, :total => total}.as_json(account: @account, except_linked:true, except_last_local_status: true, only_name: params[:only_name].present?)
+    render :json => { :collection => @contacts, :total => total}.as_json(select: params[:select], account: @account, except_linked:true, except_last_local_status: true, only_name: params[:only_name].present?)
   end
 
   # @url /v0/contacts/search
@@ -99,7 +99,7 @@ class V0::ContactsController < V0::ApplicationController
   # @response_field [String] last_name
   def show
     @contact = @scope.find(params[:id])
-    render :json => @contact.as_json(:account => @account, :include_masked => true)
+    render :json => @contact.as_json(:select => params[:select], :account => @account, :include_masked => true)
   end
 
   ##
