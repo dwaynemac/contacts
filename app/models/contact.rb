@@ -559,7 +559,7 @@ class Contact
             account_name    = $2
             
             #cache account to avoid multiple calls to accounts service
-            unless (a = instance_variable_get("@cached_account_#{$2}")).blank?
+            if (a = instance_variable_get("@cached_account_#{$2}")).blank?
               a = Account.where(name: $2).first
               instance_variable_set("@cached_account_#{$2}", a)
             end
@@ -715,10 +715,11 @@ class Contact
     end
   end
 
+  alias_method :orig_owner, :owner
   def owner
     #cache account to avoid multiple calls to accounts service
     if @cached_owner.blank?
-      @cached_owner = self.owner
+      @cached_owner = orig_owner
     end
     @cached_owner  
   end
