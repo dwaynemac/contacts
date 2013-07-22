@@ -202,7 +202,7 @@ class Contact
     if method_sym.to_s =~ /^(.+)_for_([^=]+)$/
 
       #cache account to avoid multiple calls to accounts service
-      unless (a = instance_variable_get("@cached_account_#{$2}")).blank?
+      if (a = instance_variable_get("@cached_account_#{$2}")).blank?
         a = Account.where(name: $2).first
         instance_variable_set("@cached_account_#{$2}", a)
       end
@@ -215,17 +215,21 @@ class Contact
 
     # local_unique_attribute setter for an account_name
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
-      
+
+      attr_name = $1.to_s
+      account_name = $2.to_s
+      a = nil
+
       #cache account to avoid multiple calls to accounts service
-      unless (a = instance_variable_get("@cached_account_#{$2}")).blank?
-        a = Account.where(name: $2).first
-        instance_variable_set("@cached_account_#{$2}", a)
+      if (a = instance_variable_get("@cached_account_#{account_name}")).blank?
+        a = Account.where(name: account_name).first
+        instance_variable_set("@cached_account_#{account_name}", a)
       end
 
       if a.nil?
         raise 'account_id not found'
       else
-        lua = self.local_unique_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first
+        lua = self.local_unique_attributes.where(:account_id => a._id, '_type' => attr_name.camelcase).first
         if lua.nil?
           self.local_unique_attributes << $1.camelcase.constantize.new(account: a, value: arguments.first)
         else
@@ -713,7 +717,7 @@ class Contact
 
   def owner
     #cache account to avoid multiple calls to accounts service
-    unless @cached_owner.blank?
+    if @cached_owner.blank?
       @cached_owner = self.owner
     end
     @cached_owner  
@@ -721,7 +725,7 @@ class Contact
 
   def request_account
     #cache account to avoid multiple calls to accounts service
-    unless @cached_request_account.blank?
+    if @cached_request_account.blank?
       @cached_request_account = Account.where(name: self.request_account_name).first
     end
     @cached_request_account  
