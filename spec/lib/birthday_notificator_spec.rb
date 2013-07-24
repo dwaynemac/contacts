@@ -3,12 +3,15 @@ require 'spec_helper'
 
 describe BirthdayNotificator do
 
+  let(:bn){BirthdayNotificator.new}
+
   before do
     @ac1 = Account.make
     @ac2 = Account.make
 
     @first_contact = Contact.make(owner: @ac1, gender: 'male')
     @first_contact.local_unique_attributes <<  LocalStatus.make(account: @ac1, value: 'student')
+    @first_contact.local_unique_attributes <<  Coefficient.new(account: @ac1, value: 'perfil')
     @first_contact.contact_attributes << DateAttribute.new(
         year: 1982,
         month: Date.today.month,
@@ -35,24 +38,29 @@ describe BirthdayNotificator do
 
   describe "#all_birthdays" do
     it "should get all birthdays" do
-      bn = BirthdayNotificator.new
       bn.all_birthdays.count.should == 2
     end
   end
 
   describe "#json_for" do
-
-    it "should send a correct json string" do
-      bn = BirthdayNotificator.new
-      contact = @first_contact
-      json_contact = bn.json_for(contact)
-      json_contact[:gender].should == 'male'
-      json_contact["local_status_for_#{@ac1.name}"].should == :student
+    context "for contact with email" do
+      let(:json) { bn.json_for(@first_contact) }
+      it('includes gender') do
+        json[:gender].should == 'male'
+      end
+      it "includes local_status_for_AccountName" do
+        json["local_status_for_#{@ac1.name}"].should == :student
+      end
+      it("includes primary email") do
+        json[:recipient_email].should == 'dwaynemac@gmail.com'
+      end
+      it "includes coefficients" do
+        json["local_coefficient_for_#{@ac1.name}"].should == 'perfil'
+      end
     end
-
-    it "works for contacts without email too" do
-      bn = BirthdayNotificator.new
-      expect{bn.json_for(@second_contact)}.not_to raise_exception
+    context "for contact without email" do
+      let(:json) { bn.json_for(@second_contact) }
+      it("wont raise exceptions") { expect { json }.not_to raise_exception }
     end
   end
 end

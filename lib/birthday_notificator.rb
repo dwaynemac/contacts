@@ -20,6 +20,9 @@ class BirthdayNotificator
     contact.local_statuses.each do |ls|
       json.merge!({"local_status_for_#{ls.account_name}" => ls.value})
     end
+    contact.coefficients.each do |lc|
+      json.merge!({"local_coefficient_for_#{lc.account_name}" => lc.value })
+    end
     json.merge!({
                     status: contact.status,
                     gender: contact.gender,
