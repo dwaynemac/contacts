@@ -7,6 +7,7 @@ namespace :periodic do
 
   desc 'notify birthdays'
   task :notify_today_birthdays => :environment do
-    BirthdayNotificator.deliver_notifications
+    bd = BirthdayNotificator.new
+    bd.deliver_notifications
   end
 end
