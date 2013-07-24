@@ -6,6 +6,7 @@ Web service for handling PADMA's Contacts.
 
 == Deployment
 
+rake periodic:notify_today_birthdays should be scheduled for daily run.
 rake periodic:remove_empty_tags should be scheduled.
 rake mongo:backup should be scheduled
 
