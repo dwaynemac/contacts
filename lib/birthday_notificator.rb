@@ -22,9 +22,12 @@ class BirthdayNotificator
     end
     json.merge!({
                     status: contact.status,
-                    recipient_email: contact.email,
                     gender: contact.gender,
-                    birthday_at: Date.today})
+                    birthday_at: Date.today
+    })
+    unless contact.emails.empty?
+      json.merge!({recipient_email: contact.email})
+    end
     json
   end
 end
