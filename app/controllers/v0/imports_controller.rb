@@ -41,17 +41,16 @@ class V0::ImportsController < V0::ApplicationController
         @contact.update_attribute(h, row[@headers.index(h)])
       else
         # check what kind of attribute it is based on its name
-        # TODO put this in another method
-        type_of_attribute = []
         type_of_attribute = get_attribute_type(h)
-        if type_of_attribute.first == 'custom_attribute'
-          create_custom_attribute type_of_attribute.last
-        elsif type_of_attribute.first == 'contact_attribute'
-          create_contact_attribute type_of_attribute[1], type_of_attribute[2]
-        elsif type_of_attribute.first == 'local_unique_attribute'
-          create_local_unique_attribute type_of_attribute.last
-        elsif type_of_attribute.first 'custom_date_attribute'
-          create_custom_date_attribute type_of_attribute[1], type_of_attribute[2]
+        case type_of_attribute.first
+          when 'contact_attribute'
+            create_contact_attribute type_of_attribute[1], type_of_attribute[2]
+          when 'custom_attribute'
+            create_custom_attribute type_of_attribute.last
+          when 'custom_date_attribute'
+            create_custom_date_attribute type_of_attribute[1], type_of_attribute[2]
+          when 'local_unique_attribute'
+            create_local_unique_attribute type_of_attribute.last
         end
       end
     end
@@ -127,8 +126,42 @@ class V0::ImportsController < V0::ApplicationController
   end
 
   # helpers
+
+  # TODO refactor this method
   def get_attribute_type(complete_field_name)
     response = []
+
+    contact_attribute = /contact_attribute_(.*)/.match(complete_field_name)
+    custom_attribute = /custom_attribute_(.*)/.match(complete_field_name)
+    custom_date_attribute = /custom_date_attribute_(.*)/.match(complete_field_name)
+    local_unique_attribute = /local_unique_attribute_(.*)/.match(complete_field_name)
+    if contact_attribute
+      response << 'contact_attribute'
+      att = contact_attribute[1]
+      if /(.*)_category_(.*)/.match(att)
+        att = /(.*)_category_(.*)/.match(att).capture
+      else
+        att = [att, nil]
+      end
+      response << att
+    elsif custom_attribute
+      att = custom_attribute[1]
+      response << 'custom_attribute'
+      response << att
+    elsif custom_date_attribute
+      att = custom_date_attribute[1]
+      response << 'custom_date_attribute'
+      if /(.*)_category_(.*)/.match(att)
+        att = /(.*)_category_(.*)/.match(att).capture
+      else
+        att = [att, nil]
+      end
+      response << att
+    elsif local_unique_attribute
+      att = local_unique_attribute[1]
+      response << 'local_unique_attribute'
+      response << att
+    end
   end
 
   def row_value_for(field)
