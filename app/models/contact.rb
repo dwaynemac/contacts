@@ -299,8 +299,8 @@ class Contact
       end
       json
     # if select is present and wants all attributes, behave as before.
-    # TODO: should probably do this also if select isnt present.
-    elsif options[:select].present? && options[:select] == "all"
+    # do this also if select isnt present.
+    elsif options[:select].nil? || options[:select] == "all"
       account = options[:account]
       if account
         # add these options when account_id specified
