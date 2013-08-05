@@ -5,17 +5,55 @@ describe V0::ContactAttributesController do
   # it_should_behave_like "Secure API Controller", :only => :update
 
   before do
-    @contact = Contact.make
+    @contact = Contact.make(owner: Account.make)
     @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
     @contact.save
     @contact.reload
+  end
+
+  describe "#custom_keys" do
+    context "without app_key" do
+      before do
+        get :custom_keys
+      end
+      it "should deny access" do
+        should respond_with(401)
+      end
+    end
+    context "with app_key" do
+      let(:contact){Contact.make(owner: Account.make)}
+      before do
+        contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'hobby')
+        contact.save!
+
+        @contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'sport')
+        @contact.save!
+      end
+      def do_request(params={})
+        get :custom_keys, params.merge({app_key: V0::ApplicationController::APP_KEY})
+      end
+      let(:body){ActiveSupport::JSON.decode(response.body)}
+      it "responds with 200" do
+        do_request
+        should respond_with 200
+      end
+      it "returns all custom_attribute names" do
+        do_request
+        body['total'].should == 2
+        body['collection'].should include contact.custom_attributes.last.name
+      end
+      it "scopes to given account_name" do
+        do_request(account_name: @contact.owner_name)
+        body['total'].should == 1
+      end
+    end
   end
 
   describe "#update" do
     context "with app_key" do
       before do
         @new_value = "5432154"
-        put :update, :account_name => @contact.owner.name, :contact_id => @contact.id,
+        put :update, :account_name => @contact.owner_name, :contact_id => @contact.id,
             :id => @contact.contact_attributes.first.id, :contact_attribute => {:value => @new_value},
             :app_key => V0::ApplicationController::APP_KEY
       end

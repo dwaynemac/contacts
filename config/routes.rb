@@ -13,7 +13,11 @@ Contacts::Application.routes.draw do
       resource :avatar, :only => [:create, :destroy]
       resources :history_entries
     end
-    resources :contact_attributes
+    resources :contact_attributes do
+      collection do
+        get :custom_keys
+      end
+    end
     resources :attachments
     resources :tags
     resource :avatar, :only => [:create, :destroy]
