@@ -474,6 +474,10 @@ class Contact
     error_messages
   end
 
+  def self.with_custom_attributes
+    self.where( contact_attributes: { '$elemMatch' => { _type: 'CustomAttribute'}})
+  end
+
   ##
   #
   #
@@ -590,6 +594,15 @@ class Contact
     end
 
     where(new_selector)
+  end
+
+  alias_method :orig_owner, :owner
+  def owner
+    #cache account to avoid multiple calls to accounts service
+    if @cached_owner.blank?
+      @cached_owner = orig_owner
+    end
+    @cached_owner
   end
 
   protected
@@ -716,15 +729,6 @@ class Contact
     if status_changed? && status == :student && self.level.nil?
       self.level = 'aspirante'
     end
-  end
-
-  alias_method :orig_owner, :owner
-  def owner
-    #cache account to avoid multiple calls to accounts service
-    if @cached_owner.blank?
-      @cached_owner = orig_owner
-    end
-    @cached_owner  
   end
 
   def request_account
