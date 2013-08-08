@@ -278,8 +278,16 @@ class Contact
       json[:name] = self.full_name
     # if select is an array (of attribute names)  
     elsif options[:select].present? && options[:select].kind_of?(Array)
+
+      options[:select] = options[:select].map{|i| i.to_sym }
+
       #always include id
       options[:select] << :_id unless options[:select].include? :_id
+
+      if options[:select].include? :full_name
+        options[:select] << :first_name
+        options[:select] << :last_name
+      end
       
       # select all attributes except for special ones
       options = options.merge({:only => options[:select], :except => [:contact_attributes, :tags, :local_status, :coefficient, :local_teacher, :local_unique_attributes, :tag_ids, :owner_id, :history_entries]})
@@ -294,7 +302,7 @@ class Contact
         json[:tags] = self.tags.where(account_id: account.id) if options[:select].include? :tags
         # local_attributes
         %w{local_status coefficient local_teacher}.each do |local_attribute|
-          json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")  if options[:select].include? local_attribute
+          json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")  if options[:select].include? local_attribute.to_sym
         end
       end
       json

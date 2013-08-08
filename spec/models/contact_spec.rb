@@ -3,7 +3,6 @@ require 'spec_helper'
 
 describe Contact do
 
-
   it { should belong_to_related :owner }
 
   it { should reference_and_be_referenced_in_many :lists }
