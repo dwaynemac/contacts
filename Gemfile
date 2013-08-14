@@ -59,7 +59,7 @@ end
 
 group :test do
   gem "cucumber-rails", '1.2.0'
-  gem "rspec-rails", "~> 2.4"
+  gem "rspec-rails", "~> 2.14"
   gem "shoulda-matchers"
   gem 'mongoid-rspec', '1.4.4'
   gem "machinist", '1.0.6'

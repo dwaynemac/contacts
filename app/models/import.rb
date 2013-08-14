@@ -1,21 +1,24 @@
 # encoding: UTF-8
-#
+require 'csv'
 
 class Import
 
   CONTACT_FIELDS = %w(first_name last_name gender avatar id level estimated_age status global_teacher_username)
 
-  def initialize(account, contact_CSV, headers)
+  def initialize(account, contacts_CSV, headers)
     @account = account
-    @contact_CSV = contact_CSV
+    @contacts_CSV = contacts_CSV
     @headers = headers
   end
 
   def process_CSV
-    unless contacts_CSV.nil? || @headers.blank?
-      rows = FasterCSV.read(contacts_CSV)
-      rows.each do |row|
-        create_contact(row)
+    failed_rows = []
+
+    unless @contacts_CSV.nil? || @headers.blank?
+      CSV.foreach(@contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
+        unless create_contact(row)
+          failed_rows << $.
+        end
       end
     end
   end
@@ -27,23 +30,27 @@ class Import
       type_of_attribute = get_attribute_type(h)
       value = row[h]
 
-      case type_of_attribute[:type]
-        when 'field'
-          @contact.send("#{h}=", value)
-        when 'attachment'
-          create_attachment value
-        when 'avatar'
-          create_avatar value
-        when 'address'
-          create_address value
-        when 'contact_attribute'
-          create_contact_attribute type_of_attribute, value
-        when 'custom_attribute'
-          create_custom_attribute type_of_attribute, value
-        when 'custom_date_attribute'
-          create_custom_date_attribute type_of_attribute, value
-        when 'local_unique_attribute'
-          create_local_unique_attribute type_of_attribute, value
+      unless value.blank?
+        case type_of_attribute[:type]
+          when 'field'
+            @contact.send("#{type_of_attribute[:name]}=", value)
+          when 'attachment'
+            create_attachment value
+          when 'avatar'
+            create_avatar value
+          when 'address'
+            create_address value
+          when 'gender'
+            create_gender value
+          when 'contact_attribute'
+            create_contact_attribute type_of_attribute, value
+          when 'custom_attribute'
+            create_custom_attribute type_of_attribute, value
+          when 'custom_date_attribute'
+            create_custom_date_attribute type_of_attribute, value
+          when 'local_unique_attribute'
+            create_local_unique_attribute type_of_attribute, value
+        end
       end
     end
     @contact.check_duplicates = false
@@ -51,7 +58,16 @@ class Import
       # If could not save, because contact already exists, then get contact and link account
       # TODO si tiene duplicados, buscarlo, linkearlo a la cuenta y agregarle los atributos
       # sin cambiar nombre, etc. sólo los attributes, local status, etc
+      unless merge_contact_attributes(@contact)
+        return false
+      end
     end
+    return true
+  end
+
+  def create_gender(value)
+    gender = (value == 'h')? "male" : "female"
+    @contact.gender = gender
   end
 
   # Generic creators. The field name is passed in such a way that it explicits what kind of attribute it is
@@ -59,21 +75,41 @@ class Import
   def create_contact_attribute(att, value)
     type = att[:name]
     category = att[:category]
-    @contact.contact_attributes << ContactAttribute.new(
-        value: value,
-        category: category,
-        _type: type)
+    if type == "telephone"
+      value = set_telephone_value_as_number(value)
+    end
+    @contact.contact_attributes << type.camelize.singularize.constantize.new( value: value, category: category, account_id: @account.id )
   end
 
   def create_local_unique_attribute(att, value)
-    type = att[:name]
-    @contact.local_unique_attributes << LocalUniqueAttribute.new(
-        value: value,
-        _type: type)
+    att_type = att[:name]
+    if att_type == "coefficient"
+      case value
+        when '1'
+          value = 'fp'
+        when '2'
+          value = 'pmenos'
+        when '3'
+          value = 'perfil'
+        when '4'
+          value = 'pmas'
+        when '5'
+          value = 'perfil'
+        when '6'
+          value = 'perfil'
+        when '7'
+          value = 'fp'
+        when '8'
+          value =  'pmas'
+        when '9'
+          value = 'unknown'
+      end
+    end
+    @contact.local_unique_attributes << att_type.camelize.singularize.constantize.new(value: value, account_id: @account.id)
   end
 
   def create_custom_attribute(att, value)
-    @contact.contact_attributes << CustomAttribute.new(name: att[:name], value: value)
+    @contact.contact_attributes << CustomAttribute.new(name: att[:name], value: value, account_id: @account.id)
   end
 
   def create_custom_date_attribute(att, value)
@@ -81,7 +117,7 @@ class Import
     day = date.to_date.day
     month = date.to_date.month
     year = date.to_date.year
-    @contact.contact_attributes << DateAttribute.new(category: att[:category], day: day, month: month, year: year)
+    @contact.contact_attributes << DateAttribute.new(category: att[:category], day: day, month: month, year: year, account_id: @account.id)
   end
 
   # Particular creators. For special fields, that do not abide the generic values.
@@ -90,7 +126,7 @@ class Import
     day = date.to_date.day
     month = date.to_date.month
     year = date.to_date.year
-    @contact.contact_attributes << DateAttribute.new(category: 'birthday', day: day, month: month, year: year)
+    @contact.contact_attributes << DateAttribute.new(category: 'birthday', day: day, month: month, year: year, account_id: @account.id)
   end
 
   def create_attachment(value)
@@ -112,19 +148,20 @@ class Import
 
   # TODO think how to deal with many addresses. With kshêma this shouldn't be an issue, but it will be later on
   def create_address(value)
-    category = @current_row['address_category']
-    postal_code = @current_row['postal_code']
+    category = "personal"
+    postal_code = @current_row['codigo_postal']
     city = @current_row['city']
     state = @current_row['state']
     country = @current_row['country_id']
 
-    address_values = {category: category, postal_code: postal_code, city: city, state: state, country: country}
+    address_values = {value: value, category: category, postal_code: postal_code, city: city, state: state, country: country}
     @contact.contact_attributes << Address.new(address_values)
   end
 
   # helpers
 
   def get_attribute_type(complete_field_name)
+    key = complete_field_name.to_sym
     preset_convertions = {
       id: {
         type: 'field',
@@ -134,7 +171,7 @@ class Import
       dni: {
         type: 'contact_attribute',
         name: 'identification',
-        category: nil
+        category: 'DNI'
       },
       nombres: {
         type: 'field',
@@ -182,7 +219,7 @@ class Import
         category: nil
       },
       genero: {
-        type: 'field',
+        type: 'gender',
         name: 'gender',
         category: nil
       },
@@ -271,7 +308,7 @@ class Import
       identity: {
         type: 'contact_attribute',
         name: 'identification',
-        category: 'identity'
+        category: 'custom'
       },
       publish_on_gdp: {
         type: 'field',
@@ -304,9 +341,8 @@ class Import
         type: 'ignore'
       }
     }
-
-    if preset_convertions[complete_field_name]
-      return preset_convertions[complete_field_name]
+    if preset_convertions[key]
+      return preset_convertions[key]
     end
   end
 
@@ -336,5 +372,17 @@ class Import
       @current_row.delete_at(index)
     end
     response
+  end
+
+  # @return [Integer]
+  # Remove all spaces and dots from telephone string and returns an integer
+  def set_telephone_value_as_number(value)
+    value = value.strip
+    value = value.delete ".,-"
+    return value.to_i
+  end
+
+  def merge_contact_attributes(contact)
+
   end
 end
