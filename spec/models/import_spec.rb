@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe Import do
   before do
-    @headers = %w(id dni	nombres	apellidos dire tel cel mail grado_id instructor_id coeficiente_id genero foto
+    @headers = %w(id dni nombres apellidos dire tel cel mail grado_id instructor_id coeficiente_id genero foto
                 fecha_nacimiento inicio_practicas profesion	notes follow indice_fidelizacion codigo_postal school_id
                 current_plan_id	created_at updated_at estimated_age	company	job	city locality business_phone
                 country_id state identity publish_on_gdp last_enrollment in_formation id_scan padma_id foto_migrated
@@ -38,21 +38,38 @@ describe Import do
         account = Account.make
         @new_import = Import.new(account, @csv_file, @headers)
       end
-      it "should create given contacts" do
-        expect{@new_import.process_CSV}.to change{Contact.count}.by(3)
+      context "with all new contacts" do
+        it "should create given contacts" do
+          expect{@new_import.process_CSV}.to change{Contact.count}.by(3)
+        end
+        it "should have consistent data" do
+          @new_import.process_CSV
+          Contact.last.first_name.should == "Daniel"
+          Contact.last.last_name.should == "Werber"
+        end
+        it "should have kshema_id" do
+          @new_import.process_CSV
+          Contact.last.kshema_id.should == "50178"
+        end
+        it "should distinguish between coefficients" do
+          @new_import.process_CSV
+          Contact.where(level: 5).count.should == 2
+        end
       end
-      it "should have consistent data" do
-        @new_import.process_CSV
-        Contact.last.first_name.should == "Daniel"
-        Contact.last.last_name.should == "Werber"
-      end
-      it "should have kshema_id" do
-        @new_import.process_CSV
-        Contact.last.kshema_id.should == "50178"
-      end
-      it "should distinguish between coefficients" do
-        @new_import.process_CSV
-        Contact.where(level: 1).count.should == 1
+      context "with a contact that is already in the database" do
+        before do
+          @contact = Contact.make(first_name: "Dwayne", last_name: "Macgowan")
+          @contact.contact_attributes << Telephone.make(value: "1540995071", category: "mobile")
+          @contact.contact_attributes << Email.make(value: "dwaynemac@gmail.com", category: "personal")
+          @contact.save
+        end
+        it "should not create the contact again" do
+          expect{@new_import.process_CSV}.to change{Contact.count}.by(2)
+        end
+        it "should add the new contact attributes to the person" do
+          @new_import.process_CSV
+          @contact.identifications.last.value.should == "30 366 832"
+        end
       end
     end
   end

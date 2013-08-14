@@ -33,6 +33,9 @@ class Import
       unless value.blank?
         case type_of_attribute[:type]
           when 'field'
+            if type_of_attribute[:name] == "level"
+              value = set_valid_level(value)
+            end
             @contact.send("#{type_of_attribute[:name]}=", value)
           when 'attachment'
             create_attachment value
@@ -75,8 +78,8 @@ class Import
   def create_contact_attribute(att, value)
     type = att[:name]
     category = att[:category]
-    if type == "telephone"
-      value = set_telephone_value_as_number(value)
+    if %w(telephone).include? type
+      value = set_value_as_number(value)
     end
     @contact.contact_attributes << type.camelize.singularize.constantize.new( value: value, category: category, account_id: @account.id )
   end
@@ -376,10 +379,14 @@ class Import
 
   # @return [Integer]
   # Remove all spaces and dots from telephone string and returns an integer
-  def set_telephone_value_as_number(value)
+  def set_value_as_number(value)
     value = value.strip
     value = value.delete ".,-"
     return value.to_i
+  end
+
+  def set_valid_level(value)
+    level = Contact::VALID_LEVELS.key(value.to_i - 1)
   end
 
   def merge_contact_attributes(contact)
