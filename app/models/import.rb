@@ -47,8 +47,6 @@ class Import
             create_avatar value
           when 'address'
             create_address value
-          when 'gender'
-            create_gender value
           when 'contact_attribute'
             create_contact_attribute type_of_attribute, value
           when 'custom_attribute'
@@ -67,11 +65,6 @@ class Import
     end
 
     return response
-  end
-
-  def create_gender(value)
-    gender = (value == 'h')? "male" : "female"
-    @contact.gender = gender
   end
 
   # Generic creators. The field name is passed in such a way that it explicits what kind of attribute it is
@@ -206,7 +199,7 @@ class Import
         category: nil
       },
       genero: {
-        type: 'gender',
+        type: 'field',
         name: 'gender',
         category: nil
       },
