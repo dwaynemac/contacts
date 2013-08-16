@@ -86,28 +86,6 @@ class Import
 
   def create_local_unique_attribute(att, value)
     att_type = att[:name]
-    if att_type == "coefficient"
-      case value
-        when '1'
-          value = 'fp'
-        when '2'
-          value = 'pmenos'
-        when '3'
-          value = 'perfil'
-        when '4'
-          value = 'pmas'
-        when '5'
-          value = 'perfil'
-        when '6'
-          value = 'perfil'
-        when '7'
-          value = 'fp'
-        when '8'
-          value =  'pmas'
-        when '9'
-          value = 'unknown'
-      end
-    end
     @contact.local_unique_attributes << att_type.camelize.singularize.constantize.new(value: value, account_id: @account.id)
   end
 
