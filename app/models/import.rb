@@ -75,7 +75,6 @@ class Import
   end
 
   # Generic creators. The field name is passed in such a way that it explicits what kind of attribute it is
-  # TODO category is currently in all models which inherit from ContactAttribute, but it may not be always so
   def create_contact_attribute(att, value)
     type = att[:name]
     category = att[:category]
@@ -136,24 +135,27 @@ class Import
   # Receives the url of the file to download
   def create_attachment(value)
     file_uri = value
-    file_name = File.basename(value)
-    value_name = File.basename(value, ".*")
-    open(file_name, 'wb') do |file|
-      file << open(file_uri).read
+    if uri?(file_uri)
+      file_name = File.basename(value)
+      value_name = File.basename(value, ".*")
+      open(file_name, 'wb') do |file|
+        file << open(file_uri).read
+        @contact.contact_attributes << Attachment.new(file: file, name: value_name) unless file.nil?
+      end
     end
-    @contact.contact_attributes << Attachment.new(file: file, name: value_name)
   end
 
   def create_avatar(value)
     file_uri = value
-    file_name = File.basename(value)
-    open(file_name, 'wb') do |file|
-      file << open(file_uri).read
+    if uri?(file_uri)
+      file_name = File.basename(value)
+      open(file_name, 'wb') do |file|
+        file << open(file_uri).read
+        @contact.avatar = file unless file.nil?
+      end
     end
-    @contact.avatar = file
   end
 
-  # TODO think how to deal with many addresses. With kshêma this shouldn't be an issue, but it will be later on
   def create_address(value)
     category = "personal"
     postal_code = @current_row['codigo_postal']
@@ -393,7 +395,12 @@ class Import
     level = Contact::VALID_LEVELS.key(value.to_i - 1)
   end
 
-  def merge_contact_attributes(contact)
-
+  def uri?(string)
+    uri = URI.parse(string)
+    %w( http https ).include?(uri.scheme)
+  rescue URI::BadURIError
+    false
+  rescue URI::InvalidURIError
+    false
   end
 end

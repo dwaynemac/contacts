@@ -17,7 +17,7 @@ describe Import do
                  "false", "", "", "", "", "", "", ""]
     @student =  ["50010", "", "Alex", "Falke", "", "4782 1495",	"15 5466 7896",	"afalkear@gmail.com", "6",
                  "lucia.gagliardini", "5", "h",
-                 "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "1983-03-11", "2004-12-01",
+                 "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
                  "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",	"1667392", "",
                  "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
     @p_visit = ["50178", "", "Daniel", "Werber", "", "", "15 4437-6580", "werber@fibertel.com.ar", "1", "",	"3", "h",
@@ -70,6 +70,14 @@ describe Import do
           @new_import.process_CSV
           Contact.any_of(contact_attributes: { '$elemMatch' => {'_type' => 'Email', 'value' => 'dwaynemac@gmail.com'} }).count.should == 2
           Contact.where(first_name: "Dwayne").count.should == 2
+        end
+      end
+      context "with images and attachments uri" do
+        it "should save the avatar locally" do
+          @new_import.process_CSV
+          alex = Contact.where(first_name: "Alex").first
+          alex.avatar.should_not be_nil
+          alex.avatar.url.should match /\.jpg/
         end
       end
     end
