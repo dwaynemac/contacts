@@ -1,5 +1,6 @@
 # encoding: UTF-8
 require 'csv'
+require 'open-uri'
 
 class Import
 
@@ -21,11 +22,14 @@ class Import
         end
       end
     end
+
+    return failed_rows
   end
 
   def create_contact(row)
     @current_row = row
     @contact = Contact.new(owner: @account)
+    response = true
     @headers.each do |h|
       type_of_attribute = get_attribute_type(h)
       value = row[h]
@@ -57,15 +61,12 @@ class Import
       end
     end
     @contact.check_duplicates = false
+    
     unless @contact.save
-      # If could not save, because contact already exists, then get contact and link account
-      # TODO si tiene duplicados, buscarlo, linkearlo a la cuenta y agregarle los atributos
-      # sin cambiar nombre, etc. sólo los attributes, local status, etc
-      unless merge_contact_attributes(@contact)
-        return false
-      end
+      response = false
     end
-    return true
+
+    return response
   end
 
   def create_gender(value)
@@ -132,21 +133,24 @@ class Import
     @contact.contact_attributes << DateAttribute.new(category: 'birthday', day: day, month: month, year: year, account_id: @account.id)
   end
 
+  # Receives the url of the file to download
   def create_attachment(value)
-    file_path = value
-    if File.exists?(file_path)
-      file = File.open(file_path)
-      name = File.basename(file_path, ".*")
-      @contact.contact_attributes << Attachment.new(file: file, name: name)
+    file_uri = value
+    file_name = File.basename(value)
+    value_name = File.basename(value, ".*")
+    open(file_name, 'wb') do |file|
+      file << open(file_uri).read
     end
+    @contact.contact_attributes << Attachment.new(file: file, name: value_name)
   end
 
   def create_avatar(value)
-    file_path = value
-    if File.exists?(file_path)
-      file = File.open(file_path)
-      @contact.avatar = file
+    file_uri = value
+    file_name = File.basename(value)
+    open(file_name, 'wb') do |file|
+      file << open(file_uri).read
     end
+    @contact.avatar = file
   end
 
   # TODO think how to deal with many addresses. With kshêma this shouldn't be an issue, but it will be later on
