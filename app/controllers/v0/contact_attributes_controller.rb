@@ -1,8 +1,33 @@
 # @restful_api v0
 class V0::ContactAttributesController < V0::ApplicationController
 
-  before_filter :get_contact
-  before_filter :set_scope
+  before_filter :get_contact, except: [:custom_keys]
+  before_filter :set_scope, except: [:custom_keys]
+
+  ##
+  # Returns names of CustomAttributes
+  #
+  # @url /v0/contact_attributes/custom_keys
+  # @action GET
+  #
+  # @optional [String] account_name Scopes to this account
+  #
+  # @response_field [Array <String>] collection
+  # @response_field [Integer] total
+  # @response_code 200
+  # @example_request  GET /v0/contact_attributes/custom_keys?account_name=belgrano
+  # @example_response {collection: ['hobby', 'favourite movie'], total: 2}
+  #
+  # @author Dwayne Macgowan
+  def custom_keys
+    @scope = if @account
+      @account.contacts
+    else
+      Contact
+    end
+    names = @scope.with_custom_attributes.map { |c| c.custom_attributes }.flatten.map(&:name).uniq
+    render json: {collection: names, total: names.count }
+  end
 
   ##
   # Returns an attribute of a contact

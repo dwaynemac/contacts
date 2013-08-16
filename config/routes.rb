@@ -14,7 +14,11 @@ Contacts::Application.routes.draw do
       resources :history_entries
     end
     resources :imports
-    resources :contact_attributes
+    resources :contact_attributes do
+      collection do
+        get :custom_keys
+      end
+    end
     resources :attachments
     resources :tags
     resource :avatar, :only => [:create, :destroy]
