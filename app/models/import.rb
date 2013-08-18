@@ -29,7 +29,6 @@ class Import
   def create_contact(row)
     @current_row = row
     @contact = Contact.new(owner: @account)
-    response = true
     @headers.each do |h|
       type_of_attribute = get_attribute_type(h)
       value = row[h]
@@ -59,12 +58,10 @@ class Import
       end
     end
     @contact.check_duplicates = false
+    @contact.skip_level_change_activity = true
+    @contact.skip_history_entries = true
     
-    unless @contact.save
-      response = false
-    end
-
-    return response
+    return @contact.save
   end
 
   # Generic creators. The field name is passed in such a way that it explicits what kind of attribute it is
@@ -369,9 +366,9 @@ class Import
   def uri?(string)
     uri = URI.parse(string)
     %w( http https ).include?(uri.scheme)
-  rescue URI::BadURIError
-    false
-  rescue URI::InvalidURIError
-    false
+    rescue URI::BadURIError
+      false
+    rescue URI::InvalidURIError
+      false
   end
 end

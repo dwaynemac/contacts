@@ -10,17 +10,17 @@ describe Import do
                 country_id state identity publish_on_gdp last_enrollment in_formation id_scan padma_id foto_migrated
                 id_scan_migrated padma_follow_id)
     @former_student = ["50001",	"30 366 832", "Dwayne",	"Macgowan", "Arribeños 2153 14B", "4783.6951", "15.4099.5071",
-                 "dwaynemac@gmail.com",	"6", "daniel.ferztand", "6", "h",
+                 "dwaynemac@gmail.com",	"6", "daniel.ferztand", "perfil", "male",
                  "/home/alex/workspace/Padma/public/persona/foto/50001/654da12b6a7905f62633eae7e76688c5.jpg",
                  "1983-05-21", "2005-05-13", "Instr. Método DeRose", "<p>algna observacion</p>", "true", "5",
                  "1428", "1", "", "", "2011-02-19 18:04:12 -0300", "", "", "", "", "", "", "", "", "",
                  "false", "", "", "", "", "", "", ""]
     @student =  ["50010", "", "Alex", "Falke", "", "4782 1495",	"15 5466 7896",	"afalkear@gmail.com", "6",
-                 "lucia.gagliardini", "5", "h",
+                 "lucia.gagliardini", "perfil", "male",
                  "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
                  "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",	"1667392", "",
                  "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
-    @p_visit = ["50178", "", "Daniel", "Werber", "", "", "15 4437-6580", "werber@fibertel.com.ar", "1", "",	"3", "h",
+    @p_visit = ["50178", "", "Daniel", "Werber", "", "", "15 4437-6580", "werber@fibertel.com.ar", "1", "",	"perfil", "male",
                 "","","", "BioquÃ­mico", "", "false", "", "", "1", "", "", "", "", "", "", "", "", "", "", "", "", "false", 
                 "", "", "", "", "", "", ""]
     CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
