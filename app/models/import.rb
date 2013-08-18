@@ -109,6 +109,7 @@ class Import
       open(file_name, 'wb') do |file|
         file << open(file_uri).read
         @contact.contact_attributes << Attachment.new(file: file, name: value_name) unless file.nil?
+        File.delete(file)
       end
     end
   end
@@ -120,6 +121,7 @@ class Import
       open(file_name, 'wb') do |file|
         file << open(file_uri).read
         @contact.avatar = file unless file.nil?
+        File.delete(file)
       end
     end
   end

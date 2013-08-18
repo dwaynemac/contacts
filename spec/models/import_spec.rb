@@ -77,7 +77,7 @@ describe Import do
           @new_import.process_CSV
           alex = Contact.where(first_name: "Alex").first
           alex.avatar.should_not be_nil
-          alex.avatar.url.should match /\.jpg/
+          alex.avatar.url.should match /249140_10150188276702336_1924524_n\.jpg/
         end
       end
     end
@@ -110,5 +110,9 @@ describe Import do
         response.should match_array([2, 5])
       end
     end
+  end
+  # Clean up
+  after do
+    File.delete("#{Rails.root}/spec/support/test.csv")
   end
 end
