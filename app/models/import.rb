@@ -106,7 +106,7 @@ class Import
     if uri?(file_uri)
       file_name = File.basename(value)
       value_name = File.basename(value, ".*")
-      open(file_name, 'wb') do |file|
+      open("#{Rails.root}/tmp/#{file_name}", 'wb') do |file|
         file << open(file_uri).read
         @contact.contact_attributes << Attachment.new(file: file, name: value_name) unless file.nil?
         File.delete(file)
@@ -118,7 +118,7 @@ class Import
     file_uri = value
     if uri?(file_uri)
       file_name = File.basename(value)
-      open(file_name, 'wb') do |file|
+      open("#{Rails.root}/tmp/#{file_name}", 'wb') do |file|
         file << open(file_uri).read
         @contact.avatar = file unless file.nil?
         File.delete(file)
