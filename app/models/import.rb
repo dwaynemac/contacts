@@ -4,8 +4,6 @@ require 'open-uri'
 
 class Import
 
-  CONTACT_FIELDS = %w(first_name last_name gender avatar id level estimated_age status global_teacher_username)
-
   def initialize(account, contacts_CSV, headers)
     @account = account
     @contacts_CSV = contacts_CSV
@@ -36,9 +34,6 @@ class Import
       unless value.blank?
         case type_of_attribute[:type]
           when 'field'
-            if type_of_attribute[:name] == "level"
-              value = set_valid_level(value)
-            end
             @contact.send("#{type_of_attribute[:name]}=", value)
           when 'attachment'
             create_attachment value
@@ -359,10 +354,6 @@ class Import
     value = value.strip
     value = value.delete ".,-"
     return value.to_i
-  end
-
-  def set_valid_level(value)
-    level = Contact::VALID_LEVELS.key(value.to_i - 1)
   end
 
   def uri?(string)
