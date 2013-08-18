@@ -34,6 +34,9 @@ class Import
       unless value.blank?
         case type_of_attribute[:type]
           when 'field'
+            if type_of_attribute[:name] == "estimated_age"
+              value = set_value_as_number(value)
+            end
             @contact.send("#{type_of_attribute[:name]}=", value)
           when 'attachment'
             create_attachment value
