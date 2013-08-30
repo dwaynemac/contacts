@@ -3,25 +3,25 @@ require 'csv'
 require 'open-uri'
 
 class Import
+  attr_reader :failed_rows
 
   def initialize(account, contacts_CSV, headers)
     @account = account
     @contacts_CSV = contacts_CSV
     @headers = headers
+    @failed_rows = []
   end
 
   def process_CSV
-    failed_rows = []
-
     unless @contacts_CSV.nil? || @headers.blank?
       CSV.foreach(@contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
         unless create_contact(row)
-          failed_rows << $.
+          @failed_rows << $.
         end
       end
     end
 
-    return failed_rows
+    return @failed_rows
   end
 
   def create_contact(row)
@@ -35,7 +35,7 @@ class Import
         case type_of_attribute[:type]
           when 'field'
             if type_of_attribute[:name] == "estimated_age"
-              value = set_value_as_number(value)
+              value = cast_to_integer(value)
             end
             @contact.send("#{type_of_attribute[:name]}=", value)
           when 'attachment'
@@ -67,7 +67,7 @@ class Import
     type = att[:name]
     category = att[:category]
     if %w(telephone).include? type
-      value = set_value_as_number(value)
+      value = cast_to_integer(value)
     end
     @contact.contact_attributes << type.camelize.singularize.constantize.new( value: value, category: category, account_id: @account.id )
   end
@@ -323,37 +323,9 @@ class Import
     end
   end
 
-  # @return [Hash]
-  # if method receives "custom_attribute_hobby" it will return {:type=> "custom_attribute", :name => "hobby", :category => nil}
-  # "contact_attribute_telephone_category_mobile" will return {:type => "contact_attribute", :name => "telephone", :category => "mobile"}
-  def parse_custom_header(complete_field_name)
-    response = {}
-
-    match_data = /(.*_attribute)_(.*)/.match(complete_field_name)
-    attribute_type = match_data[1]
-    attribute_name = match_data[2]
-    response[:type] = attribute_type
-    response[:name] = attribute_name
-    response[:category] = nil
-    if /(.*)_category_(.*)/.match(attribute_name)
-      response[:name], response[:category] = /(.*)_category_(.*)/.match(attribute_name).capture
-    end
-    response
-  end
-
-  def pop_attribute_from_row(att)
-    response = nil
-    if @headers.include? att
-      response = @current_row[att]
-      # Deletes that attribute so it won't be added as an extra attribute later on
-      @current_row.delete_at(index)
-    end
-    response
-  end
-
   # @return [Integer]
   # Remove all spaces and dots from telephone string and returns an integer
-  def set_value_as_number(value)
+  def cast_to_integer(value)
     value = value.strip
     value = value.delete ".,-"
     return value.to_i

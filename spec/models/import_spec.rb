@@ -51,7 +51,7 @@ describe Import do
           @new_import.process_CSV
           Contact.last.kshema_id.should == "50178"
         end
-        it "should distinguish between coefficients" do
+        it "should distinguish between levels" do
           @new_import.process_CSV
           Contact.where(level: 5).count.should == 2
         end
