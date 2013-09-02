@@ -107,7 +107,8 @@ describe Import do
         response = @new_import.process_CSV
         response.should_not be_empty
         response.count.should == 2
-        response.should match_array([2, 5])
+        response.first.should include(@incorrect_student[0])
+        response.first.should include('2')
       end
     end
   end

@@ -15,8 +15,9 @@ class Import
   def process_CSV
     unless @contacts_CSV.nil? || @headers.blank?
       CSV.foreach(@contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
-        unless create_contact(row)
-          @failed_rows << $.
+        errors = create_contact(row)
+        unless errors.instance_of?(TrueClass)
+          @failed_rows << [($.).to_s , row.fields , errors.full_messages.join("\n")].flatten
         end
       end
     end
@@ -58,8 +59,12 @@ class Import
     @contact.check_duplicates = false
     @contact.skip_level_change_activity = true
     @contact.skip_history_entries = true
-    
-    return @contact.save
+
+    if @contact.valid?
+      return @contact.save
+    else
+      return @contact.errors
+    end
   end
 
   # Generic creators. The field name is passed in such a way that it explicits what kind of attribute it is
