@@ -26,7 +26,8 @@ class BirthdayNotificator
     json.merge!({
                     status: contact.status,
                     gender: contact.gender,
-                    birthday_at: Date.today
+                    birthday_at: Date.today,
+                    linked_accounts_names: contact.linked_accounts.map(&:name)
     })
     unless contact.emails.empty?
       json.merge!({recipient_email: contact.email})

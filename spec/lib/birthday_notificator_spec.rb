@@ -45,6 +45,9 @@ describe BirthdayNotificator do
   describe "#json_for" do
     context "for contact with email" do
       let(:json) { bn.json_for(@first_contact) }
+      it 'includes linked accounts' do
+        json[:linked_accounts_names].should == [@ac1.name]
+      end
       it('includes gender') do
         json[:gender].should == 'male'
       end

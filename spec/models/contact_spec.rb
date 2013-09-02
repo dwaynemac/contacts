@@ -743,6 +743,7 @@ describe Contact do
     before do
       account.base_list.contacts << contact
     end
+
     it "should remove contact from all account's lists" do
       contact.unlink(account)
       contact.lists.should_not include(account.base_list)
@@ -891,6 +892,14 @@ describe Contact do
         contact.local_status=({account_id: account.id, status: :former_student})
         expect{contact.save}.not_to change{HistoryEntry.count}
       end
+    end
+  end
+
+  describe "#linked_accounts" do
+    let(:account){Account.make}
+    let(:contact){Contact.make(owner: account)}
+    it "lists accounts linked with contact" do
+      contact.linked_accounts.should include account
     end
   end
 

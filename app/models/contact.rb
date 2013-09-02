@@ -613,6 +613,11 @@ class Contact
     @cached_owner
   end
 
+  # @return [Array<Account>]
+  def linked_accounts
+    self.lists.map(&:account).uniq
+  end
+
   protected
 
   def assign_owner
