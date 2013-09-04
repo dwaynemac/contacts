@@ -29,14 +29,19 @@ describe Import do
       csv << @student
       csv << @p_visit
     end
-    @csv_file = File.open("#{Rails.root}/spec/support/test.csv")
+    # @csv_file = File.open("#{Rails.root}/spec/support/test.csv")
+    extend ActionDispatch::TestProcess
+    @csv_file = fixture_file_upload("#{Rails.root}/spec/support/test.csv", "text/csv" )
+    # @csv_file = Rack::Test::UploadedFile.new(Rails.root.join('spec/support/test.csv'), 'text/csv')
   end
 
   describe "create_contact" do
     context "with a correct CSV file" do
       before do
         @account = Account.create(name: "testAccount")
-        @new_import = Import.new(@account, @csv_file, @headers)
+        @new_import = Import.create(account: @account, headers: @headers)
+        @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
+        @new_import.save
       end
       context "with all new contacts" do
         it "should create given contacts" do
@@ -98,7 +103,9 @@ describe Import do
         end
         @csv_file = File.open("#{Rails.root}/spec/support/test.csv")
         @account = Account.create(name: "testAccount")
-        @new_import = Import.new(@account, @csv_file, @headers)
+        @new_import = Import.create(account: @account, headers: @headers)
+        @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
+        @new_import.save
       end
       it "should add only the correct contacts" do
         expect{@new_import.process_CSV}.to change{Contact.count}.by(3)

@@ -3,32 +3,40 @@ require 'csv'
 require 'open-uri'
 
 class Import
-  attr_reader :failed_rows
+  include Mongoid::Document
 
-  def initialize(account, contacts_CSV, headers)
-    @account = account
-    @contacts_CSV = contacts_CSV
-    @headers = headers
-    @failed_rows = []
-  end
+  field :failed_rows
+  field :contacts_CSV
+  field :headers
+
+  belongs_to :account
+
+  embeds_one :attachment, cascade_callbacks: true
 
   def process_CSV
-    unless @contacts_CSV.nil? || @headers.blank?
-      CSV.foreach(@contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
+    csv_uri = self.attachment.file.path
+    self.failed_rows = []
+    open("#{Rails.root}/tmp/#{self.attachment.name}", 'wb') do |file|
+      file << open(csv_uri).read
+      self.contacts_CSV = file
+    end
+
+    unless self.contacts_CSV.nil? || self.headers.blank?
+      CSV.foreach(self.contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
         errors = create_contact(row)
         unless errors.instance_of?(TrueClass)
-          @failed_rows << [($.).to_s , row.fields , errors.full_messages.join("\n")].flatten
+          self.failed_rows << [($.).to_s , row.fields , errors].flatten
         end
       end
     end
 
-    return @failed_rows
+    return self.failed_rows
   end
 
   def create_contact(row)
     @current_row = row
-    @contact = Contact.new(owner: @account)
-    @headers.each do |h|
+    @contact = Contact.new(owner: self.account)
+    self.headers.each do |h|
       type_of_attribute = get_attribute_type(h)
       value = row[h]
 
@@ -63,7 +71,7 @@ class Import
     if @contact.valid?
       return @contact.save
     else
-      return @contact.errors
+      return @contact.deep_error_messages
     end
   end
 
@@ -74,16 +82,16 @@ class Import
     if %w(telephone).include? type
       value = cast_to_integer(value)
     end
-    @contact.contact_attributes << type.camelize.singularize.constantize.new( value: value, category: category, account_id: @account.id )
+    @contact.contact_attributes << type.camelize.singularize.constantize.new( value: value, category: category, account_id: self.account.id )
   end
 
   def create_local_unique_attribute(att, value)
     att_type = att[:name]
-    @contact.local_unique_attributes << att_type.camelize.singularize.constantize.new(value: value, account_id: @account.id)
+    @contact.local_unique_attributes << att_type.camelize.singularize.constantize.new(value: value, account_id: self.account.id)
   end
 
   def create_custom_attribute(att, value)
-    @contact.contact_attributes << CustomAttribute.new(name: att[:name], value: value, account_id: @account.id)
+    @contact.contact_attributes << CustomAttribute.new(name: att[:name], value: value, account_id: self.account.id)
   end
 
   def create_custom_date_attribute(att, value)
@@ -91,7 +99,7 @@ class Import
     day = date.to_date.day
     month = date.to_date.month
     year = date.to_date.year
-    @contact.contact_attributes << DateAttribute.new(category: att[:category], day: day, month: month, year: year, account_id: @account.id)
+    @contact.contact_attributes << DateAttribute.new(category: att[:category], day: day, month: month, year: year, account_id: self.account.id)
   end
 
   # Particular creators. For special fields, that do not abide the generic values.
@@ -100,7 +108,7 @@ class Import
     day = date.to_date.day
     month = date.to_date.month
     year = date.to_date.year
-    @contact.contact_attributes << DateAttribute.new(category: 'birthday', day: day, month: month, year: year, account_id: @account.id)
+    @contact.contact_attributes << DateAttribute.new(category: 'birthday', day: day, month: month, year: year, account_id: self.account.id)
   end
 
   # Receives the url of the file to download
