@@ -38,8 +38,8 @@ describe Import do
   describe "create_contact" do
     context "with a correct CSV file" do
       before do
-        @account = Account.create(name: "testAccount")
-        @new_import = Import.create(account: @account, headers: @headers)
+        @account = Account.make(name: "testAccount")
+        @new_import = Import.make(account: @account, headers: @headers)
         @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
         @new_import.save
       end
@@ -102,8 +102,8 @@ describe Import do
           csv << @p_visit
         end
         @csv_file = File.open("#{Rails.root}/spec/support/test.csv")
-        @account = Account.create(name: "testAccount")
-        @new_import = Import.create(account: @account, headers: @headers)
+        @account = Account.make(name: "testAccount")
+        @new_import = Import.make(account: @account, headers: @headers)
         @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
         @new_import.save
       end
