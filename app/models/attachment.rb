@@ -10,6 +10,7 @@ class Attachment
   include AccountNameAccessor
   
   embedded_in :contact
+  embedded_in :import
 
   field :public, type: Boolean
   field :name, type: String

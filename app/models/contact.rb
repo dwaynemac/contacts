@@ -53,6 +53,9 @@ class Contact
   field :estimated_age, type: Integer
   validates_numericality_of :estimated_age, allow_blank: true
 
+  field :kshema_id
+  field :publish_on_gdp
+
   # ordered by hierarchy (last is higher)
   VALID_LEVELS = {
     "aspirante" => 0,
