@@ -101,7 +101,7 @@ describe Import do
           csv << @incorrect_student
           csv << @p_visit
         end
-        @csv_file = File.open("#{Rails.root}/spec/support/test.csv")
+        @csv_file = fixture_file_upload("#{Rails.root}/spec/support/test.csv", "text/csv" )
         @account = Account.make(name: "testAccount")
         @new_import = Import.make(account: @account, headers: @headers)
         @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
@@ -110,14 +110,37 @@ describe Import do
       it "should add only the correct contacts" do
         expect{@new_import.process_CSV}.to change{Contact.count}.by(3)
       end
-      it "should return the incorrect rows" do
-        response = @new_import.process_CSV
-        response.should_not be_empty
-        response.count.should == 2
-        response.first.should include(@incorrect_student[0])
-        response.first.should include('2')
-      end
     end
+  end
+
+  describe "#to_csv" do
+    before do
+      @incorrect_student =  ["50010", "", "Bernardo", "Gomez", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
+                             "lucia.gagliardini", "5", "h",
+                             "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "1983-03-11", "2004-12-01",
+                             "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
+                             "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
+      CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
+        csv << @headers
+        csv << @incorrect_student
+        csv << @former_student
+        csv << @student
+        csv << @incorrect_student
+        csv << @p_visit
+      end
+      @csv_file = fixture_file_upload("#{Rails.root}/spec/support/test.csv", "text/csv" )
+      @account = Account.make(name: "testAccount")
+      @new_import = Import.make(account: @account, headers: @headers)
+      @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
+      @new_import.save
+      @new_import.process_CSV
+    end
+    it "should return a CSV with all the failed errors" do
+      csv = @new_import.to_csv
+      csv.should_not be_nil
+      csv.should include("Bernardo", "50010")
+    end
+
   end
   # Clean up
   after do

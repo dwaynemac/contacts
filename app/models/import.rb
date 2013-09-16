@@ -6,34 +6,43 @@ class Import
   include Mongoid::Document
 
   field :failed_rows
+  field :imported_ids
   field :contacts_CSV
   field :headers
+  field :status
 
   belongs_to :account
 
   embeds_one :attachment, cascade_callbacks: true
 
-  def process_CSV
-    csv_uri = self.attachment.file.path
-    self.failed_rows = []
-    open("#{Rails.root}/tmp/#{self.attachment.name}", 'wb') do |file|
-      file << open(csv_uri).read
-      self.contacts_CSV = file
-    end
+  before_create :set_defaults
 
-    unless self.contacts_CSV.nil? || self.headers.blank?
-      CSV.foreach(self.contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
-        errors = create_contact(row)
-        unless errors.instance_of?(TrueClass)
-          self.failed_rows << [($.).to_s , row.fields , errors].flatten
+  VALID_STATUSES = [:ready, :working, :finished]
+
+  def process_CSV
+    return unless self.status == :ready
+
+    self.update_attribute(:status, :working)
+
+    contacts_CSV = open(self.attachment.file.path)
+
+    unless contacts_CSV.nil? || self.headers.blank?
+      CSV.foreach(contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
+        contact = build_contact(row)
+        if contact.valid?
+          contact.save
+          self.imported_ids << contact.id
+        else
+          # $. is the current line of the CSV file, setted by CSV.foreach
+          self.failed_rows << [($.).to_s , row.fields , contact.deep_error_messages].flatten
         end
       end
     end
 
-    return self.failed_rows
+    self.update_attribute(:status, :finished)
   end
 
-  def create_contact(row)
+  def build_contact(row)
     @current_row = row
     @contact = Contact.new(owner: self.account)
     self.headers.each do |h|
@@ -68,11 +77,7 @@ class Import
     @contact.skip_level_change_activity = true
     @contact.skip_history_entries = true
 
-    if @contact.valid?
-      return @contact.save
-    else
-      return @contact.deep_error_messages
-    end
+    return @contact
   end
 
   # Generic creators. The field name is passed in such a way that it explicits what kind of attribute it is
@@ -352,4 +357,22 @@ class Import
     rescue URI::InvalidURIError
       false
   end
+
+  # makes a CSV file with the failed rows
+  def to_csv(options={})
+    CSV.generate(options) do |csv|
+      csv << self.headers
+      self.failed_rows.each do |failed_row|
+        csv << failed_row
+      end
+    end
+  end
+
+  private
+
+    def set_defaults
+      self.failed_rows = []
+      self.status = :ready
+      self.imported_ids = []
+    end
 end
