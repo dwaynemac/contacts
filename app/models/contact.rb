@@ -54,6 +54,8 @@ class Contact
   validates_numericality_of :estimated_age, allow_blank: true
 
   field :kshema_id
+  validates_uniqueness_of :kshema_id, allow_blank: true
+
   field :publish_on_gdp
 
   # ordered by hierarchy (last is higher)

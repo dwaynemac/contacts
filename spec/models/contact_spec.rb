@@ -12,6 +12,17 @@ describe Contact do
   it { should have_field(:status).of_type(Symbol)}
   it { should have_field(:level).of_type(Integer)}
 
+  describe "#kshema_id" do
+    it { should have_field :kshema_id }
+    it { should validate_uniqueness_of :kshema_id }
+    it "allows blank" do
+      Contact.make(kshema_id: nil)
+      c = Contact.make_unsaved(kshema_id: nil)
+      c.should be_valid
+    end
+  end
+
+
   it { should validate_presence_of :first_name }
 
   it { should embed_many :contact_attributes }
