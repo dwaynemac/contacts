@@ -115,8 +115,12 @@ class V0::ContactsController < V0::ApplicationController
   # @required [String] kshema_id
   # @optional [String] account_name
   def show_by_kshema_id
-    @contact = @scope.where(kshema_id: params[:kshema_id]).first
-    render json: @contact.as_json(select: params[:select], account: @account, include_masked: true)
+    if params[:kshema_id].blank?
+      render json: 'kshema_id missing', status: 400
+    else
+      @contact = @scope.where(kshema_id: params[:kshema_id]).first
+      render json: @contact.as_json(select: params[:select], account: @account)
+    end
   end
 
 
