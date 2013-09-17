@@ -451,6 +451,26 @@ describe V0::ContactsController do
     end
   end
 
+  describe "#show_by_kshema_id" do
+    describe "with kshema_id" do
+      before do
+        @contact = Contact.make(kshema_id: '1234')
+        get :show_by_kshema_id, kshema_id: '1234', app_key: V0::ApplicationController::APP_KEY
+      end
+      it { should respond_with(:success)}
+      it "returns contact with given kshema_id" do
+        assigns(:contact).should == @contact
+      end
+    end
+    describe "without kshema_id" do
+      before do
+        @contact = Contact.make(kshema_id: '1234')
+        get :show_by_kshema_id, app_key: V0::ApplicationController::APP_KEY
+      end
+      it { should respond_with(400)}
+    end
+  end
+
   describe "#show" do
     before(:each) do
       @contact = Contact.first
