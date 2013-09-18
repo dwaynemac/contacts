@@ -58,7 +58,7 @@ describe V0::ImportsController do
         before do
           import = Import.create(account: @account, headers: @headers)
           import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
-          import.process_CSV
+          import.process_CSV_without_delay
           import.update_attribute(:status, :working)
           get :show,
               :app_key => V0::ApplicationController::APP_KEY,
@@ -97,7 +97,7 @@ describe V0::ImportsController do
           @csv_file = fixture_file_upload("#{Rails.root}/spec/support/test.csv", "text/csv" )
           import = Import.create(account: @account, headers: @headers)
           import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
-          import.process_CSV
+          import.process_CSV_without_delay
           import.update_attribute(:status, :working)
           get :show,
               :app_key => V0::ApplicationController::APP_KEY,
@@ -121,7 +121,7 @@ describe V0::ImportsController do
       before do
         import = Import.create(account: @account, headers: @headers)
         import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
-        import.process_CSV
+        import.process_CSV_without_delay
         get :show,
             :app_key => V0::ApplicationController::APP_KEY,
             :id => import.id,
@@ -154,7 +154,7 @@ describe V0::ImportsController do
       @csv_file = fixture_file_upload("#{Rails.root}/spec/support/test.csv", "text/csv" )
       @import = Import.create(account: @account, headers: @headers)
       @import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
-      @import.process_CSV
+      @import.process_CSV_without_delay
 
     end
     context 'when CSV file has finished' do

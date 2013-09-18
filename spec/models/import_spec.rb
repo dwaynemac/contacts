@@ -45,19 +45,19 @@ describe Import do
       end
       context "with all new contacts" do
         it "should create given contacts" do
-          expect{@new_import.process_CSV}.to change{Contact.count}.by(3)
+          expect{@new_import.process_CSV_without_delay}.to change{Contact.count}.by(3)
         end
         it "should have consistent data" do
-          @new_import.process_CSV
+          @new_import.process_CSV_without_delay
           Contact.last.first_name.should == "Daniel"
           Contact.last.last_name.should == "Werber"
         end
         it "should have kshema_id" do
-          @new_import.process_CSV
+          @new_import.process_CSV_without_delay
           Contact.last.kshema_id.should == "50178"
         end
         it "should distinguish between levels" do
-          @new_import.process_CSV
+          @new_import.process_CSV_without_delay
           Contact.where(level: 5).count.should == 2
         end
       end
@@ -69,17 +69,17 @@ describe Import do
           @new_contact.save!
         end
         it "should create all the contacts" do
-          expect{@new_import.process_CSV}.to change{Contact.count}.by(3)
+          expect{@new_import.process_CSV_without_delay}.to change{Contact.count}.by(3)
         end
         it "should duplicate the contact that already existed" do
-          @new_import.process_CSV
+          @new_import.process_CSV_without_delay
           Contact.any_of(contact_attributes: { '$elemMatch' => {'_type' => 'Email', 'value' => 'dwaynemac@gmail.com'} }).count.should == 2
           Contact.where(first_name: "Dwayne").count.should == 2
         end
       end
       context "with images and attachments uri" do
         it "should save the avatar locally" do
-          @new_import.process_CSV
+          @new_import.process_CSV_without_delay
           alex = Contact.where(first_name: "Alex").first
           alex.avatar.should_not be_nil
           alex.avatar.url.should match /249140_10150188276702336_1924524_n\.jpg/
@@ -108,7 +108,7 @@ describe Import do
         @new_import.save
       end
       it "should add only the correct contacts" do
-        expect{@new_import.process_CSV}.to change{Contact.count}.by(3)
+        expect{@new_import.process_CSV_without_delay}.to change{Contact.count}.by(3)
       end
     end
   end
@@ -133,7 +133,7 @@ describe Import do
       @new_import = Import.make(account: @account, headers: @headers)
       @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
       @new_import.save
-      @new_import.process_CSV
+      @new_import.process_CSV_without_delay
     end
     it "should return a CSV with all the failed errors" do
       csv = @new_import.to_csv

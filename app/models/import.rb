@@ -41,6 +41,7 @@ class Import
 
     self.update_attribute(:status, :finished)
   end
+  handle_asynchronously :process_CSV
 
   def build_contact(row)
     @current_row = row
