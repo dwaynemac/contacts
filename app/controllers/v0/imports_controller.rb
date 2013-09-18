@@ -3,22 +3,28 @@ class V0::ImportsController < V0::ApplicationController
 
   before_filter :get_account
 
-  def create
-    contacts_CSV = params[:import][:file]
-    headers = params[:import][:headers]
-
-    import = Import.new(account: @account, headers: headers)
-    import.attachment = Attachment.new(name: "CSV", file: contacts_CSV, account: @account)
-
-    if import.save
-      import.process_CSV
-      render :json => {:message => "OK", :id => import.id}.to_json, :status => 201
-    else
-      render :json => {:message => "Sorry, import could not be created", :errors => import.errors}.to_json,
-             :status => 400
-    end
-  end
-
+  ##
+  # Returns status of an import
+  # Available statuses are:
+  #   * :ready
+  #   * :working
+  #   * :finished
+  # @url /v0/imports/:id
+  # @action GET
+  #
+  # @required [String] id import id
+  #
+  # @example_request
+  # -- show me the status of the import 1234
+  #
+  # GET /v0/imports/1234, {id: "1234"}
+  # @example response {status: 'working', failed_rows: 2, imported_rows: 10}
+  #
+  # @response_field [String] status status of the current import [:ready, :working, :finished]
+  # @response_field [Integer] failed_rows number of rows that have already failed
+  # @response_field [Integer] imported_rows number of rows that have already been imported
+  #
+  # @author Alex Falke
   def show
     import = Import.find(params[:id])
 
@@ -32,6 +38,60 @@ class V0::ImportsController < V0::ApplicationController
     end
   end
 
+
+  ##
+  # Creates an import that runs in the background.
+  # Returns id of the import created
+  # @url /v0/imports
+  # @action POST
+  #
+  # @required [File] file  CSV file to import
+  # @required [Array] headers headers of the CSV file
+  # @required [String] account_name
+  #
+  # @example_request
+  # -- import the data in "example.csv", with headers @headers, for the account "testAccount"
+  #
+  # POST /v0/imports, {import: {file: example.csv, headers: @headers, account_name: "testAccount"}}
+  # @example response {message: "OK", id: 1234}
+  #
+  # @response_field [Integer] id of import being processed
+  # @response_field [String] OK message
+  #
+  # @author Alex Falke
+  def create
+    contacts_CSV = params[:import][:file]
+    headers = params[:import][:headers]
+
+    import = Import.new(account: @account, headers: headers)
+    import.attachment = Attachment.new(name: "CSV", file: contacts_CSV, account: @account)
+
+    if import.save
+      import.process_CSV
+      render :json => {:message => "OK", :id => import.id}.to_json, :status => 201
+    else
+      render :json => {:message => "Sorry, import could not be created", :errors => import.errors}.to_json,
+      :status => 400
+    end
+  end
+
+
+  ##
+  # Returns a CSV file with the import errors
+  # @url /v0/imports/:id/failed_rows.csv
+  # @action GET
+  #
+  # @required [String] id import id
+  #
+  # @example_request
+  # -- give me the CSV file with the contacts that have not been imported
+  #
+  # GET /v0/imports/1234/failed_errors.csv, {id: "1234"}
+  # @example response { CSV }
+  #
+  # @response_field [CSV] csv file with the errors that ocurred during import
+  #
+  # @author Alex Falke
   def failed_rows
     import = Import.find(params[:id])
 
