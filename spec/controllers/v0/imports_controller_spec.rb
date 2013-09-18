@@ -168,4 +168,8 @@ describe V0::ImportsController do
       end
     end
   end
+  # Clean up
+  after do
+    File.delete("#{Rails.root}/spec/support/test.csv")
+  end
 end
