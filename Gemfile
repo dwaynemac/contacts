@@ -42,6 +42,8 @@ end
 
 group :development do
   gem 'git-pivotal-tracker-integration'
+
+  gem 'debugger'
 end
 
 group :development, :test do
