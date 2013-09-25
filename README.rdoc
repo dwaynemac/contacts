@@ -9,6 +9,8 @@ Web service for handling PADMA's Contacts.
 rake periodic:notify_today_birthdays should be scheduled for daily run.
 rake periodic:remove_empty_tags should be scheduled.
 rake mongo:backup should be scheduled
+rake jobs:work should be running in the background 
+  alterative: script/delayed_job start
 
 == Development documentation
 
