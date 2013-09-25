@@ -31,9 +31,9 @@ class V0::ImportsController < V0::ApplicationController
     if import.nil?
       render :json => {:message => "Import not found"}.to_json, :status => 404
     else
-      render :json => {:status => import.status,
-                       :failed_rows => import.failed_rows.count,
-                       :imported_rows => import.imported_ids.count}.to_json,
+      render :json => {import: {:status => import.status,
+                             :failed_rows => import.failed_rows.count,
+                             :imported_rows => import.imported_ids.count}}.to_json,
              :status => 201
     end
   end
@@ -45,9 +45,9 @@ class V0::ImportsController < V0::ApplicationController
   # @url /v0/imports
   # @action POST
   #
-  # @required [File] file  CSV file to import
-  # @required [Array] headers headers of the CSV file
-  # @required [String] account_name
+  # @required [File] import[file]  CSV file to import
+  # @required [Array] import[headers] headers of the CSV file
+  # @required [String] import[account_name]
   #
   # @example_request
   # -- import the data in "example.csv", with headers @headers, for the account "testAccount"
@@ -96,21 +96,19 @@ class V0::ImportsController < V0::ApplicationController
     import = Import.find(params[:id])
 
     if import.nil? || import.status != :finished
-      return
-    #  render :json => {:message => "Import not found"}.to_json, :status => 404
-    #elsif import.status != 'finished'
-    #  render :json => {:message => "Import not finished"}.to_json, :status => 401
+      render :json => {:message => "Import not found"}.to_json, :status => 404
     end
 
     headers = import.headers
+    
     # Add the header to the row number that failed at the beginning
     headers.unshift('row number')
     # Add the error column header
     headers << 'Errors'
-    import.update_attribute(:headers, headers)
+    import.headers = headers
 
     respond_to do |format|
-      format.csv { send_data import.to_csv, type: 'text/csv', disposition: "attachment; filename=import_errors.csv" }
+      format.csv { send_data import.failed_rows_to_csv, type: 'text/csv', disposition: "attachment; filename=import_errors.csv" }
     end
   end
 

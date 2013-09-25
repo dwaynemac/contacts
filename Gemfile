@@ -29,6 +29,7 @@ gem 'ethon', '0.4.2'
 
 gem 'heroku-mongo-backup', '~> 0.4.3' # Gem for making mongo -> AmazonS3 backups
 gem 'delayed_job_mongoid' # Gem for managing background operations
+gem 'daemons'
 
 group :documentation do
   gem 'yard', '~> 0.8.3'

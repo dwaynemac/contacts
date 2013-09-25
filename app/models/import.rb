@@ -360,7 +360,7 @@ class Import
   end
 
   # makes a CSV file with the failed rows
-  def to_csv(options={})
+  def failed_rows_to_csv(options={})
     CSV.generate(options) do |csv|
       csv << self.headers
       self.failed_rows.each do |failed_row|
