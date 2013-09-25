@@ -37,7 +37,6 @@ GEM
       logical_model (~> 0.5.0)
       railties (>= 3.1)
     arel (2.2.3)
-    bond (0.4.3)
     bson (1.4.0)
     bson_ext (1.4.0)
     builder (3.0.4)
@@ -71,20 +70,17 @@ GEM
     daemons (1.1.9)
     dalli (2.6.4)
     database_cleaner (1.1.1)
+    debugger (1.6.1)
+      columnize (>= 0.3.1)
+      debugger-linecache (~> 1.2.0)
+      debugger-ruby_core_source (~> 1.2.3)
+    debugger-linecache (1.2.0)
+    debugger-ruby_core_source (1.2.3)
     delayed_job (3.0.5)
       activesupport (~> 3.0)
     delayed_job_mongoid (1.0.8)
       delayed_job (~> 3.0.0)
       mongoid (>= 2.0)
-    debugger (1.6.1)
-      columnize (>= 0.3.1)
-      debugger-linecache (~> 1.2.0)
-      debugger-ruby_core_source (~> 1.2.3)
-    debugger-completion (1.0.0)
-      bond (>= 0.4.2)
-      debugger (~> 1.1)
-    debugger-linecache (1.2.0)
-    debugger-ruby_core_source (1.2.3)
     diff-lcs (1.2.4)
     erubis (2.7.0)
     ethon (0.4.2)
@@ -300,9 +296,8 @@ DEPENDENCIES
   daemons
   dalli
   database_cleaner (>= 0.6.7)
-  delayed_job_mongoid
   debugger
-  debugger-completion
+  delayed_job_mongoid
   ethon (= 0.4.2)
   faker (= 0.9.4)
   fog

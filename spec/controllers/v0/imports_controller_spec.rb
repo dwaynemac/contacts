@@ -68,13 +68,13 @@ describe V0::ImportsController do
         end
         it {should respond_with(201)}
         it "should return status: :working" do
-          @result['status'].should == "working"
+          @result['import']['status'].should == "working"
         end
         it "should return no failed rows" do
-          @result['failed_rows'].should == 0
+          @result['import']['failed_rows'].should == 0
         end
         it "should return imported rows" do
-          @result['imported_rows'].should == 3
+          @result['import']['imported_rows'].should == 3
         end
       end
       context 'with errors' do
@@ -106,13 +106,13 @@ describe V0::ImportsController do
           @result = ActiveSupport::JSON.decode(response.body)
         end
         it "should return status: :working" do
-          @result['status'].should == "working"
+          @result['import']['status'].should == "working"
         end
         it "should return failed rows" do
-          @result['failed_rows'].should == 2
+          @result['import']['failed_rows'].should == 2
         end
         it "should return imported rows" do
-          @result['imported_rows'].should == 3
+          @result['import']['imported_rows'].should == 3
         end
       end
     end
@@ -129,7 +129,7 @@ describe V0::ImportsController do
         @result = ActiveSupport::JSON.decode(response.body)
       end
       it "should have status: :finished" do
-        @result['status'].should == "finished"
+        @result['import']['status'].should == "finished"
       end
     end
   end

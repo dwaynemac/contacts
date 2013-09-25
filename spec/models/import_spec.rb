@@ -113,7 +113,7 @@ describe Import do
     end
   end
 
-  describe "#to_csv" do
+  describe "#failed_rows_to_csv" do
     before do
       @incorrect_student =  ["50010", "", "Bernardo", "Gomez", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
                              "lucia.gagliardini", "5", "h",
@@ -136,7 +136,7 @@ describe Import do
       @new_import.process_CSV_without_delay
     end
     it "should return a CSV with all the failed errors" do
-      csv = @new_import.to_csv
+      csv = @new_import.failed_rows_to_csv
       csv.should_not be_nil
       csv.should include("Bernardo", "50010")
     end
