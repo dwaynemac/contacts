@@ -42,6 +42,12 @@ group :production do
   gem 'dalli' # memcache support on heroku
 end
 
+group :development do
+  gem 'git-pivotal-tracker-integration'
+
+  gem 'debugger'
+end
+
 group :development, :test do
   gem "timecop", '0.3.5'
 

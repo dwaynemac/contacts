@@ -6,6 +6,7 @@ Contacts::Application.routes.draw do
         post :link
       end
       collection do
+        get  :by_kshema_id, to: 'contacts#show_by_kshema_id'
         post :search
         get :search_for_select
         delete :destroy_multiple
@@ -33,6 +34,9 @@ Contacts::Application.routes.draw do
         end
       end
       resources :contacts do
+        collection do
+          get  :by_kshema_id, to: 'contacts#show_by_kshema_id'
+        end
         resources :contact_attributes
         resources :attachments
         resources :tags

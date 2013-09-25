@@ -104,6 +104,27 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   ##
+  # Returns JSON for a contact finding by kshema_id
+  # @see show
+  #
+  # @url /v0/contacts/by_kshema_id
+  # @action GET
+  # @url /v0/accounts/:account_name/contacts/by_kshema_id
+  # @action GET
+  #
+  # @required [String] kshema_id
+  # @optional [String] account_name
+  def show_by_kshema_id
+    if params[:kshema_id].blank?
+      render json: 'kshema_id missing', status: 400
+    else
+      @contact = @scope.where(kshema_id: params[:kshema_id]).first
+      render json: @contact.as_json(select: params[:select], account: @account)
+    end
+  end
+
+
+  ##
   # Creates a contact
   #
   # @url /v0/contacts
