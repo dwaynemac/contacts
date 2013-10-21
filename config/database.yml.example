@@ -19,7 +19,12 @@ test:
   timeout: 5000
 
 production:
-  adapter: sqlite3
-  database: db/production.sqlite3
+  host: amazon-rds.padm.am
+  adapter: mysql
+  encoding: utf8
+  database: contacts
   pool: 5
   timeout: 5000
+  user: usernameatmysql
+  password: secret
+

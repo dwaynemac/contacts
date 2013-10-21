@@ -16,3 +16,4 @@ Procfile.dev
 public/documentation/
 .ruby-gemset
 .env
+config/database.yml
