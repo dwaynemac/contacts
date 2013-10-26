@@ -41,6 +41,7 @@ end
 group :production do
   gem 'newrelic_rpm'
   gem 'dalli' # memcache support on heroku
+  gem 'memcachier' # memcache migrator for heroku
 end
 
 group :development do
