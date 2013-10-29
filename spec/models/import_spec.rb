@@ -87,28 +87,70 @@ describe Import do
       end
     end
     context "with an incorrect CSV file" do
-      before do
-        @incorrect_student =  ["50010", "", "Alex", "Falke", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
-                 "lucia.gagliardini", "5", "h",
-                 "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "1983-03-11", "2004-12-01",
-                 "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
-                 "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
-        CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
-          csv << @headers
-          csv << @incorrect_student
-          csv << @former_student
-          csv << @student
-          csv << @incorrect_student
-          csv << @p_visit
+      context "if contact has incorrect data" do
+        before do
+          @incorrect_student =  ["50013", "", "Alex", "Falke", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
+                   "lucia.gagliardini", "5", "h",
+                   "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "1983-03-11", "2004-12-01",
+                   "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
+                   "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
+          CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
+            csv << @headers
+            csv << @incorrect_student
+            csv << @former_student
+            csv << @student
+            csv << @incorrect_student
+            csv << @p_visit
+          end
+          @csv_file = fixture_file_upload("#{Rails.root}/spec/support/test.csv", "text/csv" )
+          @account = Account.make(name: "testAccount")
+          @new_import = Import.make(account: @account, headers: @headers)
+          @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
+          @new_import.save
         end
-        @csv_file = fixture_file_upload("#{Rails.root}/spec/support/test.csv", "text/csv" )
-        @account = Account.make(name: "testAccount")
-        @new_import = Import.make(account: @account, headers: @headers)
-        @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
-        @new_import.save
+        it "should try to add every contact" do
+          expect{@new_import.process_CSV_without_delay}.to change{Contact.count}.by(4)
+        end
+        it "should resolve incorrect data given" do
+          @new_import.process_CSV_without_delay
+          puts ""
+          puts "ERRORS: #{@new_import.failed_rows.inspect}"
+          puts ""
+          cont = Contact.where(kshema_id: "50013").first
+          cont.should_not be_nil
+          cont.emails.count.should == 0
+        end
       end
-      it "should add only the correct contacts" do
-        expect{@new_import.process_CSV_without_delay}.to change{Contact.count}.by(3)
+      context "if contact has duplicate email" do
+        before do
+          duplicate_contact = ["50013", "", "Alex", "Falke", "", "4782 1495",	"15 5466 7896",	"afalkear@gmail.com", "asistente",
+           "lucia.gagliardini", "perfil", "male",
+           "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
+           "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",	"1667392", "",
+           "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
+          CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
+            csv << @headers
+            csv << duplicate_contact
+            csv << @former_student
+            csv << @student
+            csv << @p_visit
+          end
+          @csv_file = fixture_file_upload("#{Rails.root}/spec/support/test.csv", "text/csv" )
+          @account = Account.make(name: "testAccount")
+          @new_import = Import.make(account: @account, headers: @headers)
+          @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
+          @new_import.save
+        end
+        it "should add every contact" do
+          expect{@new_import.process_CSV_without_delay}.to change{Contact.count}.by(4)
+        end
+        it "should add email as a custom attribute" do
+          @new_import.process_CSV_without_delay
+          con = Contact.where(kshema_id: "50013").first
+          con.should_not be_nil
+          con.emails.count.should > 0
+          con.emails.last.value.should == "afalkear@gmail.com"
+        end
       end
     end
   end

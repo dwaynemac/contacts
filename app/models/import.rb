@@ -29,6 +29,25 @@ class Import
     unless contacts_CSV.nil? || self.headers.blank?
       CSV.foreach(contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
         contact = build_contact(row)
+
+        # try to fix errors
+        retry_fix = 3
+        while !contact.valid? && (retry_fix > 0)
+          puts ""
+          puts "CONTACT NO ES VALIDO"
+          puts "TIENE ESTOS ATRIBUTOS ANTES DEL FIX"
+          puts "CONTACT: #{contact.inspect}"
+          puts "Y ESTOS ERRORES"
+          puts "ERRORES: #{contact.deep_error_messages}"
+          contact = fix_errors(contact)
+          puts "PASO POR EL FIX Y QUEDO ASI"
+          puts "CONTACT: #{contact.inspect}"
+          puts "Y ESTOS ERRORES"
+          puts "ERRORES: #{contact.deep_error_messages}"
+          puts ""
+          retry_fix -= 1
+        end
+
         if contact.valid?
           contact.save
           self.imported_ids << contact.id
@@ -347,7 +366,7 @@ class Import
   def cast_to_integer(value)
     value = value.strip
     value = value.delete ".,-"
-    return value.to_i
+    return value.gsub(/\s+/,"").to_i
   end
 
   def uri?(string)
@@ -369,7 +388,80 @@ class Import
     end
   end
 
+  def coefficient_to_padma_value(value)
+    case value
+      when '1'
+        value = 'fp'
+      when '2'
+        value = 'pmenos'
+      when '3'
+        value = 'perfil'
+      when '4'
+        value = 'pmas'
+      when '5'
+        value = 'perfil'
+      when '6'
+        value = 'perfil'
+      when '7'
+        value = 'fp'
+      when '8'
+        value =  'pmas'
+      when '9'
+        value = 'unknown'
+    end
+  end
+
   private
+
+    def fix_errors(contact)
+      error_messages = contact.deep_error_messages
+
+      unless error_messages[:contact_attributes].nil?
+        contact_attribute_errors = error_messages[:contact_attributes].join(" ")
+        # if email format is not valid
+        if contact_attribute_errors =~ /email/
+          contact.custom_attributes << CustomAttribute.new(name: 'rescued_email_from_import',
+                                                              value: contact.emails.first.value)
+          contact.emails.first.destroy
+
+        # if telephone is not correct
+        elsif characters = (contact_attribute_errors =~ /is not a number/)
+          # get the value
+          tel = error_messages[:contact_attributes].join(" ").first(characters - 1)
+          contact.custom_attributes << CustomAttribute.new(name: 'rescued_phone_from_import',
+                                                            value: tel)
+          contact.telephones.where(value: tel).destroy
+
+        # if telephone is set as 0
+        elsif contact_attribute_errors =~ /must be greater than 0/
+          contact.telephones.where(value: 0).destroy
+        end
+      end
+      unless error_messages[:local_unique_attributes].nil?
+        local_unique_attribute_errors = error_messages[:local_unique_attributes].join(" ")
+        #if coefficient was not set correctly
+        if characters = (local_unique_attribute_errors =~ /is not included in the list/)
+          old_coefficient = local_unique_attribute_errors.first(characters - 1)
+          coefficient = "unknown"
+          if (1..9).include? old_coefficient.to_i
+            coefficient = coefficient_to_padma_value(old_coefficient)
+          end
+          contact.coefficients.last.destroy
+          contact.local_unique_attributes << Coefficient.new(value: coefficient, account_id: self.account.id)
+        end
+      end
+      unless error_messages[:gender].nil?
+        gender = ""
+        if @current_row['genero'] == 'h'
+          gender = "male"
+        elsif @current_row['genero'] == 'm'
+          gender = "female"
+        end
+        contact.gender = gender
+      end
+
+      return contact
+    end
 
     def set_defaults
       self.failed_rows = []
