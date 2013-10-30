@@ -31,20 +31,10 @@ class Import
         contact = build_contact(row)
 
         # try to fix errors
+        # contact = fix_errors(contact)
         retry_fix = 3
         while !contact.valid? && (retry_fix > 0)
-          puts ""
-          puts "CONTACT NO ES VALIDO"
-          puts "TIENE ESTOS ATRIBUTOS ANTES DEL FIX"
-          puts "CONTACT: #{contact.inspect}"
-          puts "Y ESTOS ERRORES"
-          puts "ERRORES: #{contact.deep_error_messages}"
           contact = fix_errors(contact)
-          puts "PASO POR EL FIX Y QUEDO ASI"
-          puts "CONTACT: #{contact.inspect}"
-          puts "Y ESTOS ERRORES"
-          puts "ERRORES: #{contact.deep_error_messages}"
-          puts ""
           retry_fix -= 1
         end
 
@@ -73,7 +63,7 @@ class Import
         case type_of_attribute[:type]
           when 'field'
             if type_of_attribute[:name] == "estimated_age"
-              value = cast_to_integer(value)
+              value = is_integer?(value) ? cast_to_integer(value) : nil
             end
             @contact.send("#{type_of_attribute[:name]}=", value)
           when 'attachment'
@@ -89,6 +79,11 @@ class Import
           when 'custom_date_attribute'
             create_custom_date_attribute type_of_attribute, value
           when 'local_unique_attribute'
+            if type_of_attribute[:name] == "coefficient"
+              response = get_status_and_coefficient(value)
+              @contact.status = response[:status]
+              value = response[:coefficient]
+            end
             create_local_unique_attribute type_of_attribute, value
         end
       end
@@ -378,6 +373,40 @@ class Import
       false
   end
 
+  def get_status_and_coefficient(value)
+    response = {:status => nil, :coefficient => nil}
+    case value
+      when 'fp'
+        response[:status] = 'prospect'
+        response[:coefficient] = 'fp'
+      when 'pmenos'
+        response[:status] = 'prospect'
+        response[:coefficient] = 'pmenos'
+      when 'perfil'
+        response[:status] = 'prospect'
+        response[:coefficient] = 'perfil'
+      when 'pmas'
+        response[:status] = 'prospect'
+        response[:coefficient] = 'pmas'
+      when 'alumno'
+        response[:status] = 'student'
+        response[:coefficient] = 'perfil'
+      when 'exalumno'
+        response[:status] = 'former_student'
+        response[:coefficient] = 'perfil'
+      when 'exalumnofp'
+        response[:status] = 'former_student'
+        response[:coefficient] = 'fp'
+      when 'exalumnopmas'
+        response[:status] = 'former_student'
+        response[:coefficient] = 'pmas'
+      when 'unknown'
+        response[:status] = nil
+        response[:coefficient] = 'unknown'
+    end
+    return response
+  end
+
   # makes a CSV file with the failed rows
   def failed_rows_to_csv(options={})
     CSV.generate(options) do |csv|
@@ -385,29 +414,6 @@ class Import
       self.failed_rows.each do |failed_row|
         csv << failed_row
       end
-    end
-  end
-
-  def coefficient_to_padma_value(value)
-    case value
-      when '1'
-        value = 'fp'
-      when '2'
-        value = 'pmenos'
-      when '3'
-        value = 'perfil'
-      when '4'
-        value = 'pmas'
-      when '5'
-        value = 'perfil'
-      when '6'
-        value = 'perfil'
-      when '7'
-        value = 'fp'
-      when '8'
-        value =  'pmas'
-      when '9'
-        value = 'unknown'
     end
   end
 
@@ -437,19 +443,6 @@ class Import
           contact.telephones.where(value: 0).destroy
         end
       end
-      unless error_messages[:local_unique_attributes].nil?
-        local_unique_attribute_errors = error_messages[:local_unique_attributes].join(" ")
-        #if coefficient was not set correctly
-        if characters = (local_unique_attribute_errors =~ /is not included in the list/)
-          old_coefficient = local_unique_attribute_errors.first(characters - 1)
-          coefficient = "unknown"
-          if (1..9).include? old_coefficient.to_i
-            coefficient = coefficient_to_padma_value(old_coefficient)
-          end
-          contact.coefficients.last.destroy
-          contact.local_unique_attributes << Coefficient.new(value: coefficient, account_id: self.account.id)
-        end
-      end
       unless error_messages[:gender].nil?
         gender = ""
         if @current_row['genero'] == 'h'
@@ -461,6 +454,10 @@ class Import
       end
 
       return contact
+    end
+
+    def is_integer?(string)
+      string.to_i.to_s == string
     end
 
     def set_defaults

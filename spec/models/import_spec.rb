@@ -90,10 +90,10 @@ describe Import do
       context "if contact has incorrect data" do
         before do
           @incorrect_student =  ["50013", "", "Alex", "Falke", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
-                   "lucia.gagliardini", "5", "h",
-                   "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "1983-03-11", "2004-12-01",
+                   "lucia.gagliardini", "perfil", "h",
+                   "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "1983/03 fecha11", "2004-12-01",
                    "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
-                   "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
+                   "2013-01-11 14:03:29 -0300", "bad_age", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
           CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
             csv << @headers
             csv << @incorrect_student
@@ -119,6 +119,10 @@ describe Import do
           cont = Contact.where(kshema_id: "50013").first
           cont.should_not be_nil
           cont.emails.count.should == 0
+          cont.level.should be_nil
+          cont.birthday.should be_nil
+          cont.estimated_age.should be_nil
+          cont.status.should == :prospect
         end
       end
       context "if contact has duplicate email" do
