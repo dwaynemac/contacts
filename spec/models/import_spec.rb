@@ -113,9 +113,6 @@ describe Import do
         end
         it "should resolve incorrect data given" do
           @new_import.process_CSV_without_delay
-          puts ""
-          puts "ERRORS: #{@new_import.failed_rows.inspect}"
-          puts ""
           cont = Contact.where(kshema_id: "50013").first
           cont.should_not be_nil
           cont.emails.count.should == 0
