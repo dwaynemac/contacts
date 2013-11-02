@@ -2,6 +2,8 @@
 
 Web service for handling PADMA's Contacts.
 
+This readme should be updated
+
 = Documentation
 
 == Deployment
