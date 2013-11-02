@@ -17,6 +17,6 @@ public/documentation/
 .ruby-gemset
 .env
 config/database.yml
-
+config/mongoid.yml
 # Ignore application configuration
 /config/application.yml
