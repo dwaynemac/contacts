@@ -1,14 +1,14 @@
 development:
   host: localhost
-  database: padma-contacts
+  database: padma-contacts-dev
 
 test:
   host: localhost
   database: contacts_test
 
 # set these environment variables on your prod server
-production:
-  uri: <%= ENV['MONGOHQ_URL'] %>
+# production:
+#  uri: <%= ENV['MONGOHQ_URL'] %>
 #  host: <%= ENV['MONGOID_HOST'] %>
 #  port: <%= ENV['MONGOID_PORT'] %>
 #  username: <%= ENV['MONGOID_USERNAME'] %>
@@ -19,6 +19,3 @@ production:
   #     port: 27018
   #   - host: slave2.local
   #     port: 27019
-
-staging:
-  uri: <%= ENV['MONGOHQ_URL'] %>
