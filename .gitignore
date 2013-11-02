@@ -17,3 +17,6 @@ public/documentation/
 .ruby-gemset
 .env
 config/database.yml
+
+# Ignore application configuration
+/config/application.yml

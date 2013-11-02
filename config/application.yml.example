@@ -1,0 +1,20 @@
+# Add application configuration variables here, as shown below.
+#
+# PUSHER_APP_ID: "2954"
+# PUSHER_KEY: 7381a978f7dd7f9a1117
+# PUSHER_SECRET: abdc3b896a0ffb85d373
+# STRIPE_API_KEY: EdAvEPVEC3LuaTg5Q3z6WbDVqZlcBQ8Z
+# STRIPE_PUBLIC_KEY: pk_BRgD57O8fHja9HxduJUszhef6jCyS
+# 
+# You can olso divide by environment
+#
+# production:
+#   APP_KEY: 123
+# development:
+#   APP_KEY: 543
+#
+# This variables will be available as ENV['APP_KEY'] or Figaro.env.app_key
+# For setting heroku's configuration yout can use `rake figaro:heroku[app-name]`
+RACK_ENV: development
+messaging_key: crm-secret
+app_key: 12341234124
