@@ -1,6 +1,6 @@
 development:
   host: localhost
-  database: padma-contacts-dev
+  database: padma-contacts
 
 test:
   host: localhost
