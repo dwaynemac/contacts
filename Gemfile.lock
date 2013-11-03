@@ -91,6 +91,9 @@ GEM
       i18n (~> 0.4)
     fast-stemmer (1.0.2)
     ffi (1.0.11)
+    figaro (0.7.0)
+      bundler (~> 1.0)
+      rails (>= 3, < 5)
     fog (1.14.0)
       builder
       excon (~> 0.25.0)
@@ -301,6 +304,7 @@ DEPENDENCIES
   delayed_job_mongoid
   ethon (= 0.4.2)
   faker (= 0.9.4)
+  figaro
   fog
   git-pivotal-tracker-integration
   guard-rspec
