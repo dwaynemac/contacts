@@ -31,11 +31,8 @@ class Import
         contact = build_contact(row)
 
         # try to fix errors
-        # contact = fix_errors(contact)
-        retry_fix = 3
-        while !contact.valid? && (retry_fix > 0)
+        unless contact.valid?
           contact = fix_errors(contact)
-          retry_fix -= 1
         end
 
         if contact.valid?
@@ -421,7 +418,7 @@ class Import
 
     def fix_errors(contact)
       error_messages = contact.deep_error_messages
-
+      
       unless error_messages[:contact_attributes].nil?
         contact_attribute_errors = error_messages[:contact_attributes].join(" ")
         # if email format is not valid
@@ -429,17 +426,19 @@ class Import
           contact.custom_attributes << CustomAttribute.new(name: 'rescued_email_from_import',
                                                               value: contact.emails.first.value)
           contact.emails.first.destroy
+        end
 
         # if telephone is not correct
-        elsif characters = (contact_attribute_errors =~ /is not a number/)
+        if characters = (contact_attribute_errors =~ /is not a number/)
           # get the value
           tel = error_messages[:contact_attributes].join(" ").first(characters - 1)
           contact.custom_attributes << CustomAttribute.new(name: 'rescued_phone_from_import',
                                                             value: tel)
           contact.telephones.where(value: tel).destroy
+        end
 
         # if telephone is set as 0
-        elsif contact_attribute_errors =~ /must be greater than 0/
+        if contact_attribute_errors =~ /must be greater than 0/
           contact.telephones.where(value: 0).destroy
         end
       end
@@ -452,7 +451,7 @@ class Import
         end
         contact.gender = gender
       end
-
+      
       return contact
     end
 
