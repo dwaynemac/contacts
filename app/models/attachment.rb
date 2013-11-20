@@ -37,7 +37,13 @@ class Attachment
   end
 
   def assign_owner
-    self.account = self.contact.owner if self.account.blank? && self.contact.owner.present?
+    return unless self.account.blank?
+
+    if self.contact.present?
+      self.account_id = self.contact.owner_id
+    elsif self.import.present?
+      self.account_id = self.import.account_id
+    end
   end
 
   def contact_id
