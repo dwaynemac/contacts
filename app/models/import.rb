@@ -60,7 +60,7 @@ class Import
     @contact = Contact.new(owner: self.account)
     self.headers.each do |h|
       type_of_attribute = get_attribute_type(h)
-      value = row[h]
+      value = get_value_for(h, row)
 
       unless value.blank?
         case type_of_attribute[:type]
@@ -168,10 +168,10 @@ class Import
 
   def create_address(value)
     category = "personal"
-    postal_code = @current_row['codigo_postal']
-    city = @current_row['city']
-    state = @current_row['state']
-    country = @current_row['country_id']
+    postal_code = get_value_for('codigo_postal', @current_row)
+    city = get_value_for('city', @current_row)
+    state = get_value_for('state', @current_row)
+    country = get_value_for('country_id', @current_row)
 
     address_values = {value: value, category: category, postal_code: postal_code, city: city, state: state, country: country}
     @contact.contact_attributes << Address.new(address_values)
@@ -456,9 +456,9 @@ class Import
       end
       unless error_messages[:gender].nil?
         gender = ""
-        if @current_row['genero'] == 'h'
+        if get_value_for('genero', @current_row) == 'h'
           gender = "male"
-        elsif @current_row['genero'] == 'm'
+        elsif get_value_for('genero', @current_row) == 'm'
           gender = "female"
         end
         contact.gender = gender
@@ -479,5 +479,9 @@ class Import
 
     def destroy_all_imported_documents
       Contact.any_in(id: self.imported_ids).destroy_all
+    end
+
+    def get_value_for(field, row)
+      self.headers.index(field).nil? ? nil : row[self.headers.index(field)]
     end
 end
