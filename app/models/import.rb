@@ -7,9 +7,10 @@ class Import
 
   field :failed_rows
   field :imported_ids
-  field :contacts_CSV
   field :headers
   field :status
+
+  attr_accessor :contacts_CSV
 
   belongs_to :account
 
