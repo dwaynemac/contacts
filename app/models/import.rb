@@ -24,7 +24,11 @@ class Import
 
     self.update_attribute(:status, :working)
 
-    contacts_CSV = open(self.attachment.file.path)
+    if Rails.env.test?
+      contacts_CSV = open(self.attachment.file.path)
+    else
+      contacts_CSV = open(self.attachment.file.url)
+    end
 
     unless contacts_CSV.nil? || self.headers.blank?
       CSV.foreach(contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
