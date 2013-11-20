@@ -4,6 +4,18 @@ describe Attachment do
   let(:contact){ Contact.make }
   let(:account){ Account.make }
 
+  describe "when saving" do
+    before do
+      extend ActionDispatch::TestProcess
+      image = fixture_file_upload('spec/support/ghibli_main_logo.gif', 'image/gif')
+      contact.attachments << Attachment.new(file: image, name: "hello")
+      contact.save!
+    end
+    it "should be saved in a specific folder" do
+      contact.attachments.first.file.path.should include('uploads/attachment/file/')
+    end
+  end
+
   describe "when embbeded in a Contact" do
     let(:attachment){ Attachment.make(contact: contact) }
 
