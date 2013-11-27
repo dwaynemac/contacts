@@ -1,7 +1,7 @@
 # @restful_api v0
 class V0::ImportsController < V0::ApplicationController
 
-  before_filter :get_account
+  before_filter :get_account, except: :destroy
 
   ##
   # Returns status of an import
@@ -109,6 +109,30 @@ class V0::ImportsController < V0::ApplicationController
 
     respond_to do |format|
       format.csv { send_data import.failed_rows_to_csv, type: 'text/csv', disposition: "attachment; filename=import_errors.csv" }
+    end
+  end
+
+  ##
+  # Destroys given import and the contacts it imported
+  # @url /v0/imports/:id
+  # @action DELETE
+  #
+  # @required [String] id import id
+  #
+  # @example_request
+  #
+  # DELETE /v0/imports/1234, {id: "1234"}
+  # @example response
+  #
+  # @author Dwayne Macgowan
+  def destroy
+    @import = Import.find params[:id]
+    if @import.status.to_sym != :working
+      @import.destroy
+      render json: 'destroyed', status: 200
+    else
+      render json: "Import is currently working, wait for it to finish before deletion.",
+             status: 409
     end
   end
 
