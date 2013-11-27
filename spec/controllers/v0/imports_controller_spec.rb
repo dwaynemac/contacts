@@ -168,6 +168,57 @@ describe V0::ImportsController do
       end
     end
   end
+
+  describe "#destroy" do
+    let(:account){Account.last || Account.make(name: "testAccount")}
+    let(:attachment){Attachment.new(name: "CSV", file: @csv_file, account: account)}
+    let(:import){Import.make(account: account, headers: @headers, attachment: attachment)}
+    before do
+      import.process_CSV_without_delay
+    end
+    def do_request
+      delete :destroy, id: import.id, app_key: V0::ApplicationController::APP_KEY
+    end
+    describe "for import that has not started working" do
+      before do
+        import.update_attribute :status, :ready
+        @count = import.imported_ids.count
+        do_request
+      end
+      it { should respond_with 200 }
+      it "destroys specified import" do
+        Import.exists?(conditions: { id: import.id }).should be_false
+      end
+    end
+    describe "for import that is still working" do
+      before do
+        import.update_attribute :status, :working
+        do_request
+      end
+      # status codes definitions: http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+      it { should respond_with 409 }
+      it "wont destroy specified import" do
+        Import.exists?(conditions: { id: import.id }).should be_true
+      end
+    end
+    describe "for import that finished proccessing" do
+      before do
+        import.update_attribute :status, :finished
+      end
+      it "responds 200" do
+        do_request
+        response.code.should == "200"
+      end
+      it "destroys specified import" do
+        do_request
+        Import.exists?(conditions: { id: import.id }).should be_false
+      end
+      it "destroys imported contacts" do
+        c = import.imported_ids.count
+        expect{do_request}.to change{Contact.count}.by (0-c)
+      end
+    end
+  end
   # Clean up
   after do
     File.delete("#{Rails.root}/spec/support/test.csv")

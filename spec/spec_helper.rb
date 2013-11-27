@@ -35,7 +35,7 @@ Spork.prefork do
       Mongoid.purge!
 
       padma_account = PadmaAccount.new(:name => "mockedAccount")
-      PadmaAccount.stub!(:find).and_return(padma_account)
+      PadmaAccount.stub(:find).and_return(padma_account)
     end
   end
 
