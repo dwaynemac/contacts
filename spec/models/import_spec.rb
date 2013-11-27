@@ -185,6 +185,20 @@ describe Import do
     end
 
   end
+
+  describe "when import is destroyed" do
+    let(:account){Account.make(name: "testAccount")}
+    let(:attachment){Attachment.new(name: "CSV", file: @csv_file, account: account)}
+    let(:import){Import.make(account: account, headers: @headers, attachment: attachment)}
+    before do
+      import.process_CSV_without_delay
+      Contact.count.should == 3
+    end
+    it "destroys all created contacts" do
+      expect{import.destroy}.to change{Contact.count}.by(-3)
+    end
+  end
+
   # Clean up
   after do
     File.delete("#{Rails.root}/spec/support/test.csv")

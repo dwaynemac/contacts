@@ -17,6 +17,7 @@ class Import
   embeds_one :attachment, cascade_callbacks: true
 
   before_create :set_defaults
+  before_destroy :destroy_all_imported_documents
 
   VALID_STATUSES = [:ready, :working, :finished]
 
@@ -468,5 +469,9 @@ class Import
       self.failed_rows = []
       self.status = :ready
       self.imported_ids = []
+    end
+
+    def destroy_all_imported_documents
+      Contact.any_in(id: self.imported_ids).destroy_all
     end
 end
