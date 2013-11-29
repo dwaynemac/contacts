@@ -97,18 +97,18 @@ class V0::ImportsController < V0::ApplicationController
 
     if import.nil? || import.status != :finished
       render :json => {:message => "Import not found"}.to_json, :status => 404
-    end
+    else
+      headers = import.headers
+      
+      # Add the header to the row number that failed at the beginning
+      headers.unshift('row number')
+      # Add the error column header
+      headers << 'Errors'
+      import.headers = headers
 
-    headers = import.headers
-    
-    # Add the header to the row number that failed at the beginning
-    headers.unshift('row number')
-    # Add the error column header
-    headers << 'Errors'
-    import.headers = headers
-
-    respond_to do |format|
-      format.csv { send_data import.failed_rows_to_csv, type: 'text/csv', disposition: "attachment; filename=import_errors.csv" }
+      respond_to do |format|
+        format.csv { send_data import.failed_rows_to_csv, type: 'text/csv', disposition: "attachment; filename=import_errors.csv" }
+      end
     end
   end
 
