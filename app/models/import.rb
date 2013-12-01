@@ -67,6 +67,12 @@ class Import
           when 'field'
             if type_of_attribute[:name] == "estimated_age"
               value = is_integer?(value) ? cast_to_integer(value) : nil
+            elsif type_of_attribute[:name] == 'gender'
+              if value == 'm'
+                value = "female"
+              elsif value == 'h'
+                value = "male"
+              end
             end
             @contact.send("#{type_of_attribute[:name]}=", value)
           when 'attachment'
