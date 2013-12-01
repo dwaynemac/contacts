@@ -34,7 +34,7 @@ class V0::ImportsController < V0::ApplicationController
       render :json => {import: {:status => import.status,
                              :failed_rows => import.failed_rows.count,
                              :imported_rows => import.imported_ids.count}}.to_json,
-             :status => 201
+             :status => 200
     end
   end
 

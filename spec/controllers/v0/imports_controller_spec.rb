@@ -66,7 +66,7 @@ describe V0::ImportsController do
               :import => {:account_name => @account.name}
           @result = ActiveSupport::JSON.decode(response.body)
         end
-        it {should respond_with(201)}
+        it {should respond_with(200)}
         it "should return status: :working" do
           @result['import']['status'].should == "working"
         end
