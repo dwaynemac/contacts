@@ -15,6 +15,7 @@ class Attachment
   field :public, type: Boolean
   field :name, type: String
   field :description, type: String
+  field :remote_attachment_url
 
   field :file
   mount_uploader :file, AttachmentUploader
