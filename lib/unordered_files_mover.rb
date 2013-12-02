@@ -19,8 +19,13 @@ class UnorderedFilesMover
     # get contacts that have files stored with carrierwave
     contacts = Contact.where(field.to_sym.exists => true)
     contacts.each do |contact|
-      # update_avatar or update_attachment, depending on the field
-      send("update_#{field}", contact)
+      begin
+        # update_avatar or update_attachment, depending on the field
+        send("update_#{field}", contact)
+      rescue => e
+        puts "rescued exception when working on contact##{contact.id}"
+        puts e.message
+      end
     end
   end
 
