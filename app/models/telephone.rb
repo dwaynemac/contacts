@@ -8,6 +8,7 @@ class Telephone < ContactAttribute
   validates_numericality_of :value, only_integer: true, greater_than: 0
   # validates_format_of :value, with: /^\d[\d| |\-]{4,16}.*\d$/
 
+  attr_accessor :allow_duplicate
   validate :mobile_uniqueness
 
   def masked_value
@@ -20,7 +21,8 @@ class Telephone < ContactAttribute
   private
 
   def mobile_uniqueness
-    return unless category.to_s == 'mobile' && self.contact.check_duplicates
+    return if self.allow_duplicate
+    return unless category.to_s == 'mobile'
 
     r = Contact.excludes(_id: self.contact._id).where(
                        'contact_attributes._type' => 'Telephone',

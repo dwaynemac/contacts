@@ -5,6 +5,8 @@ class Email < ContactAttribute
 
   field :category
 
+  attr_accessor :allow_duplicate
+
   validates :value, :email_format => {:message => "bad email format"}, :email_uniqueness => true
 
   private
