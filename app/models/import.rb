@@ -104,10 +104,20 @@ class Import
   def create_contact_attribute(att, value)
     type = att[:name]
     category = att[:category]
+
+    # needs to be casted to integer
     if %w(telephone).include? type
       value = cast_to_integer(value)
     end
-    @contact.contact_attributes << type.camelize.singularize.constantize.new( value: value, category: category, account_id: self.account.id )
+
+    args = {value: value, category: category, account_id: self.account.id}
+
+    # needs to be allowed as duplicate
+    if (type == 'telephone' && category == 'mobile') || (type == 'email')
+      args[:allow_duplicate] = true
+    end
+
+    @contact.contact_attributes << type.camelize.singularize.constantize.new(args)
   end
 
   def create_local_unique_attribute(att, value)
