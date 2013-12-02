@@ -68,11 +68,7 @@ class Import
             if type_of_attribute[:name] == "estimated_age"
               value = is_integer?(value) ? cast_to_integer(value) : nil
             elsif type_of_attribute[:name] == 'gender'
-              if value == 'm'
-                value = "female"
-              elsif value == 'h'
-                value = "male"
-              end
+              value = convert_gender(value)
             end
             @contact.send("#{type_of_attribute[:name]}=", value)
           when 'attachment'
@@ -455,16 +451,18 @@ class Import
         end
       end
       unless error_messages[:gender].nil?
-        gender = ""
-        if get_value_for('genero', @current_row) == 'h'
-          gender = "male"
-        elsif get_value_for('genero', @current_row) == 'm'
-          gender = "female"
-        end
-        contact.gender = gender
+        contact.gender = convert_gender(contact.gender)
       end
       
       return contact
+    end
+
+    def convert_gender(val)
+      if val == 'm'
+        "female"
+      elsif val == 'h'
+        "male"
+      end
     end
 
     def is_integer?(string)
