@@ -10,8 +10,7 @@ tmp/
 doc/
 .yardoc/
 .env
-public/uploads/*.jpg
-public/uploads/*.gif
+public/uploads/*
 Procfile.dev
 public/documentation/
 .ruby-gemset
