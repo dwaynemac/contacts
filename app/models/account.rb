@@ -45,6 +45,7 @@ class Account
     contact.lists = contact.lists.reject{|l|l.account == self}
     if contact.owner == self
       contact.owner = nil
+      contact.cached_owner = nil
     end
     contact.save
   end

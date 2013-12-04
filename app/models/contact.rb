@@ -609,6 +609,7 @@ class Contact
     where(new_selector)
   end
 
+  attr_accessor :cached_owner
   alias_method :orig_owner, :owner
   def owner
     #cache account to avoid multiple calls to accounts service
@@ -626,7 +627,6 @@ class Contact
   protected
 
   def assign_owner
-
     case self.status
       when :student
         self.owner = self.local_statuses.where(value: :student).first.try :account

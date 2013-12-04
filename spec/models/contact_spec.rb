@@ -755,9 +755,10 @@ describe Contact do
       account.base_list.contacts << contact
     end
 
-    it "should remove contact from all account's lists" do
+    it "removes all account's lists from contact" do
       contact.unlink(account)
-      contact.lists.should_not include(account.base_list)
+      account.base_list.in?(contact.reload.lists).should be_false
+      #contact.reload.lists.should_not include(account.base_list)
     end
 
     context "if account is owner" do
@@ -765,9 +766,9 @@ describe Contact do
         @account = Account.make
         @contact = Contact.make owner: @account
       end
-      it "should remove ownership" do
+      it "removes ownership" do
         @contact.unlink(@account)
-        @contact.owner.should be_nil
+        @contact.reload.owner.should be_nil
       end
     end
   end
