@@ -1,4 +1,4 @@
-= Contacts WS
+== Contacts WS {<img src="https://travis-ci.org/dwaynemac/contacts.png" />}[https://travis-ci.org/dwaynemac/contacts] {<img src="https://codeclimate.com/github/dwaynemac/contacts.png" />}[https://codeclimate.com/github/dwaynemac/contacts] {<img src="https://gemnasium.com/dwaynemac/contacts.png" alt="Dependecies" />}[https://gemnasium.com/dwaynemac/contacts] {<img src="https://coveralls.io/repos/dwaynemac/contacts/badge.png" alt="Coverage Status" />}[https://coveralls.io/r/dwaynemac/contacts]
 
 Web service for handling PADMA's Contacts.
 
