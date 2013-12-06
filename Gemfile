@@ -12,7 +12,6 @@ gem 'mongoid_search'
 
 gem 'cancan', '~> 1.6.7'
 
-
 gem "logical_model", '~> 0.5.8'
 gem 'activity_stream_client', '~> 0.0.14'
 gem 'overmind_client', '~> 0.0.1'
@@ -33,6 +32,8 @@ gem 'delayed_job_mongoid' # Gem for managing background operations
 gem 'daemons'
 
 gem 'figaro' # for environment variables managment
+
+gem 'rake'
 
 group :documentation do
   gem 'yard', '~> 0.8.3'

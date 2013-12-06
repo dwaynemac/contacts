@@ -1,0 +1,7 @@
+bundler_args: --without development:production:documentation
+language: ruby
+rvm:
+  1.9.3
+services: mongodb
+env:
+ - app_key=secret messaging_key=1234
