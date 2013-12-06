@@ -55,7 +55,14 @@ GEM
     childprocess (0.3.9)
       ffi (~> 1.0, >= 1.0.11)
     coderay (1.0.9)
+    colorize (0.6.0)
     columnize (0.3.6)
+    coveralls (0.5.8)
+      colorize
+      json
+      rest-client
+      simplecov (>= 0.7)
+      thor
     crack (0.4.1)
       safe_yaml (~> 0.9.0)
     cucumber (1.2.1)
@@ -82,6 +89,7 @@ GEM
       delayed_job (~> 3.0.0)
       mongoid (>= 2.0)
     diff-lcs (1.2.4)
+    docile (1.1.1)
     erubis (2.7.0)
     ethon (0.4.2)
       ffi (~> 1.0.11)
@@ -262,6 +270,11 @@ GEM
     safe_yaml (0.9.5)
     shoulda-matchers (2.2.0)
       activesupport (>= 3.0.0)
+    simplecov (0.8.2)
+      docile (~> 1.1.0)
+      multi_json
+      simplecov-html (~> 0.8.0)
+    simplecov-html (0.8.0)
     slop (3.4.6)
     spork (1.0.0rc3)
     sprockets (2.0.4)
@@ -299,6 +312,7 @@ DEPENDENCIES
   cancan (~> 1.6.7)
   carrierwave
   carrierwave-mongoid
+  coveralls
   cucumber-rails (= 1.2.0)
   daemons
   dalli
@@ -327,6 +341,7 @@ DEPENDENCIES
   newrelic_rpm
   overmind_client (~> 0.0.1)
   rails (= 3.1.6)
+  rake
   rb-inotify
   redcarpet
   rmagick

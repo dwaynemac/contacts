@@ -80,4 +80,5 @@ group :test do
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
   gem 'faker', '0.9.4'
   gem "database_cleaner", ">= 0.6.7"
+  gem 'coveralls', require: false
 end
