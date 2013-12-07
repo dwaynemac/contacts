@@ -206,33 +206,34 @@ class Contact
   # @example
   #   Contact#coefficient_for_belgrano=Coefficient::PMENOS
   def method_missing(method_sym, *arguments, &block)
-
     # local_unique_attribute reader for an account_id
+    
     if method_sym.to_s =~ /^(.+)_for_([^=]+)$/
-
+      attr_name = $1
+      account_name = $2
+      sanitized_account_name = account_name.gsub('.', '_')
       #cache account to avoid multiple calls to accounts service
-      if (a = instance_variable_get("@cached_account_#{$2}")).blank?
-        a = Account.where(name: $2).first
-        instance_variable_set("@cached_account_#{$2}", a)
+      if (a = instance_variable_get("@cached_account_#{sanitized_account_name}")).blank?
+        a = Account.where(name: account_name).first
+        instance_variable_set("@cached_account_#{sanitized_account_name}", a)
       end
 
       if a.nil?
         return nil
       else
-        return self.local_unique_attributes.where(:account_id => a._id, '_type' => $1.camelcase).first.try :value
+        return self.local_unique_attributes.where(:account_id => a._id, '_type' => attr_name.camelcase).first.try :value
       end
-
     # local_unique_attribute setter for an account_name
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
-
-      attr_name = $1.to_s
-      account_name = $2.to_s
+      attr_name = $1
+      account_name = $2
+      sanitized_account_name = account_name.gsub('.', '_')
       a = nil
 
       #cache account to avoid multiple calls to accounts service
-      if (a = instance_variable_get("@cached_account_#{account_name}")).blank?
+      if (a = instance_variable_get("@cached_account_#{sanitized_account_name}")).blank?
         a = Account.where(name: account_name).first
-        instance_variable_set("@cached_account_#{account_name}", a)
+        instance_variable_set("@cached_account_#{sanitized_account_name}", a)
       end
 
       if a.nil?
@@ -240,14 +241,12 @@ class Contact
       else
         lua = self.local_unique_attributes.where(:account_id => a._id, '_type' => attr_name.camelcase).first
         if lua.nil?
-          self.local_unique_attributes << $1.camelcase.constantize.new(account: a, value: arguments.first)
+          self.local_unique_attributes << attr_name.camelcase.constantize.new(account: a, value: arguments.first)
         else
           lua.value = arguments.first
         end
         return
       end
-
-
     else
       super
     end
