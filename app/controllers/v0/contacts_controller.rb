@@ -43,7 +43,10 @@ class V0::ContactsController < V0::ApplicationController
     @scope = @scope.any_in(_id: params[:ids]) if params[:ids]
 
     @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
-    @scope = @scope.api_where(params[:where], @account.try(:id))   if params[:where].present?
+    if params[:where].present?
+      searcher = ContactSearcher.new(@scope, @account.try(:id))
+      @scope = searcher.api_where(params[:where])
+    end
     @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
 
     total = @scope.count
