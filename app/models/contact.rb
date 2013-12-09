@@ -576,11 +576,12 @@ class Contact
           when /^(.+)_for_([^=]+)$/
             local_attribute = $1
             account_name    = $2
-            
+            sanitized_account_name = account_name.gsub('.', '_')
+
             #cache account to avoid multiple calls to accounts service
-            if (a = instance_variable_get("@cached_account_#{$2}")).blank?
-              a = Account.where(name: $2).first
-              instance_variable_set("@cached_account_#{$2}", a)
+            if (a = instance_variable_get("@cached_account_#{sanitized_account_name}")).blank?
+              a = Account.where(name: account_name).first
+              instance_variable_set("@cached_account_#{sanitized_account_name}", a)
             end
             
             if a
