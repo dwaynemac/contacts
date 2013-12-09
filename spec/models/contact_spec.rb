@@ -239,6 +239,7 @@ describe Contact do
         }
       end
     end
+    
     context "email: 'dwa', telephone: '1234'" do
       let(:sel){{email: 'dwa', telephone: '1234'}}
       it "should build an $and" do
@@ -247,12 +248,14 @@ describe Contact do
                                                              ]}
       end
     end
+    
     context "status: 'student'" do
       let(:sel){{status: 'student'}}
       it "should not set a regex" do
         Contact.api_where(sel).selector.should == {status: :student}
       end
     end
+    
     context "{local_status: 'student'}, account" do
       it "should return local_unique_attribute criteria" do
         account = Account.make
@@ -263,6 +266,7 @@ describe Contact do
         }
       end
     end
+    
     context "{local_status: 'student', local_teacher: 'dwayne'}, account" do
       it "should return local_unique_attribute criteria" do
         account = Account.make
@@ -278,6 +282,7 @@ describe Contact do
         }
       end
     end
+    
     context "{coefficient: 'perfil'}, account" do
       it "should return local_unique_attribute criteria" do
         account = Account.make
@@ -288,6 +293,7 @@ describe Contact do
         }
       end
     end
+
     context "{coefficient: ['perfil','pmas']}, account" do
       it "should return local_unique_attribute criteria" do
         account = Account.make
@@ -302,21 +308,26 @@ describe Contact do
     end
 
     context "{coefficient_for_belgrano: 'pmas'}" do
+      before do
+        @account = Account.make(name: 'belgrano')
+      end
+
       it "should return local_unique_attribute criteria inside $and if there are other criterias" do
-        account = Account.make(name: 'belgrano')
         Contact.api_where({email: 'asdf', coefficient_for_belgrano: 'pmas'}).selector.should == {
           '$and' => [
             {contact_attributes: {'$elemMatch' => {'_type' => 'Email', 'value' => /asdf/i}}},
-            {local_unique_attributes: {'$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: account.id}}}
+            {local_unique_attributes: {'$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: @account.id}}}
           ]
         }
       end
+
       it "should return local_unique_attribute criteria if there are no other criterias" do
-        account = Account.make(name: 'belgrano')
-        Contact.api_where({coefficient_for_belgrano: 'pmas'}).selector.should == {local_unique_attributes: {
-            '$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: account.id}
+        pending("api_where as a service class") do
+          Contact.api_where({coefficient_for_belgrano: 'pmas'}).selector.should == {local_unique_attributes: {
+              '$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: @account.id}
+            }
           }
-        }
+        end
       end
     end
   end
