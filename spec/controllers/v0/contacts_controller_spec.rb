@@ -12,10 +12,11 @@ describe V0::ContactsController do
   end
 
 
-    describe "#index" do
+  describe "#index" do
     def do_request(params)
       get :index, params.merge(app_key: V0::ApplicationController::APP_KEY)
     end
+
     describe "paginates" do
       before do
         9.times { Contact.make }
@@ -32,12 +33,13 @@ describe V0::ContactsController do
         assigns(:contacts).should include(@isp)
       end
     end
+    
     context "without params" do
       before do
         get :index, :app_key => V0::ApplicationController::APP_KEY
       end
-      it { should respond_with(:success) } # response.should be_success
-      it { should assign_to(:contacts) }
+      it { response.should be_success }
+      it { assigns(:contacts).should_not be_nil }
       it "should show total amount of contacts" do
         result = ActiveSupport::JSON.decode(response.body)
         result["total"].should == 2
@@ -62,8 +64,8 @@ describe V0::ContactsController do
 
         get :index, {:account_name => "a", :list_name => "a", :app_key => V0::ApplicationController::APP_KEY}
       end
-      it { should respond_with(:success)}
-      it { should assign_to(:contacts) }
+      it { response.should be_success }
+      it { assigns(:contacts).should_not be_nil }
       it "should return contacts of specified account and list" do
         assigns(:contacts).size.should == 3
       end
@@ -146,8 +148,8 @@ describe V0::ContactsController do
         before do
           do_request(:full_text => "")
         end
-        it { should respond_with(:success) } # response.should be_success
-        it { should assign_to(:contacts) }
+        it { response.should be_success }
+        it { assigns(:contacts).should_not be_nil }
         it "should show total amount of contacts" do
           result = ActiveSupport::JSON.decode(response.body)
           result["total"].should == 5
@@ -208,11 +210,10 @@ describe V0::ContactsController do
             @addressed = Contact.make
             @addressed.contact_attributes << Address.make(:value => "saltin 23")
             @addressed.save
-
-            do_request(:where => { :contact_attributes => {:value => "salti"} })
+            do_request(:where => { :address => "salti" })
           end
           it "should match street" do
-            assigns(:contacts).to_a.should include(@addressed)
+            @addressed.in?(assigns(:contacts).to_a).should be_true
           end
           it "should match city"
         end
@@ -244,8 +245,8 @@ describe V0::ContactsController do
       before do
         post :search, :app_key => V0::ApplicationController::APP_KEY
       end
-      it { should respond_with(:success) } # response.should be_success
-      it { should assign_to(:contacts) }
+      it { response.should be_success }
+      it { assigns(:contacts).should_not be_nil }
       it "should show total amount of contacts" do
         result = ActiveSupport::JSON.decode(response.body)
         result["total"].should == 2
@@ -270,8 +271,8 @@ describe V0::ContactsController do
 
         post :search, {:account_name => "a", :list_name => "a", :app_key => V0::ApplicationController::APP_KEY}
       end
-      it { should respond_with(:success)}
-      it { should assign_to(:contacts) }
+      it { response.should be_success }
+      it { assigns(:contacts).should_not be_nil }
       it "should return contacts of specified account and list" do
         assigns(:contacts).size.should == 3
       end
@@ -377,8 +378,8 @@ describe V0::ContactsController do
         before do
           do_request(:full_text => "")
         end
-        it { should respond_with(:success) } # response.should be_success
-        it { should assign_to(:contacts) }
+        it { response.should be_success }
+        it { assigns(:contacts).should_not be_nil }
         it "should show total amount of contacts" do
           result = ActiveSupport::JSON.decode(response.body)
           result["total"].should == 5
@@ -440,10 +441,10 @@ describe V0::ContactsController do
             @addressed.contact_attributes << Address.make(:value => "saltin 23")
             @addressed.save
 
-            do_request(:where => { :contact_attributes => {:value => "salti"} })
+            do_request(:where => { :address => "salti"})
           end
           it "should match street" do
-            assigns(:contacts).to_a.should include(@addressed)
+            @addressed.in?(assigns(:contacts).to_a).should be_true
           end
           it "should match city"
         end
@@ -490,8 +491,8 @@ describe V0::ContactsController do
         get :show, :id => @contact.id, :app_key => V0::ApplicationController::APP_KEY
       end
 
-      it { should respond_with(:success) }
-      it { should assign_to(:contact) }
+      it { response.should be_success }
+      it { assigns(:contact).should_not be_nil }
 
       it "should include all the contact_attributes" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
@@ -687,7 +688,7 @@ describe V0::ContactsController do
           @account = Account.make(name: "belgrano")
           @another_account = Account.make(name: "cervino")
           @contact = Contact.make(owner: @account)
-          @contact.request_account = @account.name
+          @contact.request_account_name = @account.name
           @tag = Tag.make(account_id: @account.id)
           @another_tag = Tag.make(account_id: @another_account.id)
           @contact.tags << @tag
@@ -820,6 +821,10 @@ describe V0::ContactsController do
   end
 
   describe "#create" do
+    before do
+      @account = Account.make(name: "belgrano")
+    end
+
     it "should create a contact" do
       expect{post :create,
                   :contact => Contact.plan,
@@ -828,16 +833,18 @@ describe V0::ContactsController do
 
     it "posts to activity stream" do
       ActivityStream::Activity.any_instance.should_receive(:create)
-      post :create,
-           :contact => Contact.plan,
-           :app_key => V0::ApplicationController::APP_KEY
+      post  :create,
+            :contact => Contact.plan,
+            :app_key => V0::ApplicationController::APP_KEY,
+            :account_name => "belgrano",
+            :username => "Luis"
     end
 
     describe "should create a contact with attributes" do
       before do
-        post :create,
-                  :contact => Contact.plan(:contact_attributes => [ContactAttribute.plan]),
-                  :app_key => V0::ApplicationController::APP_KEY
+        post  :create,
+              :contact => Contact.plan(:contact_attributes => [ContactAttribute.plan]),
+              :app_key => V0::ApplicationController::APP_KEY
       end
       it { assigns(:contact).should_not be_new_record }
       it { assigns(:contact).contact_attributes.should have_at_least(1).attribute }
@@ -870,7 +877,7 @@ describe V0::ContactsController do
         Contact.last.owner.should == @account
       end
       it "should set the default list if scoped to an account" do
-        @account.base_list.contacts.should include(assigns(:contact))
+        assigns(:contact).in?(@account.base_list.contacts).should be_true
       end
     end
 
