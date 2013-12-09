@@ -102,7 +102,6 @@ class ContactAttribute
   end
 
   def ensure_at_least_one_primary
-    puts "#{self.inspect}"
     if self.contact.contact_attributes.where(_type: self._type, account_id: self.account_id, primary: true).count == 0
       copy_primary_to_contact
       self.primary = true
