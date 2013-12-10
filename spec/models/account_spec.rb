@@ -92,7 +92,7 @@ describe Account do
       it "adds contact to account's base list" do
         contact = Contact.make
         account.link(contact)
-        account.base_list.contacts.should include(contact)
+        contact.in?(account.base_list.contacts).should be_true
       end
     end
 
