@@ -235,27 +235,27 @@ describe Contact do
       @contact.local_unique_attributes << LocalTeacher.make(account: Account.first)
     end
     it "should not include owner_id" do
-      @contact.as_json.should_not have_key 'owner_id'
+      @contact.as_json({select: 'all'}).should_not have_key 'owner_id'
     end
     it "should inclue owner_name" do
-      @contact.as_json.should have_key 'owner_name'
+      @contact.as_json({select: 'all'}).should have_key 'owner_name'
     end
     it "should include :coefficients_counts key" do
-      @contact.as_json.should have_key 'coefficients_counts'
+      @contact.as_json({select: 'all'}).should have_key 'coefficients_counts'
     end
     it "should include global_teacher_username" do
-      @contact.as_json.should have_key 'global_teacher_username'
+      @contact.as_json({select: 'all'}).should have_key 'global_teacher_username'
     end
     it "includes #in_active_merge" do
-      @contact.as_json.should have_key 'in_active_merge'
+      @contact.as_json({select: 'all'}).should have_key 'in_active_merge'
     end
     context "account specified" do
-      subject { @contact.as_json(account: Account.first)}
+      subject { @contact.as_json(account: Account.first, select: 'all')}
       it { should have_key 'coefficient'}
       it { should have_key 'local_teacher' }
     end
     context "account not specified" do
-      subject { @contact.as_json}
+      subject { @contact.as_json(select: 'all')}
       it { should_not have_key 'coefficient' }
       it { should_not have_key 'local_teacher' }
     end
@@ -395,7 +395,7 @@ describe Contact do
     end
 
     it "should update the lists contacts" do
-      @account.lists.first.contacts.should include(@contact)
+      @contact.in?(@account.lists.first.contacts).should be_true
     end
 
     describe "and after adding the contact to a new list" do
@@ -524,7 +524,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.similar.should_not include(@contact) }
+        it { @contact.in?(@contact.similar).should_not be_true }
       end
 
       describe "an existing contact with same last name and first name" do
@@ -534,7 +534,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.similar.should_not include(@contact) }
+        it { @contacts.in?(@contact.similar).should_not be_true }
       end
     end
 
@@ -558,7 +558,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.similar.should_not include(@contact) }
+        it { @contact.in?(@contact.similar).should_not be_true }
       end
 
       describe "a new contact with same last name and first name" do
@@ -568,7 +568,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.similar.should_not include(@contact) }
+        it { @contact.in?(@contact.similar).should_not be_true }
       end
     end
 
@@ -581,7 +581,7 @@ describe Contact do
       it "new contact should match it by mail" do
         c = Contact.new(first_name: 'Santiago', last_name: 'Santo')
         c.contact_attributes << Email.make(value: 'homer@simpson.com')
-        c.similar.should include(@homer)
+        @homer.in?(c.similar).should be_true
       end
     end
 
@@ -594,12 +594,12 @@ describe Contact do
       it "new contact should match it by mobile" do
         c = Contact.new(first_name: 'Juan', last_name: 'Perez')
         c.contact_attributes << Telephone.make(value: '1540995071', category: 'mobile')
-        c.similar.should include(@homer)
+        @homer.in?(c.similar).should be_true
       end
       it "new contact should not match if mobile differs" do
         c = Contact.new(first_name: 'Bob', last_name: 'Doe')
         c.contact_attributes << Telephone.make(value: '15443340995071', category: 'mobile')
-        c.similar.should_not include(@homer)
+        @homer.in?(c.similar).should_not be_true
       end
     end
 
@@ -618,7 +618,7 @@ describe Contact do
             @new_contact.contact_attributes << Identification.make_unsaved(value: '30366832', category: 'DNI')
           end
           it "should have possible duplicates" do
-            @new_contact.similar.should include(@similar)
+            @similar.in?(@new_contact.similar).should be_true
           end
         end
         describe "with DNI 3/0.3_6 6.83-2" do
@@ -626,7 +626,7 @@ describe Contact do
             @new_contact.contact_attributes << Identification.make_unsaved(value: '3/0.3_6 6.83-2', category: 'DNI')
           end
           it "should have possible duplicates" do
-            @new_contact.similar.should include(@similar)
+            @similar.in?(@new_contact.similar).should be_true
           end
         end
         describe "with CPF 30366832" do
@@ -717,7 +717,7 @@ describe Contact do
       end
       it "it should show 'Email xxx is invalid'" do
         @contact.should_not be_valid
-        @contact.deep_error_messages.should include(contact_attributes: [["invalid-mail is invalid"]])
+        @contact.deep_error_messages.should include(contact_attributes: [["invalid-mail bad email format"]])
       end
     end
     context "if an email is not unique" do
