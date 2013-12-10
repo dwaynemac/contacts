@@ -498,8 +498,7 @@ class Contact
   # @param ref_date [Date]
   # @return [Mongoid::Criteria]
   def self.with_attribute_value_at(attribute, value, ref_date)
-
-    if ref_date.is_a?(Date)
+    if ref_date.is_a?(Date) && !ref_date.is_a?(DateTime)
       ref_date = ref_date.to_datetime.end_of_day
     end
 
