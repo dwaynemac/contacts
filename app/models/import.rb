@@ -32,6 +32,8 @@ class Import
       contacts_CSV = open(self.attachment.file.url)
     end
 
+    # Current line starts at 2, after the headers
+    current_line = 2
     unless contacts_CSV.nil? || self.headers.blank?
       CSV.foreach(contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
         contact = build_contact(row)
@@ -46,8 +48,9 @@ class Import
           self.imported_ids << contact.id
         else
           # $. is the current line of the CSV file, setted by CSV.foreach
-          self.failed_rows << [($.).to_s , row.fields , contact.deep_error_messages].flatten
+          self.failed_rows << [current_line.to_s , row.fields , contact.deep_error_messages].flatten
         end
+        current_line += 1
       end
     end
 
