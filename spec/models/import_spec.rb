@@ -156,7 +156,7 @@ describe Import do
     end
   end
 
-  describe "#failed_rows_to_csv", :focus => true do
+  describe "#failed_rows_to_csv" do
     before do
       # @incorrect_student =  ["50010", "", "Bernardo", "Gomez", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
       #                        "lucia.gagliardini", "5", "h",
