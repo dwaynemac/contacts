@@ -1,0 +1,49 @@
+id,dni,nombres,apellidos,dire,tel,cel,mail,grado_id,instructor_id,coeficiente_id,genero,foto,fecha_nacimiento,inicio_practicas,profesion,notes,follow,indice_fidelizacion,codigo_postal,school_id,current_plan_id,created_at,updated_at,estimated_age,company,job,city,locality,business_phone,country_id,state,identity,publish_on_gdp,last_enrollment,in_formation,id_scan,padma_id,foto_migrated,id_scan_migrated,padma_follow_id
+50001,30 366 832,Dwayne,Macgowan,Arribeños 2153 14B,4783.6951,15.4099.5071,dwaynemac@gmail.com,asistente,dwayne.macgowan,exalumno,h,/home/alex/workspace/Padma/public/persona/foto/50001/654da12b6a7905f62633eae7e76688c5.jpg,1983-05-21,2005-05-13,Instr. Método DeRose,<p>algna observacion</p>,true,5,1428,1,,,2011-02-19 21:04:12 UTC,,,,,,,,,,false,,,,,,,
+50002,28.174.432,Guido,Morando,,,15 5825 1400,guido.morando@gmail.com,asistente,lucia.gagliardini,alumno,h,/home/alex/workspace/Padma/public/persona/foto/50002/guidom.jpg,1980-06-26,2001-03-01,instructor,,true,5,,1,1667393,,2013-01-11 17:04:40 UTC,,,,,,,,,,false,,,,,,,
+50003,,Adine,Pellegri,,4896 1233,15 4474 6689,,aspirante,pablo.lewin,exalumno,m,,,,,,true,,,1,,,,,,,,,,,,,false,,,,,,,
+50004,,Agustin,Andreu,Echeverria 2635 5 A,4702-7708,15 56161436,agustin_andreu@hotmail.com,aspirante,gabriel.abraham,exalumno,h,,1980-04-16,,,,true,,,1,,,,,,,,,,,,,false,,,,,,,
+50005,,Agustina,Mitjans,Virrey del Pino 2878 8A,4784-1082,15-67030825,agusmitjans@hotmail.com,sádhaka,daniel.fersztand,exalumno,m,,1987-09-22,2006-10-01,estudiante,<p>forma de comunicaci&oacute;n: e-mail / msn</p>,true,3,,1,,,,,,,,,,,,,false,,,,,,,
+50006,,Alejandra,Uz,Palpa 3360 B,4554 2994,15 56190181,aleuz2000@yahoo.com.ar,sádhaka,gabriel.abraham,exalumno,m,,1976-09-10,,Cine,,true,3,,1,,,2010-07-06 16:11:29 UTC,,,,,,,,,,false,,,,,,,
+50007,29318317,Alejandra,Acosta,Las Heras 2905 10*93,48046433,15-40290686,aluchacosta@gmail.com,yôgin,pablo.lewin,exalumno,m,/home/alex/workspace/Padma/public/persona/foto/50007/ale_acosta.bmp,1982-01-18,2004-12-01,Estudiante,"<p>yogini desde dic 2008</p>
+<p>forma de comunicacion: e-mail</p>
+<p>Id VisaDeb: 14</p>",true,5,,1,,,2010-03-10 15:12:56 UTC,,,,,,,,,,false,,,,,,,
+50008,,Alejandra,Gibelli,Jose Maria Paz 1532,4791 0915,15-50173118,alejandra.gibelli@gmail.com,sádhaka,lucia.gagliardini,exalumno,m,,1978-06-17,2004-10-01,Periodista,<p>TMKT PROMO EX ALUMNOS JULIO 2009-EN EL TEL ME DA AL GO RARO DE LA EMPRESA...COMO QUE NO PUEDE RECIBIR LLAMADOS</p>,true,,,1,,,2012-07-19 19:37:39 UTC,,,,,,,,,,false,,,,,,,
+50009,,Allison,Boldt,,,15 6838 6663,boldt.alli@students.uwlax.edu,aspirante,dwayne.macgowan,exalumno,m,,1988-07-24,,Estudiante,,true,,,1,,,,,,,,,,,,,false,,,,,,,
+50010,,Alex,Falke,,4782 1495,15 5466 7896,afalkear@gmail.com,asistente,lucia.gagliardini,alumno,h,/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg,1983-03-11,2004-12-01,Instructor del Método DeRose. Ingeniero informático.,,true,5,,1,1667392,,2013-01-11 17:03:29 UTC,,,,,,,,,,true,,,,,,,
+50011,,Amit,Wior,,,,amitwior@hotmail.com,sádhaka,gabriel.abraham,exalumno,m,/home/alex/workspace/Padma/public/persona/foto/50011/amit_posta.bmp,,,,"<p>es s&aacute;dhaka desde .. AVERIGUAR!</p>
+<p>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</p>
+<p>me comunico por mail, siempre responde al toque</p>
+<p>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</p>
+<p>empez&oacute; a trabajar, por eso cambi&oacute; de horario</p>",true,4,,1,50342,,2010-06-01 16:50:41 UTC,,,,,,,,,,false,,,,,,,
+50012,,Ana,Kim,Paraguay 3559 4A Palermo (1425) Cap.Fed.,4827-0850,,puredezapallo@hotmail.com,aspirante,lucia.gagliardini,exalumno,m,,1982-10-30,2008-02-01,,,true,,,1,,,,,,,,,,,,,false,,,,,,,
+50013,,Andrea,Pustilnik,,,15 5415 8458,aleph15@hotmail.com,asistente,lucia.gagliardini,exalumno,m,,1981-11-03,2003-08-01,,,true,0,,1,,,,,,,,,,,,,false,,,,,,,
+50014,22.545.994,Angélica,Perez,Venezuela 4771,4709 2746,15 6804 0426,aperez@citefa.gov.ar,sádhaka,lucia.gagliardini,exalumno,m,,1972-03-08,2002-07-01,Abogada,,true,3,,1,,,,,,,,,,,,,false,,,,,,,
+50015,,Anoopa,Laurens,,telefono errado,cel errado,un.mal.mail,6,alex.falke,5,m,/home/alex/workspace/Padma/public/persona/foto/50015/anoopa.bmp,1972-09-13,,,"<p>aspirante</p>
+<p>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</p>
+<p>...</p>
+<p>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</p>
+<p>se va a vivir a USA</p>",true,3,,1,,,,,,,,,,,,,false,,,,,,,
+50016,25.189.711,Ariel,Castorani,Av del Campo 1156,4552-3400,,matygrab@yahoo.com.ar,sádhaka,gabriel.abraham,exalumno,h,/home/alex/workspace/Padma/public/persona/foto/50016/ariel.bmp,1976-03-26,,Matricero,<p>Id VisaDeb: 1</p>,true,4,,1,50428,,2010-07-06 16:09:15 UTC,,,,,,,,,,false,,,,,,,
+50018,,Ariel,Groisman,Paroissien 2141,4701 5829,15 4972 6029,ariel.groisman@gmail.com,sádhaka,pablo.lewin,exalumno,h,/home/alex/workspace/Padma/public/persona/foto/50018/ariel_g.bmp,1986-06-29,,Estudiante,<p>Formas de contacto f&aacute;cil: mail y celu</p>,true,4,,1,,,2010-04-08 16:15:39 UTC,,,,,,,,,,false,,,,,,,
+50019,28908812,Belen,Prados,,4787-0295,15 6177 0294,pradosmb@gmail.com,sádhaka,alex.falke,exalumno,m,/home/alex/workspace/Padma/public/persona/foto/50019/Belen_Prados_kshema.jpg,1981-06-14,2008-07-23,Lic. en Ciencias BiolÃ³gicas,"<p>S&aacute;dhaka desde agosto 2008</p>
+<p>V&iacute;a de comunicaci&oacute;n: Tel&eacute;fono - SMS&nbsp;</p>
+<p>Id VisaDeb: 2</p>",false,4,,1,1661527,,2012-01-05 15:06:17 UTC,,,,,,,,,,false,2008-07-23,,,,,,
+50020,,Camila,Carbone,Arce 792 6 B,4771-3148,15 6359 0226,camila.m.carbone@gmail.com,asistente,lucia.gagliardini,alumno,m,/home/alex/workspace/Padma/public/persona/foto/50020/Imagen_009.jpg,1981-01-07,2006-09-01,Diseñadora gráfica,,true,5,,1,1665803,,2012-09-10 04:05:25 UTC,,,,,,,,,,false,,,,,,,
+50021,,Carla,Scarpatti,santo tome 2864,,15 5771 8131,carlascarpatti@hotmail.com,sádhaka,gabriel.abraham,exalumno,m,,1980-02-01,,Editora,,true,3,1417,1,,,2013-01-28 20:00:34 UTC,,,,,,,,,,false,,,,,,,
+50022,28.236.597,Carlos,Rinaldis,Ciudad de la Paz 1460 4Âº 15,,15 4438 3800,lucesazules@gmail.com,sádhaka,gabriel.abraham,exalumno,h,/home/alex/workspace/Padma/public/persona/foto/50022/n703014383_4138.jpg,1980-06-20,,Publicista,,true,3,,1,50423,,2010-06-01 16:40:38 UTC,,,,,,,,,,false,,,,,,,
+50023,93774014,Carolina,Orrico,Luis Maria Campos 1436 2 b,4792 0415,15 6305-3474,desubicadas3@hotmail.com,sádhaka,lucia.lopez,exalumno,m,/home/alex/workspace/Padma/public/persona/foto/50023/caro_orrico2.jpg,1988-06-01,2008-02-01,Estudiante U.P.,,true,0,,1,,,,,,,,,,,,,false,,,,,,,
+50024,29 752 625,Carolina,Pittella,Belzu 2198,,15 5180 1486,mcarolinapittella@gmail.com,asistente,lucia.gagliardini,exalumno,m,/home/alex/workspace/Padma/public/persona/foto/50024/19531_1309669454448_1011941800_30955128_7117964_n.jpg,1982-09-05,2006-01-01,Instructor Método DeRose,,true,5,,1,,,2013-03-13 13:53:58 UTC,,,,,,,,,,false,,,,,,,
+50026,30.925.766,Clara,Garcia Baltar,MiÃ±ones 1921,4785-2142,,claragb@fibertel.com.ar,aspirante,gabriel.abraham,exalumno,m,,1984-04-18,,Estudiante,,true,3,,1,,,,,,,,,,,,,false,,,,,,,
+50015,,Anoopa,Laurens,,telefono errado,cel errado,un.mal.mail,6,alex.falke,5,m,/home/alex/workspace/Padma/public/persona/foto/50015/anoopa.bmp,1972-09-13,,,"<p>aspirante</p>
+<p>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</p>
+<p>...</p>
+<p>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</p>
+<p>se va a vivir a USA</p>",true,3,,1,,,,,,,,,,,,,false,,,,,,,
+50028,,Diana,Catarino,Migueletes 1068 4B,4554-9461,,,aspirante,daniel.fersztand,exalumno,m,,1955-04-17,2008-02-01,comerciante,,true,,,1,,,,,,,,,,,,,false,,,,,,,
+50029,,Edgardo,Madanes,Cuba 1822,4703-3954,,edgardomadanes@yahoo.com.ar,sádhaka,alex.falke,exalumno,h,/home/alex/workspace/Padma/public/persona/foto/50029/foto_madanes.jpg,1961-05-08,2006-03-01,Escultor,,true,4,,1,,,2011-05-09 13:18:12 UTC,,,,,,,,,,false,,,,,,,
+50030,,Eduardo,Maggiolo,O`higgins 2135 4to 81 (1426) Cap. Fed.,4783-2572,,emaggiolo@elsolarshopping.com.ar,sádhaka,lucia.gagliardini,exalumno,h,,1971-05-02,2007-12-01,,"<p>SE FUE DE VIAJE POR TODO Mayo</p>
+<p>3-08 le deje mensaje- hace mucho no viene.</p>
+<p>24-08mand&eacute; mail para ver si podiamos conversar</p>",true,1,1426,1,,,2012-05-08 22:05:37 UTC,,,,,,,,,,false,,,,,,,
+50031,,Eliana,Janka,Cramer 4355 1A,47019631,1555772657,eeliii@hotmail.com,sádhaka,pablo.lewin,exalumno,m,,1984-02-20,2007-02-01,redactora,<p>Formas de contacto f&aacute;cil: mail (gmail y chat de msn) y celu</p>,true,3,,1,,,,,,,,,,,,,false,,,,,,,
+50032,24.402.064,Eugenia,Huarte,Ravignani 2526 4 D,4774-3355,15 6605 2058,bailaenanabaila@hotmail.com,asistente,gabriel.abraham,exalumno,m,,1975-01-07,,Analista legal,,true,2,,1,,,,,,,,,,,,,false,,,,,,,
