@@ -92,7 +92,7 @@ class Contact
   validates :first_name, :presence => true
 
   attr_accessor :check_duplicates # default: true
-  validate :validate_duplicates, :if => :check_duplicates
+  validate :validate_duplicates, :if => :check_duplicates, on: :create
 
   attr_accessor :request_username
   attr_accessor :request_account_name
