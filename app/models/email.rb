@@ -15,6 +15,6 @@ class Email < ContactAttribute
   end
 
   def strip_whitespace
-  	self.value = self.value.strip
+  	self.value = self.value.try :strip
   end
 end
