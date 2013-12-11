@@ -169,10 +169,12 @@ describe V0::TagsController do
       before do
         @first_contact.tags << @first_tag
         @second_contact.tags << @third_tag
-        post :batch_add, :account_name => @new_account.name,
-        :tags => [@first_tag.id, @second_tag.id, @third_tag.id],
-        :contact_ids => [@first_contact.id, @second_contact.id],
-        :app_key => V0::ApplicationController::APP_KEY
+        post  :batch_add, :account_name => @new_account.name,
+              :tags => [@first_tag.id, @second_tag.id, @third_tag.id],
+              :contact_ids => [@first_contact.id, @second_contact.id],
+              :app_key => V0::ApplicationController::APP_KEY
+        @first_contact.reload
+        @second_contact.reload
         @first_contact.save
         @second_contact.save
       end
