@@ -34,7 +34,7 @@ class Import
 
     # Current line starts at 2, after the headers
     unless contacts_CSV.nil? || self.headers.blank?
-    current_line = 2
+      current_line = 2
       CSV.foreach(contacts_CSV, encoding: "UTF-8:UTF-8", headers: :first_row) do |row|
         contact = build_contact(row)
 
