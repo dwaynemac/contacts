@@ -38,11 +38,10 @@ describe V0::ImportsController do
   describe "#create" do
     context "with a correct file" do
       before do
-        post :create,
-             :app_key => V0::ApplicationController::APP_KEY,
-             :import => {:account_name => @account.name,
-                         :file => @csv_file,
-                         :headers => @headers}
+        post  :create,
+              :app_key => V0::ApplicationController::APP_KEY,
+              :import => { :file => @csv_file, :headers => @headers },
+              :account_name => @account.name
       end
       it {should respond_with(201)}
       it "should return ID of import" do
@@ -63,7 +62,7 @@ describe V0::ImportsController do
           get :show,
               :app_key => V0::ApplicationController::APP_KEY,
               :id => import.id,
-              :import => {:account_name => @account.name}
+              :account_name => @account.name
           @result = ActiveSupport::JSON.decode(response.body)
         end
         it {should respond_with(200)}
@@ -102,7 +101,7 @@ describe V0::ImportsController do
           get :show,
               :app_key => V0::ApplicationController::APP_KEY,
               :id => import.id,
-              :import => {:account_name => @account.name}
+              :account_name => @account.name
           @result = ActiveSupport::JSON.decode(response.body)
         end
         it "should return status: :working" do
@@ -125,7 +124,7 @@ describe V0::ImportsController do
         get :show,
             :app_key => V0::ApplicationController::APP_KEY,
             :id => import.id,
-            :import => {:account_name => @account.name}
+            :account_name => @account.name
         @result = ActiveSupport::JSON.decode(response.body)
       end
       it "should have status: :finished" do
@@ -163,7 +162,7 @@ describe V0::ImportsController do
         get :failed_rows,
             :app_key => V0::ApplicationController::APP_KEY,
             :id => @import.id,
-            :import => {:account_name => @account.name},
+            :account_name => @account.name,
             :format => :csv
       end
     end

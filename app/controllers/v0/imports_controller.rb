@@ -47,12 +47,12 @@ class V0::ImportsController < V0::ApplicationController
   #
   # @required [File] import[file]  CSV file to import
   # @required [Array] import[headers] headers of the CSV file
-  # @required [String] import[account_name]
+  # @required [String] account_name
   #
   # @example_request
   # -- import the data in "example.csv", with headers @headers, for the account "testAccount"
   #
-  # POST /v0/imports, {import: {file: example.csv, headers: @headers, account_name: "testAccount"}}
+  # POST /v0/imports, {import: {file: example.csv, headers: @headers}, account_name: "testAccount"}
   # @example response {message: "OK", id: 1234}
   #
   # @response_field [Integer] id of import being processed
@@ -134,12 +134,5 @@ class V0::ImportsController < V0::ApplicationController
       render json: "Import is currently working, wait for it to finish before deletion.",
              status: 409
     end
-  end
-
-  private
-
-  #  Sets the scope
-  def get_account
-    @account = Account.where(name: params[:import][:account_name]).first
   end
 end
