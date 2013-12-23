@@ -64,9 +64,9 @@ class ContactSearcher
             end
           when 'level' # convert level name to level number
             if v.is_a? Array
-              andit({:level => { '$in' => v.map {|lvl| VALID_LEVELS[lvl]} }})
+              andit({:level => { '$in' => v.map {|lvl| Contact::VALID_LEVELS[lvl]} }})
             else
-              andit({:level => VALID_LEVELS[v]})
+              andit({:level => Contact::VALID_LEVELS[v]})
             end
           when /^(.+)_for_([^=]+)$/
             local_attribute = $1
