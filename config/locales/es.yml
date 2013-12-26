@@ -6,4 +6,5 @@ es:
     merge:
       existence_of_contacts: "Al menos uno de los contactos no existe"
       similarity_of_contacts: "Los contactos deben ser similares"
+      uniqueness: "Los contactos ya estan siendo fundidos"
 
