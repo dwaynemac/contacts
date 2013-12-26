@@ -10,3 +10,4 @@ en:
     merge:
       existence_of_contacts: "At least one of the contacts doesn't exist"
       similarity_of_contacts: "Contacts must be similar"
+      uniqueness: "This contacts are already being merged"

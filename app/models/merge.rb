@@ -27,6 +27,7 @@ class Merge
   validates :first_contact_id, presence: true
   validates :second_contact_id, presence: true
   validate :similarity_of_contacts
+  #validate :uniqueness, on: :create
 
   after_validation :choose_father
   after_save :look_for_warnings
@@ -203,6 +204,13 @@ class Merge
       if !first_contact.similar.include?(second_contact)
         self.errors[:similarity_of_contacts] << I18n.t('errors.merge.similarity_of_contacts')
       end
+    end
+  end
+  
+  def uniqueness
+    if (Merge.where(first_contact_id: self.first_contact_id, second_contact_id: self.second_contact_id).exists? ||
+        Merge.where(first_contact_id: self.second_contact_id, second_contact_id: self.first_contact_id).exists?)
+      self.errors[:uniqueness] << I18n.t('errors.merge.uniqueness')
     end
   end
 
