@@ -38,7 +38,7 @@ class Merge
   #
   # Stop: Stop with merging process.
   #   If merging process is finished this will
-  #   update state to :merge otherwise it will be
+  #   update state to :merged otherwise it will be
   #   updated to :pending
   # @method stop
 
