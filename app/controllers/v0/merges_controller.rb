@@ -48,7 +48,7 @@ class V0::MergesController < V0::ApplicationController
 
     if @merge.save
       @merge.start
-      if @merge.merged? || @merge.merging? || @merge.pending?
+      if @merge.merged? || @merge.merging?
 
         post_to_activity_stream
 
