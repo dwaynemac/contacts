@@ -27,7 +27,7 @@ class Merge
   validates :first_contact_id, presence: true
   validates :second_contact_id, presence: true
   validate :similarity_of_contacts
-  #validate :uniqueness, on: :create
+  validate :uniqueness, on: :create
 
   after_validation :choose_father
   after_save :look_for_warnings
