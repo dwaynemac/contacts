@@ -35,6 +35,8 @@ gem 'figaro' # for environment variables managment
 
 gem 'rake'
 
+gem 'i18n', '~> 0.6.6'
+
 group :documentation do
   gem 'yard', '~> 0.8.3'
   gem 'yard-restful'
