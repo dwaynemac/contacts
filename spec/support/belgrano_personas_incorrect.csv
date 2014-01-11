@@ -19,7 +19,7 @@ id,dni,nombres,apellidos,dire,tel,cel,mail,grado_id,instructor_id,coeficiente_id
 50012,,Ana,Kim,Paraguay 3559 4A Palermo (1425) Cap.Fed.,4827-0850,,puredezapallo@hotmail.com,aspirante,lucia.gagliardini,exalumno,m,,1982-10-30,2008-02-01,,,true,,,1,,,,,,,,,,,,,false,,,,,,,
 50013,,Andrea,Pustilnik,,,15 5415 8458,aleph15@hotmail.com,asistente,lucia.gagliardini,exalumno,m,,1981-11-03,2003-08-01,,,true,0,,1,,,,,,,,,,,,,false,,,,,,,
 50014,22.545.994,Angélica,Perez,Venezuela 4771,4709 2746,15 6804 0426,aperez@citefa.gov.ar,sádhaka,lucia.gagliardini,exalumno,m,,1972-03-08,2002-07-01,Abogada,,true,3,,1,,,,,,,,,,,,,false,,,,,,,
-50015,,Anoopa,Laurens,,telefono errado,cel errado,un.mal.mail,6,alex.falke,5,m,/home/alex/workspace/Padma/public/persona/foto/50015/anoopa.bmp,1972-09-13,,,"<p>aspirante</p>
+5015,,,Laurens,,telefono errado,cel errado,un.mal.mail,,,,,/home/alex/workspace/Padma/public/persona/foto/50015/anoopa.bmp,1972-09-13,,,"<p>aspirante</p>
 <p>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</p>
 <p>...</p>
 <p>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</p>

@@ -20,6 +20,11 @@ describe Import do
                  "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
                  "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",	"1667392", "",
                  "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
+    @student2 =  ["50010", "", "Alex", "Falke", "", "4782 1395", "14 5466 7896", "afkear@gmail.com", "asistente",
+                 "lucia.gagliardini", "perfil", "m",
+                 "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
+                 "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
+                 "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
     @p_visit = ["50178", "", "Daniel", "Werber", "", "", "15 4437-6580", "werber@fibertel.com.ar", "aspirante", "",	"perfil", "m",
                 "","","", "BioquÃ­mico", "", "false", "", "", "1", "", "", "", "", "", "", "", "", "", "", "", "", "false", 
                 "", "", "", "", "", "", ""]
@@ -27,6 +32,7 @@ describe Import do
       csv << @headers
       csv << @former_student
       csv << @student
+      csv << @student2
       csv << @p_visit
     end
     # @csv_file = File.open("#{Rails.root}/spec/support/test.csv")
@@ -183,9 +189,9 @@ describe Import do
       csv = @new_import.failed_rows_to_csv
       csv.should_not be_nil
       # the failed person is Anoopa and her kshema_id is 50015
-      csv.should include("Anoopa", "50015")
+      csv.should include("Laurens", "50015")
       # the failed row is 26
-      csv.should include("26")
+      csv.should include("16")
     end
 
   end
