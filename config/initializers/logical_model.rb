@@ -2,7 +2,7 @@ HYDRA = Typhoeus::Hydra.new
 
 PADMA_ACCOUNTS_HOST = case Rails.env
   when "production"
-    "padma-accounts.herokuapp.com"
+    "accounts.padm.am"
   when "staging"
     "padma-accounts-staging.herokuapp.com"
   when "development"
@@ -13,7 +13,7 @@ end
 
 PADMA_CRM_HOST = case Rails.env
   when "production"
-    "padma-crm.herokuapp.com"
+    "crm.padm.am"
   when "staging"
     "padma-crm-staging.herokuapp.com"
   when "development"
