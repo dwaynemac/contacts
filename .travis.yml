@@ -4,6 +4,6 @@ rvm:
   1.9.3
 services: mongodb
 env:
- - app_key=secret messaging_key=1234
+ - app_key=secret messaging_key=1234 crm_key=xxx
 before_script:
  - "bundle exec rails generate mongoid:config"
