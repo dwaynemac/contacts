@@ -12,7 +12,7 @@ describe Import do
     @former_student = ["50001",	"30 366 832", "Dwayne",	"Macgowan", "Arribeños 2153 14B", "4783.6951", "15.4099.5071",
                  "dwaynemac@gmail.com",	"asistente", "daniel.ferztand", "perfil", "m",
                  "/home/alex/workspace/Padma/public/persona/foto/50001/654da12b6a7905f62633eae7e76688c5.jpg",
-                 "1983-05-21", "2005-05-13", "Instr. Método DeRose", "<p>algna observacion</p>", "true", "5",
+                 "1983-05-21", "2005-05-13", "Instr. Método DeRose", "<p>alguna observacion</p>", "true", "5",
                  "1428", "1", "", "", "2011-02-19 18:04:12 -0300", "", "", "", "", "", "", "", "", "",
                  "false", "", "", "", "", "", "", ""]
     @student =  ["50010", "", "Alex", "Falke", "", "4782 1495",	"15 5466 7896",	"afalkear@gmail.com", "asistente",
@@ -59,6 +59,12 @@ describe Import do
         it "should distinguish between levels" do
           @new_import.process_CSV_without_delay
           Contact.where(level: 5).count.should == 2
+        end
+        it "should have the correct contact observation" do
+          @new_import.process_CSV_without_delay
+          dwayne = Contact.where(first_name: "Dwayne").first
+          dwayne.local_unique_attributes.where(_type: "Observation").count.should == 1
+          dwayne.local_unique_attributes.where(_type: "Observation").first.value.should == "<p>alguna observacion</p>"
         end
       end
       context "with a contact that is already in the database" do

@@ -272,8 +272,8 @@ class Import
         category: nil
       },
       notes: {
-        type: 'ignore',
-        name: 'comment',
+        type: 'local_unique_attribute',
+        name: 'observation',
         category: nil
       },
       follow: {

@@ -144,7 +144,7 @@ class Contact
 
   # defines Contact#coefficients/...
   # they all return a Criteria scoping to according _type
-  %W(coefficient local_status local_teacher).each do |lua|
+  %W(coefficient local_status local_teacher observation).each do |lua|
     delegate lua.pluralize, to: :local_unique_attributes
   end
 
@@ -294,7 +294,7 @@ class Contact
       end
       
       # select all attributes except for special ones
-      options = options.merge({:only => options[:select], :except => [:contact_attributes, :tags, :local_status, :coefficient, :local_teacher, :local_unique_attributes, :tag_ids, :owner_id, :history_entries]})
+      options = options.merge({:only => options[:select], :except => [:contact_attributes, :tags, :local_status, :coefficient, :local_teacher, :observation, :local_unique_attributes, :tag_ids, :owner_id, :history_entries]})
 
       json = super options
       
@@ -305,7 +305,7 @@ class Contact
         # tags
         json[:tags] = self.tags.where(account_id: account.id) if options[:select].include? :tags
         # local_attributes
-        %w{local_status coefficient local_teacher}.each do |local_attribute|
+        %w{local_status coefficient local_teacher observation}.each do |local_attribute|
           json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")  if options[:select].include? local_attribute.to_sym
         end
       end
@@ -332,7 +332,7 @@ class Contact
         # add these data when account_id specified
         json[:contact_attributes] = self.contact_attributes.for_account(account, options)
         json[:tags] = self.tags.where(account_id: account.id)
-        %w{local_status coefficient local_teacher}.each do |local_attribute|
+        %w{local_status coefficient observation local_teacher}.each do |local_attribute|
           json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
         end
         json[:linked] = self.linked_to?(account) unless options[:except_linked]
