@@ -4,7 +4,7 @@ describe Observation do
   let(:contact){ Contact.make } 
   let(:account){ Account.make }
   describe "When saving a contact" do
-    it "should not be blank" do
+    it "observation value should not be blank" do
       contact.local_unique_attributes << Observation.new(value: nil)
       contact.valid?.should be_false
     end
