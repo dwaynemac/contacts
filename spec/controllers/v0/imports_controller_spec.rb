@@ -78,7 +78,12 @@ describe V0::ImportsController do
       end
       context 'with errors' do
         before do
-          @incorrect_student =  ["50010", "", "Alex", "Falke", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
+          @incorrect_student =  ["50010", "", "", "Falke", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
+                                 "lucia.gagliardini", "5", "h",
+                                 "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "1983-03-11", "2004-12-01",
+                                 "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
+                                 "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
+          @incorrect_student2 =  ["50011", "", "", "Falke", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
                                  "lucia.gagliardini", "5", "h",
                                  "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "1983-03-11", "2004-12-01",
                                  "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
@@ -88,7 +93,7 @@ describe V0::ImportsController do
             csv << @former_student
             csv << @incorrect_student
             csv << @student
-            csv << @incorrect_student
+            csv << @incorrect_student2
             csv << @p_visit
           end
           #@csv_file = File.open("#{Rails.root}/spec/support/test.csv")

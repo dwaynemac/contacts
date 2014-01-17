@@ -24,6 +24,7 @@ gem 'rmagick'
 gem 'carrierwave'
 gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
 gem 'fog'
+gem 'unf'
 gem 'state_machine', '~> 1.1.2'
 gem 'ethon', '0.4.2'
 

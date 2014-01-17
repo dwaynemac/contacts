@@ -36,19 +36,21 @@ class Import
     unless contacts_CSV.nil? || self.headers.blank?
       current_line = 2
       CSV.foreach(contacts_CSV, encoding: "UTF-8", headers: :first_row) do |row|
-        contact = build_contact(row)
+        unless contact_exists?(get_value_for('id', row))
+          contact = build_contact(row)
 
-        # try to fix errors
-        unless contact.valid?
-          contact = fix_errors(contact)
-        end
+          # try to fix errors
+          unless contact.valid?
+            contact = fix_errors(contact)
+          end
 
-        if contact.valid?
-          contact.save
-          self.imported_ids << contact.id
-        else
-          # $. is the current line of the CSV file, setted by CSV.foreach
-          self.failed_rows << [current_line.to_s , row.fields , contact.deep_error_messages].flatten
+          if contact.valid?
+            contact.save
+            self.imported_ids << contact.id
+          else
+            # $. is the current line of the CSV file, setted by CSV.foreach
+            self.failed_rows << [current_line.to_s , row.fields , contact.deep_error_messages].flatten
+          end
         end
         current_line += 1
       end
@@ -494,5 +496,9 @@ class Import
 
     def get_value_for(field, row)
       self.headers.index(field).nil? ? nil : row[self.headers.index(field)]
+    end
+
+    def contact_exists?(kshema_id)
+      !Contact.where(kshema_id: kshema_id).empty?
     end
 end

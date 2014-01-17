@@ -63,8 +63,9 @@ class V0::AttachmentsController < V0::ApplicationController
   #
   # @action POST
   #
-  # @required [String] contact id
+  # @optional [String] contact id
   # @optional [String] account_name account which the contact will belong to
+  # @optional [String] kshema_id kshema_id of the contact
   # @optional [File] file file to be attached
   #
   def create
@@ -111,7 +112,15 @@ class V0::AttachmentsController < V0::ApplicationController
   private
 
   def get_contact
-    @contact = @account.present?? @account.contacts.find(params[:contact_id]) : Contact.find(params[:contact_id])
+    if params.has_key?(:kshema_id)
+      if @account.present?
+        @contact = @account.contacts.where(kshema_id: params[:kshema_id]).first
+      else
+        @contact = Contact.where(kshema_id: params[:kshema_id]).first
+      end
+    else
+      @contact = @account.present?? @account.contacts.find(params[:contact_id]) : Contact.find(params[:contact_id])
+    end
   end
 
   #  Sets the scope
