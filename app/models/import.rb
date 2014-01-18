@@ -23,9 +23,8 @@ class Import
 
   def process_CSV
     return unless self.status == :ready
+    log "processing csv"
     
-    log " processing csv"
-
     self.update_attribute(:status, :working)
 
     if Rails.env.test?
@@ -44,7 +43,10 @@ class Import
     else
       current_line = 2
       CSV.foreach(contacts_CSV, encoding: "UTF-8", headers: :first_row) do |row|
-        unless contact_exists?(get_value_for('id', row))
+        remote_id = get_value_for('id', row)
+        if contact_exists?(remote_id)
+          log "contact #{remote_id} alredy exists, skipping"
+        else
           contact = build_contact(row)
 
           # try to fix errors
