@@ -21,10 +21,6 @@ class AttachmentUploader < CarrierWave::Uploader::Base
     process :resize_to_fit => [200, 200]
   end
 
-  def extension_white_list
-    %w(jpg jpeg gif png csv pdf doc htm html docx)
-  end
-
   protected
     def image?(new_file)
       new_file.content_type.start_with? 'image'
