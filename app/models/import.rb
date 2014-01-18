@@ -35,7 +35,13 @@ class Import
     end
 
     # Current line starts at 2, after the headers
-    unless contacts_CSV.nil? || self.headers.blank?
+    if contacts_CSV.nil?
+      log "contacts_CSV is nil, exiting"
+      self.update_attribute(:status, :failed)
+    elsif self.headers.blank?
+      log "headers are blank, exiting"
+      self.update_attribute(:status, :failed)
+    else
       current_line = 2
       CSV.foreach(contacts_CSV, encoding: "UTF-8", headers: :first_row) do |row|
         unless contact_exists?(get_value_for('id', row))
@@ -57,9 +63,9 @@ class Import
         end
         current_line += 1
       end
+      self.update_attribute(:status, :finished)
     end
 
-    self.update_attribute(:status, :finished)
   end
   handle_asynchronously :process_CSV
 
