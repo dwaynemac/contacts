@@ -23,6 +23,8 @@ class Import
 
   def process_CSV
     return unless self.status == :ready
+    
+    log " processing csv"
 
     self.update_attribute(:status, :working)
 
@@ -46,9 +48,10 @@ class Import
 
           if contact.valid?
             contact.save
+            log "new contact: #{contact.id}"
             self.imported_ids << contact.id
           else
-            # $. is the current line of the CSV file, setted by CSV.foreach
+            log "failed row: #{current_line}"
             self.failed_rows << [current_line.to_s , row.fields , contact.deep_error_messages].flatten
           end
         end
@@ -501,5 +504,9 @@ class Import
 
     def contact_exists?(kshema_id)
       !Contact.where(kshema_id: kshema_id).empty?
+    end
+
+    def log(txt)
+      Rails.logger.debug "[import#{self.id}] #{txt}"
     end
 end
