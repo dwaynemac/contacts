@@ -70,6 +70,7 @@ class V0::ImportsController < V0::ApplicationController
       import.process_CSV
       render :json => {:message => "OK", :id => import.id}.to_json, :status => 201
     else
+      Rails.logger.info("Import not created: #{import.errors}")
       render :json => {:message => "Sorry, import could not be created", :errors => import.errors}.to_json,
       :status => 400
     end
