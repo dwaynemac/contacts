@@ -44,7 +44,7 @@ describe Import do
   describe "create_contact" do
     context "with a correct CSV file" do
       before do
-        @account = Account.make(name: "testAccount")
+        @account = Account.make(name: "testaccount")
         @new_import = Import.make(account: @account, headers: @headers)
         @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
         @new_import.save
@@ -69,6 +69,11 @@ describe Import do
         it "should distinguish between statuses" do
           @new_import.process_CSV_without_delay
           Contact.where(status: :student).count.should == 1
+        end
+        it "should maintain local status" do
+          @new_import.process_CSV_without_delay
+          alex = Contact.where(first_name: "Alex").first
+          alex.local_status_for_testaccount.should == :student
         end
         it "should have the correct contact observation" do
           @new_import.process_CSV_without_delay

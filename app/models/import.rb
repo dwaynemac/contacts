@@ -92,6 +92,7 @@ class Import
             if type_of_attribute[:name] == "coefficient"
               response = get_status_and_coefficient(value)
               @contact.status = response[:status]
+              @contact.local_status = {status: response[:status], account_id: self.account.id}
               value = response[:coefficient]
             end
             create_local_unique_attribute type_of_attribute, value
