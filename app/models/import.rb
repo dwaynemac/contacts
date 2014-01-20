@@ -23,49 +23,55 @@ class Import
 
   def process_CSV
     return unless self.status == :ready
-    log "processing csv"
-    
-    self.update_attribute(:status, :working)
 
-    if Rails.env.test?
-      contacts_CSV = open(self.attachment.file.path)
-    else
-      contacts_CSV = open(self.attachment.file.url)
-    end
+    begin
+      log "processing csv"
+      
+      self.update_attribute(:status, :working)
 
-    # Current line starts at 2, after the headers
-    if contacts_CSV.nil?
-      log "contacts_CSV is nil, exiting"
-      self.update_attribute(:status, :failed)
-    elsif self.headers.blank?
-      log "headers are blank, exiting"
-      self.update_attribute(:status, :failed)
-    else
-      current_line = 2
-      CSV.foreach(contacts_CSV, encoding: "UTF-8", headers: :first_row) do |row|
-        remote_id = get_value_for('id', row)
-        if contact_exists?(remote_id)
-          log "contact #{remote_id} alredy exists, skipping"
-        else
-          contact = build_contact(row)
-
-          # try to fix errors
-          unless contact.valid?
-            contact = fix_errors(contact)
-          end
-
-          if contact.valid?
-            contact.save
-            log "new contact: #{contact.id}"
-            self.imported_ids << contact.id
-          else
-            log "failed row: #{current_line}"
-            self.failed_rows << [current_line.to_s , row.fields , contact.deep_error_messages].flatten
-          end
-        end
-        current_line += 1
+      if Rails.env.test?
+        contacts_CSV = open(self.attachment.file.path)
+      else
+        contacts_CSV = open(self.attachment.file.url)
       end
-      self.update_attribute(:status, :finished)
+
+      # Current line starts at 2, after the headers
+      if contacts_CSV.nil?
+        log "contacts_CSV is nil, exiting"
+        self.update_attribute(:status, :failed)
+      elsif self.headers.blank?
+        log "headers are blank, exiting"
+        self.update_attribute(:status, :failed)
+      else
+        current_line = 2
+        CSV.foreach(contacts_CSV, encoding: "UTF-8", headers: :first_row) do |row|
+          remote_id = get_value_for('id', row)
+          if contact_exists?(remote_id)
+            log "contact #{remote_id} alredy exists, skipping"
+          else
+            contact = build_contact(row)
+
+            # try to fix errors
+            unless contact.valid?
+              contact = fix_errors(contact)
+            end
+
+            if contact.valid?
+              contact.save
+              log "new contact: #{contact.id}"
+              self.imported_ids << contact.id
+            else
+              log "failed row: #{current_line}"
+              self.failed_rows << [current_line.to_s , row.fields , contact.deep_error_messages].flatten
+            end
+          end
+          current_line += 1
+        end
+        self.update_attribute(:status, :finished)
+      end
+    rescue Exception => e
+      Rails.logger.warn e.message
+      self.update_attribute(:status, :failed)
     end
 
   end
