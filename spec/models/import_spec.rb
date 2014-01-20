@@ -10,18 +10,18 @@ describe Import do
                 country_id state identity publish_on_gdp last_enrollment in_formation id_scan padma_id foto_migrated
                 id_scan_migrated padma_follow_id)
     @former_student = ["50001",	"30 366 832", "Dwayne",	"Macgowan", "Arribeños 2153 14B", "4783.6951", "15.4099.5071",
-                 "dwaynemac@gmail.com",	"asistente", "daniel.ferztand", "perfil", "m",
+                 "dwaynemac@gmail.com",	"asistente", "daniel.ferztand", "exalumno", "m",
                  "/home/alex/workspace/Padma/public/persona/foto/50001/654da12b6a7905f62633eae7e76688c5.jpg",
                  "1983-05-21", "2005-05-13", "Instr. Método DeRose", "<p>alguna observacion</p>", "true", "5",
                  "1428", "1", "", "", "2011-02-19 18:04:12 -0300", "", "", "", "", "", "", "", "", "",
                  "false", "", "", "", "", "", "", ""]
     @student =  ["50010", "", "Alex", "Falke", "", "4782 1495",	"15 5466 7896",	"afalkear@gmail.com", "asistente",
-                 "lucia.gagliardini", "perfil", "m",
+                 "lucia.gagliardini", "alumno", "m",
                  "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
                  "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",	"1667392", "",
                  "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
     @student2 =  ["50010", "", "Alex", "Falke", "", "4782 1395", "14 5466 7896", "afkear@gmail.com", "asistente",
-                 "lucia.gagliardini", "perfil", "m",
+                 "lucia.gagliardini", "alumno", "m",
                  "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
                  "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
                  "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
@@ -65,6 +65,10 @@ describe Import do
         it "should distinguish between levels" do
           @new_import.process_CSV_without_delay
           Contact.where(level: 5).count.should == 2
+        end
+        it "should distinguish between statuses" do
+          @new_import.process_CSV_without_delay
+          Contact.where(status: :student).count.should == 1
         end
         it "should have the correct contact observation" do
           @new_import.process_CSV_without_delay
