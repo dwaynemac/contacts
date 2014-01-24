@@ -10,8 +10,6 @@ class Import
   field :headers
   field :status
 
-  attr_accessor :contacts_CSV
-
   belongs_to :account
 
   embeds_one :attachment, cascade_callbacks: true
@@ -21,6 +19,14 @@ class Import
 
   VALID_STATUSES = [:ready, :working, :finished]
 
+  def contacts_CSV
+    @contacts_CSV ||= if Rails.env.test?
+      contacts_CSV = open(self.attachment.file.path)
+    else
+      contacts_CSV = open(self.attachment.file.url)
+    end
+  end
+
   def process_CSV
     return unless self.status == :ready
 
@@ -28,12 +34,6 @@ class Import
       log "processing csv"
       
       self.update_attribute(:status, :working)
-
-      if Rails.env.test?
-        contacts_CSV = open(self.attachment.file.path)
-      else
-        contacts_CSV = open(self.attachment.file.url)
-      end
 
       # Current line starts at 2, after the headers
       if contacts_CSV.nil?
