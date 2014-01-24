@@ -294,7 +294,7 @@ class Import
       category: nil
     },
     follow: {
-      type: 'ignore',
+      type: :ignore,
       name: 'follow',
       category: nil
     },
@@ -304,19 +304,19 @@ class Import
       category: nil
     },
     codigo_postal: {
-      type: 'ignore'
+      type: :ignore
     },
     school_id: {
-      type: 'ignore'
+      type: :ignore
     },
     current_plan_id: {
-      type: 'ignore'
+      type: :ignore
     },
     created_at: {
-      type: 'ignore'
+      type: :ignore
     },
     updated_at: {
-      type: 'ignore'
+      type: :ignore
     },
     estimated_age: {
       type: 'field',
@@ -334,10 +334,10 @@ class Import
       category: nil
     },
     city: {
-      type: 'ignore'
+      type: :ignore
     },
     locality: {
-      type: 'ignore'
+      type: :ignore
     },
     business_phone: {
       type: 'contact_attribute',
@@ -345,10 +345,10 @@ class Import
       category: 'business'
     },
     country_id: {
-      type: 'ignore'
+      type: :ignore
     },
     state: {
-      type: 'ignore'
+      type: :ignore
     },
     identity: {
       type: 'contact_attribute',
@@ -361,7 +361,7 @@ class Import
       category: nil
     },
     last_enrollment: {
-      type: 'ignore'
+      type: :ignore
     },
     in_formation: {
       type: 'custom_attribute',
@@ -374,16 +374,16 @@ class Import
       category: nil
     },
     padma_id: {
-      type: 'ignore'
+      type: :ignore
     },
     foto_migrated: {
-      type: 'ignore'
+      type: :ignore
     },
     id_scan_migrated: {
-      type: 'ignore'
+      type: :ignore
     },
     padma_follow_id: {
-      type: 'ignore'
+      type: :ignore
     }
   }
 
