@@ -491,10 +491,13 @@ class Import
     end
 
     def convert_gender(val)
-      if val == 'm'
-        "female"
-      elsif val == 'h'
-        "male"
+      case val
+      when 'm', 'female', 'mulher', 'mujer', 'femenino'
+        'female'
+      when 'h', 'male', 'homem', 'masculino'
+        'male'
+      else
+        nil
       end
     end
 
