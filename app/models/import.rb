@@ -207,190 +207,190 @@ class Import
   end
 
   # helpers
+  PRESET_CONVERTIONS = {
+    id: {
+      type: 'field',
+      name: 'kshema_id',
+      category: nil
+    },
+    dni: {
+      type: 'contact_attribute',
+      name: 'identification',
+      category: 'DNI'
+    },
+    nombres: {
+      type: 'field',
+      name: 'first_name',
+      category: nil
+    },
+    apellidos: {
+      type: 'field',
+      name: 'last_name',
+      category: nil
+    },
+    dire:{
+      type: 'address',
+      name: 'address',
+      category: nil
+    },
+    tel: {
+      type: 'contact_attribute',
+      name: 'telephone',
+      category: nil
+    },
+    cel: {
+      type: 'contact_attribute',
+      name: 'telephone',
+      category: 'mobile'
+    },
+    mail: {
+      type: 'contact_attribute',
+      name: 'email',
+      category: nil
+    },
+    grado_id: {
+      type: 'field',
+      name: 'level',
+      category: nil
+    },
+    instructor_id: {
+      type: 'local_unique_attribute',
+      name: 'local_teacher',
+      category: nil
+    },
+    coeficiente_id: {
+      type: 'local_unique_attribute',
+      name: 'coefficient',
+      category: nil
+    },
+    genero: {
+      type: 'field',
+      name: 'gender',
+      category: nil
+    },
+    foto: {
+      type: 'avatar',
+      name: 'avatar',
+      category: nil
+    },
+    fecha_nacimiento: {
+      type: 'date_attribute',
+      name: 'birthday',
+      category: 'birthday'
+    },
+    inicio_practicas: {
+      type: 'custom_attribute',
+      name: 'Inicio practicas',
+      category: nil
+    },
+    profesion: {
+      type: 'custom_attribute',
+      name: 'Profesion',
+      category: nil
+    },
+    notes: {
+      type: 'local_unique_attribute',
+      name: 'observation',
+      category: nil
+    },
+    follow: {
+      type: 'ignore',
+      name: 'follow',
+      category: nil
+    },
+    indice_fidelizacion: {
+      type: 'custom_attribute',
+      name: 'Indice fidelizacion',
+      category: nil
+    },
+    codigo_postal: {
+      type: 'ignore'
+    },
+    school_id: {
+      type: 'ignore'
+    },
+    current_plan_id: {
+      type: 'ignore'
+    },
+    created_at: {
+      type: 'ignore'
+    },
+    updated_at: {
+      type: 'ignore'
+    },
+    estimated_age: {
+      type: 'field',
+      name: 'estimated_age',
+      category: nil
+    },
+    company: {
+      type: 'custom_attribute',
+      name: 'company',
+      category: nil
+    },
+    job: {
+      type: 'custom_attribute',
+      name: 'job',
+      category: nil
+    },
+    city: {
+      type: 'ignore'
+    },
+    locality: {
+      type: 'ignore'
+    },
+    business_phone: {
+      type: 'contact_attribute',
+      name: 'telephone',
+      category: 'business'
+    },
+    country_id: {
+      type: 'ignore'
+    },
+    state: {
+      type: 'ignore'
+    },
+    identity: {
+      type: 'contact_attribute',
+      name: 'identification',
+      category: 'custom'
+    },
+    publish_on_gdp: {
+      type: 'field',
+      name: 'publish_on_gdp',
+      category: nil
+    },
+    last_enrollment: {
+      type: 'ignore'
+    },
+    in_formation: {
+      type: 'custom_attribute',
+      name: 'In formation',
+      category: nil
+    },
+    id_scan: {
+      type: 'attachment',
+      name: 'attachment',
+      category: nil
+    },
+    padma_id: {
+      type: 'ignore'
+    },
+    foto_migrated: {
+      type: 'ignore'
+    },
+    id_scan_migrated: {
+      type: 'ignore'
+    },
+    padma_follow_id: {
+      type: 'ignore'
+    }
+  }
 
   def get_attribute_type(complete_field_name)
     key = complete_field_name.to_sym
-    preset_convertions = {
-      id: {
-        type: 'field',
-        name: 'kshema_id',
-        category: nil
-      },
-      dni: {
-        type: 'contact_attribute',
-        name: 'identification',
-        category: 'DNI'
-      },
-      nombres: {
-        type: 'field',
-        name: 'first_name',
-        category: nil
-      },
-      apellidos: {
-        type: 'field',
-        name: 'last_name',
-        category: nil
-      },
-      dire:{
-        type: 'address',
-        name: 'address',
-        category: nil
-      },
-      tel: {
-        type: 'contact_attribute',
-        name: 'telephone',
-        category: nil
-      },
-      cel: {
-        type: 'contact_attribute',
-        name: 'telephone',
-        category: 'mobile'
-      },
-      mail: {
-        type: 'contact_attribute',
-        name: 'email',
-        category: nil
-      },
-      grado_id: {
-        type: 'field',
-        name: 'level',
-        category: nil
-      },
-      instructor_id: {
-        type: 'local_unique_attribute',
-        name: 'local_teacher',
-        category: nil
-      },
-      coeficiente_id: {
-        type: 'local_unique_attribute',
-        name: 'coefficient',
-        category: nil
-      },
-      genero: {
-        type: 'field',
-        name: 'gender',
-        category: nil
-      },
-      foto: {
-        type: 'avatar',
-        name: 'avatar',
-        category: nil
-      },
-      fecha_nacimiento: {
-        type: 'date_attribute',
-        name: 'birthday',
-        category: 'birthday'
-      },
-      inicio_practicas: {
-        type: 'custom_attribute',
-        name: 'Inicio practicas',
-        category: nil
-      },
-      profesion: {
-        type: 'custom_attribute',
-        name: 'Profesion',
-        category: nil
-      },
-      notes: {
-        type: 'local_unique_attribute',
-        name: 'observation',
-        category: nil
-      },
-      follow: {
-        type: 'ignore',
-        name: 'follow',
-        category: nil
-      },
-      indice_fidelizacion: {
-        type: 'custom_attribute',
-        name: 'Indice fidelizacion',
-        category: nil
-      },
-      codigo_postal: {
-        type: 'ignore'
-      },
-      school_id: {
-        type: 'ignore'
-      },
-      current_plan_id: {
-        type: 'ignore'
-      },
-      created_at: {
-        type: 'ignore'
-      },
-      updated_at: {
-        type: 'ignore'
-      },
-      estimated_age: {
-        type: 'field',
-        name: 'estimated_age',
-        category: nil
-      },
-      company: {
-        type: 'custom_attribute',
-        name: 'company',
-        category: nil
-      },
-      job: {
-        type: 'custom_attribute',
-        name: 'job',
-        category: nil
-      },
-      city: {
-        type: 'ignore'
-      },
-      locality: {
-        type: 'ignore'
-      },
-      business_phone: {
-        type: 'contact_attribute',
-        name: 'telephone',
-        category: 'business'
-      },
-      country_id: {
-        type: 'ignore'
-      },
-      state: {
-        type: 'ignore'
-      },
-      identity: {
-        type: 'contact_attribute',
-        name: 'identification',
-        category: 'custom'
-      },
-      publish_on_gdp: {
-        type: 'field',
-        name: 'publish_on_gdp',
-        category: nil
-      },
-      last_enrollment: {
-        type: 'ignore'
-      },
-      in_formation: {
-        type: 'custom_attribute',
-        name: 'In formation',
-        category: nil
-      },
-      id_scan: {
-        type: 'attachment',
-        name: 'attachment',
-        category: nil
-      },
-      padma_id: {
-        type: 'ignore'
-      },
-      foto_migrated: {
-        type: 'ignore'
-      },
-      id_scan_migrated: {
-        type: 'ignore'
-      },
-      padma_follow_id: {
-        type: 'ignore'
-      }
-    }
-    if preset_convertions[key]
-      return preset_convertions[key]
+    if PRESET_CONVERTIONS[key]
+      return PRESET_CONVERTIONS[key]
     end
   end
 
