@@ -79,7 +79,9 @@ class Contact
   before_save :set_beginner_on_enrollment
 
   belongs_to :owner, :class_name => "Account"
-  before_validation :assign_owner
+
+  attr_accessor :skip_assign_owner
+  before_validation :assign_owner, unless: :skip_assign_owner
 
   field :global_teacher_username, type: String
   before_validation :set_global_teacher
