@@ -22,7 +22,7 @@ describe Account do
   it "not validate if it inexsistent PadmaAccount " do
       # mock ws interaction
       padma_account = PadmaAccount.new(:name => "mockedAccount")
-      PadmaAccount.stub!(:find).and_return(nil)
+      PadmaAccount.stub(:find).and_return(nil)
 
       acc = Account.make_unsaved
       acc.should_not be_valid
