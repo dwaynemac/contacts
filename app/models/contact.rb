@@ -73,7 +73,8 @@ class Contact
   VALID_STATUSES = [:student, :former_student, :prospect] # they are ordered by precedence (first has precedence)
 
   field :status, type: Symbol
-  before_validation :set_status
+  attr_accessor :skip_set_status
+  before_validation :set_status, unless: :skip_set_status
   validates_inclusion_of :status, :in => VALID_STATUSES, :allow_blank => true
 
   before_save :set_beginner_on_enrollment

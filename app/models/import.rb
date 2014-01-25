@@ -81,6 +81,7 @@ class Import
     @current_row = row
     @contact = Contact.new(owner: self.account)
     @contact.skip_assign_owner = true
+    @contact.skip_set_status = true
     self.headers.each do |h|
       type_of_attribute = get_attribute_type(h)
       value = get_value_for(h, row)
