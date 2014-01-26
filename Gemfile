@@ -4,8 +4,6 @@ ruby '1.9.3'
 gem 'rails', '3.1.6'
 
 gem 'unicorn'
-gem 'ruby-mass'
-
 gem "mongoid", "2.3.3"
 gem 'bson', '= 1.4.0'
 gem "bson_ext", "= 1.4.0"
@@ -56,6 +54,7 @@ group :development do
   gem 'git-pivotal-tracker-integration'
 
   gem 'debugger'
+  gem 'ruby-mass'
 end
 
 group :development, :test do
