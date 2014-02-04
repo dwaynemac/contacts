@@ -109,7 +109,7 @@ class Import
             create_contact_attribute type_of_attribute, value
           when 'custom_attribute'
             create_custom_attribute type_of_attribute, value
-          when 'custom_date_attribute'
+          when 'date_attribute'
             create_custom_date_attribute type_of_attribute, value
           when 'local_unique_attribute'
             if type_of_attribute[:name] == "coefficient"
@@ -181,20 +181,18 @@ class Import
   end
 
   def create_custom_date_attribute(att, value)
-    date = value
-    day = date.to_date.day
-    month = date.to_date.month
-    year = date.to_date.year
-    @contact.contact_attributes << DateAttribute.new(category: att[:category], day: day, month: month, year: year, account_id: self.account.id)
-  end
-
-  # Particular creators. For special fields, that do not abide the generic values.
-  def create_birthday(value)
-    date = value
-    day = date.to_date.day
-    month = date.to_date.month
-    year = date.to_date.year
-    @contact.contact_attributes << DateAttribute.new(category: 'birthday', day: day, month: month, year: year, account_id: self.account.id)
+    date = begin
+      Date.parse(value)
+    rescue
+      nil
+    end
+    if date
+      day = date.day
+      month = date.month
+      year = date.year
+      date_attribute = DateAttribute.new(category: att[:category], day: day, month: month, year: year, account_id: self.account.id)
+      @contact.contact_attributes << date_attribute if date_attribute.valid?
+    end
   end
 
   # Receives the url of the file to download

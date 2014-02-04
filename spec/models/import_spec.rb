@@ -66,6 +66,10 @@ describe Import do
           @new_import.process_CSV_without_delay
           Contact.last.kshema_id.should == "50178"
         end
+        it "should save birthday" do
+          @new_import.process_CSV_without_delay
+          Contact.first.birthday.date.should == Date.civil(1983,5,21)
+        end
         it "should distinguish between levels" do
           @new_import.process_CSV_without_delay
           Contact.where(level: 5).count.should == 2
@@ -121,9 +125,9 @@ describe Import do
         before do
           @incorrect_student =  ["50013", "", "Alex", "Falke", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
                    "lucia.gagliardini", "perfil", "h",
-                   "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "1983/03 fecha11", "2004-12-01",
+                   "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "--/23/23", "2004-12-01",
                    "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
-                   "2013-01-11 14:03:29 -0300", "bad_age", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
+                   "2013-01-11 14:03:29 -0300", "bad_age", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", "",""]
           CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
             csv << @headers
             csv << @incorrect_student
@@ -143,6 +147,7 @@ describe Import do
         end
         it "should resolve incorrect data given" do
           @new_import.process_CSV_without_delay
+          @new_import.status.should == :finished
           cont = Contact.where(kshema_id: "50013").first
           cont.should_not be_nil
           cont.emails.count.should == 0
@@ -158,7 +163,7 @@ describe Import do
            "lucia.gagliardini", "perfil", "male",
            "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
            "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",	"1667392", "",
-           "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", ""]
+           "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", "",""]
           CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
             csv << @headers
             csv << duplicate_contact
