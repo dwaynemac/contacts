@@ -57,9 +57,13 @@ class Import
             end
 
             if contact.valid?
-              contact.save
-              log "new contact: #{contact.id}"
-              self.imported_ids << contact.id
+              if contact.save
+                create_tags(contact,row)
+                contact.index_keywords!
+
+                log "new contact: #{contact.id}"
+                self.imported_ids << contact.id
+              end
             else
               log "failed row: #{current_line}"
               self.failed_rows << [current_line.to_s , row.fields , contact.deep_error_messages].flatten
@@ -123,6 +127,28 @@ class Import
     @contact.skip_history_entries = true
 
     return @contact
+  end
+
+  # @param [Contact] contact
+  # @param [CSV::Row] row
+  def create_tags(contact,row)
+    tags = get_value_for('tags', row)
+    unless tags.blank?
+      tags = tags.split(", ")
+      tags.each do |tag|
+        t = Tag.where(account_id: self.account_id, name: tag).first
+        if t.nil?
+          t = Tag.new
+          t.account_id = self.account_id
+          t.name = tag
+          t.contact_ids = [contact.id]
+          t.save
+        else
+          t.contact_ids = t.contact_ids + [contact.id]
+          t.save
+        end
+      end
+    end
   end
 
   # Generic creators. The field name is passed in such a way that it explicits what kind of attribute it is
@@ -385,6 +411,9 @@ class Import
       type: :ignore
     },
     padma_follow_id: {
+      type: :ignore
+    },
+    tags: {
       type: :ignore
     }
   }
