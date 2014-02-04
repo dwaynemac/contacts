@@ -50,47 +50,38 @@ describe Import do
         @new_import.save
       end
       context "with all new contacts" do
-        it "should create given contacts" do
+        before do
           expect{@new_import.process_CSV_without_delay}.to change{Contact.count}.by(3)
         end
         it "should have consistent data" do
-          @new_import.process_CSV_without_delay
           Contact.last.first_name.should == "Daniel"
           Contact.last.last_name.should == "Werber"
         end
         it "should create tags" do
-          @new_import.process_CSV_without_delay
           Contact.last.tags.map(&:name).should == %W(un-tag otro-tag)
         end
         it "should have kshema_id" do
-          @new_import.process_CSV_without_delay
           Contact.last.kshema_id.should == "50178"
         end
         it "should save birthday" do
-          @new_import.process_CSV_without_delay
           Contact.first.birthday.date.should == Date.civil(1983,5,21)
         end
         it "should distinguish between levels" do
-          @new_import.process_CSV_without_delay
           Contact.where(level: 5).count.should == 2
         end
         it "should distinguish between statuses" do
-          @new_import.process_CSV_without_delay
           Contact.where(status: :student).count.should == 1
         end
         it "should maintain local status" do
-          @new_import.process_CSV_without_delay
           alex = Contact.where(first_name: "Alex").first
           alex.local_status_for_testaccount.should == :student
         end
         it "should have the correct contact observation" do
-          @new_import.process_CSV_without_delay
           dwayne = Contact.where(first_name: "Dwayne").first
           dwayne.local_unique_attributes.where(_type: "Observation").count.should == 1
           dwayne.local_unique_attributes.where(_type: "Observation").first.value.should == "<p>alguna observacion</p>"
         end
         it "should set gender correctly" do
-          @new_import.process_CSV_without_delay
           dwayne = Contact.where(first_name: "Dwayne").first
           dwayne.gender.should == 'male'
         end
