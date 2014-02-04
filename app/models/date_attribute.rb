@@ -9,6 +9,10 @@ class DateAttribute < ContactAttribute
   validates_presence_of :month
   validates_presence_of :day
 
+  validates_numericality_of :year, allow_blank: true
+  validates_numericality_of :month, allow_blank: true
+  validates_numericality_of :day, allow_blank: true
+
   validate :valid_date
 
   before_validation :to_integer
@@ -66,6 +70,7 @@ class DateAttribute < ContactAttribute
     y = year.blank?? 2011 : year # 2011 is a leap year
     unless Date.valid_civil?(y.to_i,month.to_i,day.to_i)
       errors.add(:value)
+      false
     end
   end
 

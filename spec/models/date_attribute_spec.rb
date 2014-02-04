@@ -26,6 +26,10 @@ describe DateAttribute do
       da = DateAttribute.new(year: 2010, month: 50, day: 50)
       da.should_not be_valid
     end
+    it "doesnt allow asdfa-1-1" do
+      da = DateAttribute.new(year: "sdf", month: 1, day: 1)
+      da.should_not be_valid
+    end
   end
 
   describe "#convert_selector" do
