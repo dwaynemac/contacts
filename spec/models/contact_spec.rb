@@ -22,6 +22,17 @@ describe Contact do
     end
   end
 
+  describe "#birthday" do
+    it "returns contact's birthday" do
+      c = Contact.make
+      da = DateAttribute.new(category: 'birthday', year: 1983, month: 12, day: 1)
+      c.contact_attributes << da
+      c.save!
+      c.reload.date_attributes.count.should == 1
+      c.birthday.should == da
+    end
+  end
+
 
   it { should validate_presence_of :first_name }
 

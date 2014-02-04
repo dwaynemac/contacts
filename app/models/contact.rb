@@ -142,7 +142,7 @@ class Contact
   end
 
   def birthday
-    self.date_attributes.where("$elemMatch" => {category: 'birthday'}).first
+    self.date_attributes.where(category: 'birthday').first
   end
 
   # defines Contact#coefficients/...
