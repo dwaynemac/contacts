@@ -66,6 +66,9 @@ describe Import do
         it "should save birthday" do
           Contact.first.birthday.date.should == Date.civil(1983,5,21)
         end
+        it "should save inicio_practicas as a date" do
+          Contact.first.date_attributes.to_a.select{|da| da.category == 'Inicio practicas'}.first.date.should == Date.civil(2005,5,13)
+        end
         it "should distinguish between levels" do
           Contact.where(level: 5).count.should == 2
         end

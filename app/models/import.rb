@@ -305,9 +305,9 @@ class Import
       category: 'birthday'
     },
     inicio_practicas: {
-      type: 'custom_attribute',
+      type: 'date_attribute',
       name: 'Inicio practicas',
-      category: nil
+      category: 'Inicio practicas' 
     },
     profesion: {
       type: 'custom_attribute',
