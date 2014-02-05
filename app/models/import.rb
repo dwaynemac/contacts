@@ -70,6 +70,7 @@ class Import
             end
           end
           current_line += 1
+          self.save
         end
         self.update_attribute(:status, :finished)
       end
