@@ -25,6 +25,17 @@ Spork.prefork do
   Dir[Rails.root.join("lib/**/*.rb")].each {|f| require f}
 
   RSpec.configure do |config|
+    # RSpec automatically cleans stuff out of backtraces;
+    # sometimes this is annoying when trying to debug something e.g. a gem
+    puts "                      ATTENTION: Backtraces are scoped to app code only."
+    puts "                                 Edit spec_helper to debug all code"
+    config.backtrace_clean_patterns = [
+        /\/lib\d*\/ruby\//,
+        /bin\//,
+        /gems/,
+        /spec\/spec_helper\.rb/,
+        /lib\/rspec\/(core|expectations|matchers|mocks)/
+    ]
     config.include Mongoid::Matchers
 
     config.mock_with :rspec
