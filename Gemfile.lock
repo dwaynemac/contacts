@@ -201,6 +201,8 @@ GEM
     overmind_client (0.0.5)
       logical_model (~> 0.5.0)
       railties (>= 3.1)
+    padma-deployment (0.0.1)
+      railties (>= 3.1)
     pivotal-tracker (0.5.12)
       builder
       builder
@@ -347,6 +349,7 @@ DEPENDENCIES
   newrelic-typhoeus
   newrelic_rpm
   overmind_client (~> 0.0.1)
+  padma-deployment
   rails (= 3.1.6)
   rake
   rb-inotify

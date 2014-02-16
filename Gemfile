@@ -52,6 +52,7 @@ end
 
 group :development do
   gem 'git-pivotal-tracker-integration'
+  gem 'padma-deployment'
 
   gem 'debugger'
   gem 'ruby-mass'
