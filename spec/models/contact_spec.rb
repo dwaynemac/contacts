@@ -863,6 +863,35 @@ describe Contact do
     end
   end
 
+  describe "#attribute_value_at" do
+    before do
+      @contact = Contact.make(level: 'chêla')
+      @contact.reload.history_entries.delete_all
+      add_level_hchange('',DateTime.civil(2012,11,21,20,34,39).to_time)
+      add_level_hchange('sádhaka',DateTime.civil(2012,12,21,20,34,39).to_time)
+      add_level_hchange('yôgin',DateTime.civil(2013,11,21,20,34,39).to_time)
+      @contact.history_entries.count.should == 3
+      # 20121121 '' -> 'sádhaka'
+      # 20121221 'sádhaka' -> 'yôgin'
+      # 20131121 'yôgin' -> 'chêla'
+    end
+    it "returns attribute value at given date" do
+      @contact.attribute_value_at(:level,DateTime.civil(2012,11,20).to_time).should == ''
+      @contact.attribute_value_at(:level,DateTime.civil(2012,11,22).to_time).should == 'sádhaka'
+      @contact.attribute_value_at(:level,DateTime.civil(2012,12,22).to_time).should == 'yôgin'
+      @contact.attribute_value_at(:level,DateTime.civil(2013,12,20).to_time).should == 'chêla'
+    end
+
+    def add_level_hchange(old_value, time)
+      HistoryEntry.create(attribute: :level,
+                          old_value: old_value,
+                          changed_at: time,
+                          historiable_type: 'Contact',
+                          historiable_id: @contact._id
+      )
+    end
+  end
+
   # real life example
   describe ".with_attribute_value_at" do
     describe "with local_unique_attributes" do

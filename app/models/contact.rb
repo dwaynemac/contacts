@@ -493,9 +493,11 @@ class Contact
     self.where( contact_attributes: { '$elemMatch' => { _type: 'CustomAttribute'}})
   end
 
+  def attribute_value_at(attribute,ref_date)
+    HistoryEntry.value_at(attribute,ref_date,{class: 'Contact',id: self.id}) || self.send(attribute)
+  end
+
   ##
-  #
-  #
   # @param attribute [String]
   # @param value. Will be casted according to attribute. Level must be given as a string. eg: 'aspirante'
   # @param ref_date [Date]
