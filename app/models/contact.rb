@@ -275,7 +275,13 @@ class Contact
   # @param [Hash] options
   # @option options [Account] account
   # @option options [TrueClass] include_masked
+  # @option options [Array] select. List of attribute names to incluse in response.
+  #                                 You can also send attribute name as key, and reference_date as value to know
+  #                                 attribute's value at a given time.
+  #
+  #                         eg: select: [:first_name, :last_name, level: '2012-1-1']
   def as_json(options = {})
+    # select: [ :first_name, :last_name, level: { at: date }
     options.reverse_merge!({select: [:first_name, :last_name]})
     # only_name option is a special case used for typeahead selection (for example on attendance app)
     # TODO: move this option as a select param (same as 'all')
@@ -286,21 +292,31 @@ class Contact
     # if select is an array (of attribute names)  
     elsif options[:select].present? && options[:select].kind_of?(Array)
 
-      options[:select] = options[:select].map{|i| i.to_sym }
+      # symbolize select keys, separate value_at_time attributes.
+      value_at_selects = options[:select].select{|i|i.is_a?(Hash)}
+      options[:select] = options[:select].reject{|i|i.is_a?(Hash)}.map{|i| i.to_sym }
 
-      #always include id
+      # always include id
       options[:select] << :_id unless options[:select].include? :_id
 
       if options[:select].include? :full_name
         options[:select] << :first_name
         options[:select] << :last_name
       end
-      
+
       # select all attributes except for special ones
       options = options.merge({:only => options[:select], :except => [:contact_attributes, :tags, :local_status, :coefficient, :local_teacher, :observation, :local_unique_attributes, :tag_ids, :owner_id, :history_entries]})
 
       json = super options
-      
+
+      # add attributes at specific times
+      value_at_selects.each do |pair|
+        attribute = pair.keys.first
+        ref_date = pair[attribute]
+        json[attribute] = self.attribute_value_at(attribute,ref_date)
+      end
+
+
       account = options[:account]
       if account
         #select contact_attributes for the calling account
