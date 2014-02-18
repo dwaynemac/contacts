@@ -11,6 +11,7 @@ describe Contact do
   it { should have_fields :normalized_first_name, :normalized_last_name }
   it { should have_field(:status).of_type(Symbol)}
   it { should have_field(:level).of_type(Integer)}
+  it { should have_field(:in_professional_training).of_type(Boolean)}
 
   describe "#kshema_id" do
     it { should have_field :kshema_id }
