@@ -391,9 +391,8 @@ class Import
       type: :ignore
     },
     in_formation: {
-      type: 'custom_attribute',
-      name: 'In formation',
-      category: nil
+      type: 'field',
+      name: 'in_professional_training'
     },
     id_scan: {
       type: 'attachment',

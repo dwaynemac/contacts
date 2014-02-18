@@ -58,6 +58,8 @@ class Contact
 
   field :publish_on_gdp
 
+  field :in_professional_training, type: Boolean
+
   # ordered by hierarchy (last is higher)
   VALID_LEVELS = {
     "aspirante" => 0,

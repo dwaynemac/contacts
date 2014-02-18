@@ -19,7 +19,7 @@ describe Import do
                  "lucia.gagliardini", "alumno", "female",
                  "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
                  "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",	"1667392", "",
-                 "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", "",""]
+                 "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "true", "", "", "", "", "",""]
     @student2 =  ["50010", "", "Alex", "Falke", "", "4782 1395", "14 5466 7896", "afkear@gmail.com", "asistente",
                  "lucia.gagliardini", "alumno", "female",
                  "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
@@ -87,6 +87,10 @@ describe Import do
         it "should set gender correctly" do
           dwayne = Contact.where(first_name: "Dwayne").first
           dwayne.gender.should == 'male'
+        end
+        it "should set in_professional_training correctly" do
+          alex = Contact.where(first_name: "Alex").first
+          alex.in_professional_training.should be_true
         end
       end
       context "with a contact that is already in the database" do
