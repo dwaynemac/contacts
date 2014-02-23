@@ -36,6 +36,7 @@ class V0::ContactsController < V0::ApplicationController
   def index
 
     params[:attribute_values_at].each do |ava|
+      ava['value'] = ava['value'] == 'true' if ava['attribute'] == 'in_professional_training'
       @scope = @scope.with_attribute_value_at(ava['attribute'],ava['value'],ava['ref_date'])
     end if params[:attribute_values_at]
 
@@ -50,6 +51,7 @@ class V0::ContactsController < V0::ApplicationController
     @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
 
     total = @scope.count
+
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
 
     response.headers['Content-type'] = 'application/json; charset=utf-8'
