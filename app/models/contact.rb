@@ -659,7 +659,7 @@ class Contact
   def keep_history_of_changes
     unless skip_history_entries
       # level, global_status and teacher_username
-      %W(level status global_teacher_username).each do |att|
+      %W(level status global_teacher_username in_professional_training).each do |att|
         if self.send("#{att}_changed?")
           self.history_entries.create(attribute: att,
                                       changed_at: Time.zone.now.to_time,
