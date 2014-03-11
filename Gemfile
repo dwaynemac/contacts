@@ -44,10 +44,9 @@ group :documentation do
 end
 
 group :production do
-  gem 'newrelic_rpm'
-  gem 'newrelic-typhoeus'
   gem 'dalli' # memcache support on heroku
   gem 'memcachier' # memcache migrator for heroku
+  gem 'appsignal'
 end
 
 group :development do
