@@ -46,8 +46,9 @@ end
 group :production do
   gem 'dalli' # memcache support on heroku
   gem 'memcachier' # memcache migrator for heroku
-  gem 'appsignal'
 end
+  gem 'appsignal'
+  gem 'appsignal-mongo'
 
 group :development do
   gem 'git-pivotal-tracker-integration'

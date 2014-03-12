@@ -35,27 +35,37 @@ class V0::ContactsController < V0::ApplicationController
   #
   def index
 
-    params[:attribute_values_at].each do |ava|
-      ava['value'] = ava['value'] == 'true' if ava['attribute'] == 'in_professional_training'
-      @scope = @scope.with_attribute_value_at(ava['attribute'],ava['value'],ava['ref_date'])
-    end if params[:attribute_values_at]
+    ActiveSupport::Notifications.instrument('set_scope.index.contacts_controller') do
+      params[:attribute_values_at].each do |ava|
+        ava['value'] = ava['value'] == 'true' if ava['attribute'] == 'in_professional_training'
+        @scope = @scope.with_attribute_value_at(ava['attribute'],ava['value'],ava['ref_date'])
+      end if params[:attribute_values_at]
 
-    @scope = @scope.not_in(_id: params[:nids]) if params[:nids]
-    @scope = @scope.any_in(_id: params[:ids]) if params[:ids]
+      @scope = @scope.not_in(_id: params[:nids]) if params[:nids]
+      @scope = @scope.any_in(_id: params[:ids]) if params[:ids]
 
-    @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
-    if params[:where].present?
-      searcher = ContactSearcher.new(@scope, @account.try(:id))
-      @scope = searcher.api_where(params[:where])
+      @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
+      if params[:where].present?
+        searcher = ContactSearcher.new(@scope, @account.try(:id))
+        @scope = searcher.api_where(params[:where])
+      end
+      @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
     end
-    @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
 
-    total = @scope.count
+    total = 0
+    ActiveSupport::Notifications.instrument('count.index.contacts_controller') do
+      total = @scope.count
+    end
 
-    @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
+
+    ActiveSupport::Notifications.instrument('paginate.index.contacts_controller') do
+      @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
+    end
 
     response.headers['Content-type'] = 'application/json; charset=utf-8'
-    render :json => { :collection => @contacts, :total => total}.as_json(select: params[:select], account: @account, except_linked:true, except_last_local_status: true, only_name: params[:only_name].present?)
+    ActiveSupport::Notifications.instrument('render_json.index.contacts_controller') do
+      render :json => { :collection => @contacts, :total => total}.as_json(select: params[:select], account: @account, except_linked:true, except_last_local_status: true, only_name: params[:only_name].present?)
+    end
   end
 
   # @url /v0/contacts/search
