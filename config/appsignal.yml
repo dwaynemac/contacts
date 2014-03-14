@@ -14,7 +14,6 @@ default: &defaults
 development:
   <<: *defaults
   active: false
-  slow_request_threshold: 10
 
 production:
   <<: *defaults
@@ -22,4 +21,4 @@ production:
 
 staging:
   <<: *defaults
-  active: true
+  active: false
