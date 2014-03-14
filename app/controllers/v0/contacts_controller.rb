@@ -62,9 +62,23 @@ class V0::ContactsController < V0::ApplicationController
       @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
     end
 
-    response.headers['Content-type'] = 'application/json; charset=utf-8'
     ActiveSupport::Notifications.instrument('render_json.index.contacts_controller') do
-      render :json => { :collection => @contacts, :total => total}.as_json(select: params[:select], account: @account, except_linked:true, except_last_local_status: true, only_name: params[:only_name].present?)
+      ActiveSupport::Notifications.instrument('build_hash.render_json.index.contacts_controller') do
+        @collection_hash = @contacts.as_json(
+          select: params[:select],
+          account: @account,
+          except_linked:true,
+          except_last_local_status: true,
+          only_name: params[:only_name].present?
+        )
+      end
+      ActiveSupport::Notifications.instrument('serializing.render_json.index.contacts_controller') do
+        @json = { :collection => @collection_hash, :total => total}.to_json
+      end
+      ActiveSupport::Notifications.instrument('rendering.render_json.index.contacts_controller') do
+        response.headers['Content-type'] = 'application/json; charset=utf-8'
+        render :json => @json
+      end
     end
   end
 
