@@ -14,6 +14,14 @@ Contacts::Application.routes.draw do
       resource :avatar, :only => [:create, :destroy]
       resources :history_entries
     end
+    namespace 'contacts' do
+      resource :calculate, only: [] do
+        collection do
+          get 'average_age'
+          post 'average_age'
+        end
+      end
+    end
     resources :imports do
       member do
         get 'failed_rows'
@@ -40,6 +48,14 @@ Contacts::Application.routes.draw do
         resources :contact_attributes
         resources :attachments
         resources :tags
+      end
+      namespace 'contacts' do
+        resource :calculate, only: [] do
+          collection do
+            get 'average_age'
+            post 'average_age'
+          end
+        end
       end
     end
     resources :merges do
