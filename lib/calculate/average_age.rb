@@ -1,16 +1,26 @@
 class Calculate::AverageAge 
   
+  # @param options[Hash]
+  # @option options [Array] contacts (nil)
+  # @option options [Date] ref_date (today)
   def initialize(options={})
-    @account_name = options[:account_name]
     @ref_date = options[:ref_date] || Date.today
+    @contacts = options[:contacts]
   end
 
+  # @return [Array] collection of contacts over which average age will be calculated
   def contacts
-    @contacts ||= Contact.api_where(account_name: @account_name, status: 'student', local_status: 'student')
-   # PadmaContact.search(:select => :all, :where => {:status => :student, :local_status => :student}, :account_name => 'martinez')
+    if @contacts
+      @contacts
+    else
+      # ... 
+      # PadmaContact.search(:select => :all, :where => {:status => :student, :local_status => :student}, :account_name => 'martinez')
+      @contacts
+    end
   end
 
-  def get_age_for(contact)
+  # @return [Integer] returns age of contact at self.ref_date
+  def age_for(contact)
     age = if contact.birthday && !contact.birthday.year.blank?
       bday = contact.birthday
       @ref_date.year - bday.year.to_i - ((@ref_date.month > bday.month.to_i || (@ref_date.month == bday.month.to_i && @ref_date.day >= bday.day.to_i)) ? 0 : 1)
@@ -23,11 +33,11 @@ class Calculate::AverageAge
     (age && age < 0)? nil : age
   end
 
+  # maps ages of contacts collection
+  # ignores nil's
+  # @return [Array]
   def ages
-    @ages = contacts.map do |contact|
-      age = get_age_for(contact)
-      age if age
-    end
+    @ages = contacts.map{|c| age_for(c) }.compact
   end
 
 end

@@ -47,11 +47,11 @@ describe Calculate::AverageAge do
     end
   end
 
-  describe "#get_age_for" do
+  describe "#age_for" do
     it "returns nil if age results < 0" do
       @contact = contact_with estimated_age: 17, on: Date.civil(2011,3,16)
       caa = Calculate::AverageAge.new ref_date: Date.civil(1000,3,16)
-      caa.get_age_for(@contact).should be_nil
+      caa.age_for(@contact).should be_nil
     end
     describe "contact with birthday" do
       describe "with year" do
@@ -60,7 +60,7 @@ describe Calculate::AverageAge do
         end
         it "return age according to birthday" do
           caa = Calculate::AverageAge.new ref_date: Date.civil(2014,5,22)
-          caa.get_age_for(@contact).should == 31
+          caa.age_for(@contact).should == 31
         end
       end
       describe "without year" do
@@ -69,7 +69,7 @@ describe Calculate::AverageAge do
         end
         it "returns nil" do
           caa = Calculate::AverageAge.new
-          caa.get_age_for(@contact).should be_nil
+          caa.age_for(@contact).should be_nil
         end
       end
     end
@@ -79,7 +79,7 @@ describe Calculate::AverageAge do
       end
       it "returns age using estimated_age and offset from day it was estimated on" do
         caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16)
-        caa.get_age_for(@contact).should == 20
+        caa.age_for(@contact).should == 20
       end
     end
     describe "contact with estimated_age but no estimated_age_on" do
@@ -88,7 +88,7 @@ describe Calculate::AverageAge do
       end
       it "returns estimated_age" do
         caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16)
-        caa.get_age_for(@contact).should == 17
+        caa.age_for(@contact).should == 17
       end
     end
   end
