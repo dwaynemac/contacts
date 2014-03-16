@@ -2,29 +2,42 @@ require 'spec_helper'
 
 describe Calculate::AverageAge do
   
+  describe "#average" do
+    it "returns average age from contacts" do
+      Contact.delete_all
+      contact_with( birthday: { year: 1983, month: 5, day: 21 } )
+      contact_with( birthday: { month: 12, day: 1 })
+      contact_with( estimated_age: 17, on: Date.civil(2011,3,16) )
+      contact_with( estimated_age: 17, on: nil)
+      caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16), contacts: Contact.all
+      caa.average.should be_within(0.1).of(22.3)
+    end
+  end
+
   describe "#contacts" do
+    it "returns contacts considered for average (including those of age 'nil')" do
+      contacts = []
+      contacts << contact_with( birthday: { year: 1983, month: 5, day: 21 } )
+      contacts << contact_with( birthday: { month: 12, day: 1 })
+      contacts << contact_with( estimated_age: 17, on: Date.civil(2011,3,16) )
+      contacts << contact_with( estimated_age: 17, on: nil)
+      caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16), contacts: contacts
+      caa.contacts.should == contacts
+    end
     it "accepts an array of contacts" do
       contacts = []
-      # age 30
       contacts << contact_with( birthday: { year: 1983, month: 5, day: 21 } )
-      # age nil
       contacts << contact_with( birthday: { month: 12, day: 1 })
-      # age 20
       contacts << contact_with( estimated_age: 17, on: Date.civil(2011,3,16) )
-      # age 17
       contacts << contact_with( estimated_age: 17, on: nil)
       caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16), contacts: contacts
       caa.ages.should == [30, 20, 17]
     end
     it "accepts a Mongoid::Criteria" do
       Contact.delete_all
-      # age 30
       contact_with( birthday: { year: 1983, month: 5, day: 21 } )
-      # age nil
       contact_with( birthday: { month: 12, day: 1 })
-      # age 20
       contact_with( estimated_age: 17, on: Date.civil(2011,3,16) )
-      # age 17
       contact_with( estimated_age: 17, on: nil)
       caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16), contacts: Contact.all
       caa.ages.should == [30, 20, 17]

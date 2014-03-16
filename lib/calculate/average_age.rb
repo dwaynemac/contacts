@@ -10,13 +10,7 @@ class Calculate::AverageAge
 
   # @return [Array] collection of contacts over which average age will be calculated
   def contacts
-    if @contacts
-      @contacts
-    else
-      # ... 
-      # PadmaContact.search(:select => :all, :where => {:status => :student, :local_status => :student}, :account_name => 'martinez')
-      @contacts
-    end
+    @contacts
   end
 
   # @return [Integer] returns age of contact at self.ref_date
@@ -40,4 +34,8 @@ class Calculate::AverageAge
     @ages ||= contacts.map{|c| age_for(c) }.compact
   end
 
+  # @return [Float]
+  def average
+    @average ||= ages.inject(:+).to_f / ages.size
+  end
 end
