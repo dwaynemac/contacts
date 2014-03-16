@@ -1,9 +1,14 @@
+require File.dirname(__FILE__) + '/concerns/contacts_scope'
+
 ##
 # @restful_api v0
 class V0::ContactsController < V0::ApplicationController
 
+  include V0::ContactsScope
+
   before_filter :set_list
-  before_filter :set_scope
+  before_filter :set_scope 
+  before_filter :refine_scope, only: [:index, :search] 
   before_filter :convert_local_attributes, only: [:create, :update]
 
   ##
@@ -34,29 +39,13 @@ class V0::ContactsController < V0::ApplicationController
   # @response_field [Integer] total total amount of contacts in query. (includes all pages.)
   #
   def index
-
-    ActiveSupport::Notifications.instrument('set_scope.index.contacts_controller') do
-      params[:attribute_values_at].each do |ava|
-        ava['value'] = ava['value'] == 'true' if ava['attribute'] == 'in_professional_training'
-        @scope = @scope.with_attribute_value_at(ava['attribute'],ava['value'],ava['ref_date'])
-      end if params[:attribute_values_at]
-
-      @scope = @scope.not_in(_id: params[:nids]) if params[:nids]
-      @scope = @scope.any_in(_id: params[:ids]) if params[:ids]
-
-      @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
-      if params[:where].present?
-        searcher = ContactSearcher.new(@scope, @account.try(:id))
-        @scope = searcher.api_where(params[:where])
-      end
-      @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
-    end
-
     total = 0
     ActiveSupport::Notifications.instrument('count.index.contacts_controller') do
       total = @scope.count
     end
 
+    # sort
+    @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
 
     ActiveSupport::Notifications.instrument('paginate.index.contacts_controller') do
       @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
@@ -325,18 +314,6 @@ class V0::ContactsController < V0::ApplicationController
     end
   end
 
-
-  def set_list
-    if @account && params[:list_name]
-      # request specifies account and list
-      @list = List.where(account_id: @account._id, name: params[:list_name]).try(:first)
-      unless @list
-        render :text => "List Not Found", :status => 404
-      end
-    end
-  end
-
-  #  Sets the scope
   def set_scope
     @scope = case action_name.to_sym
       when :index, :search, :search_for_select, :update
@@ -347,6 +324,16 @@ class V0::ContactsController < V0::ApplicationController
         @account.present?? @account.contacts : Contact
       else
         Contact
+    end
+  end
+
+  def set_list
+    if @account && params[:list_name]
+      # request specifies account and list
+      @list = List.where(account_id: @account._id, name: params[:list_name]).try(:first)
+      unless @list
+        render :text => "List Not Found", :status => 404
+      end
     end
   end
 
