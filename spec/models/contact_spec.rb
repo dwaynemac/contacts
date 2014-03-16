@@ -1028,6 +1028,22 @@ describe Contact do
     c.should be_valid
   end
 
+  it "stores when age whas estimated" do
+    c = Contact.make
+    c.reload
+    c.estimated_age_on.should be_nil
+    c.estimated_age = 14
+    c.save
+    c.estimated_age_on.should == Date.today
+    Date.stub(:today).and_return(1.month.ago.to_date)
+    c.estimated_age = 20
+    c.save
+    c.estimated_age_on.should == 1.month.ago.to_date
+    c.estimated_age = nil
+    c.save
+    c.estimated_age_on.should be_nil
+  end
+
   describe "when receiving a value with extra white spaces" do
     context "sending an email" do
       before do

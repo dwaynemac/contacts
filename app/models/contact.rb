@@ -53,6 +53,9 @@ class Contact
   field :estimated_age, type: Integer
   validates_numericality_of :estimated_age, allow_blank: true
 
+  before_save :set_estimated_age_on
+  field :estimated_age_on, type: Date
+
   field :kshema_id
   validates_uniqueness_of :kshema_id, allow_blank: true
 
@@ -678,6 +681,12 @@ class Contact
     unless duplicates.empty?
       self.errors[:duplicates] << I18n.t('errors.messages.could_have_duplicates')
       self.errors[:possible_duplicates] = duplicates.map {|c| c.minimum_representation}
+    end
+  end
+
+  def set_estimated_age_on
+    if estimated_age_changed?
+      self.estimated_age_on = estimated_age.blank?? nil : Date.today
     end
   end
 
