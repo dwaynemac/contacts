@@ -27,8 +27,6 @@ gem 'unf'
 gem 'state_machine', '~> 1.1.2'
 gem 'ethon', '0.4.2'
 
-gem 'oj'
-
 gem 'heroku-mongo-backup', '~> 0.4.3' # Gem for making mongo -> AmazonS3 backups
 gem 'delayed_job_mongoid' # Gem for managing background operations
 gem 'daemons'
