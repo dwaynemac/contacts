@@ -37,7 +37,7 @@ class Calculate::AverageAge
   # ignores nil's
   # @return [Array]
   def ages
-    @ages = contacts.map{|c| age_for(c) }.compact
+    @ages ||= contacts.map{|c| age_for(c) }.compact
   end
 
 end
