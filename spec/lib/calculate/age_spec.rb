@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Calculate::AverageAge do
+describe Calculate::Age do
   
   describe "#average" do
     it "returns average age from contacts" do
@@ -9,7 +9,7 @@ describe Calculate::AverageAge do
       contact_with( birthday: { month: 12, day: 1 })
       contact_with( estimated_age: 17, on: Date.civil(2011,3,16) )
       contact_with( estimated_age: 17, on: nil)
-      caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16), contacts: Contact.all
+      caa = Calculate::Age.new ref_date: Date.civil(2014,3,16), contacts: Contact.all
       caa.average.should be_within(0.1).of(22.3)
     end
   end
@@ -21,7 +21,7 @@ describe Calculate::AverageAge do
       contacts << contact_with( birthday: { month: 12, day: 1 })
       contacts << contact_with( estimated_age: 17, on: Date.civil(2011,3,16) )
       contacts << contact_with( estimated_age: 17, on: nil)
-      caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16), contacts: contacts
+      caa = Calculate::Age.new ref_date: Date.civil(2014,3,16), contacts: contacts
       caa.contacts.should == contacts
     end
     it "accepts an array of contacts" do
@@ -30,7 +30,7 @@ describe Calculate::AverageAge do
       contacts << contact_with( birthday: { month: 12, day: 1 })
       contacts << contact_with( estimated_age: 17, on: Date.civil(2011,3,16) )
       contacts << contact_with( estimated_age: 17, on: nil)
-      caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16), contacts: contacts
+      caa = Calculate::Age.new ref_date: Date.civil(2014,3,16), contacts: contacts
       caa.ages.should == [30, 20, 17]
     end
     it "accepts a Mongoid::Criteria" do
@@ -39,7 +39,7 @@ describe Calculate::AverageAge do
       contact_with( birthday: { month: 12, day: 1 })
       contact_with( estimated_age: 17, on: Date.civil(2011,3,16) )
       contact_with( estimated_age: 17, on: nil)
-      caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16), contacts: Contact.all
+      caa = Calculate::Age.new ref_date: Date.civil(2014,3,16), contacts: Contact.all
       caa.ages.should == [30, 20, 17]
     end
   end
@@ -55,7 +55,7 @@ describe Calculate::AverageAge do
       contacts << contact_with( estimated_age: 17, on: Date.civil(2011,3,16) )
       # age 17
       contacts << contact_with( estimated_age: 17, on: nil)
-      caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16), contacts: contacts
+      caa = Calculate::Age.new ref_date: Date.civil(2014,3,16), contacts: contacts
       caa.ages.should == [30, 20, 17]
     end
   end
@@ -63,7 +63,7 @@ describe Calculate::AverageAge do
   describe "#age_for" do
     it "returns nil if age results < 0" do
       @contact = contact_with estimated_age: 17, on: Date.civil(2011,3,16)
-      caa = Calculate::AverageAge.new ref_date: Date.civil(1000,3,16)
+      caa = Calculate::Age.new ref_date: Date.civil(1000,3,16)
       caa.age_for(@contact).should be_nil
     end
     describe "contact with birthday" do
@@ -72,7 +72,7 @@ describe Calculate::AverageAge do
           @contact = contact_with birthday: { year: 1983, month: 5, day: 21 }
         end
         it "return age according to birthday" do
-          caa = Calculate::AverageAge.new ref_date: Date.civil(2014,5,22)
+          caa = Calculate::Age.new ref_date: Date.civil(2014,5,22)
           caa.age_for(@contact).should == 31
         end
       end
@@ -81,7 +81,7 @@ describe Calculate::AverageAge do
           @contact = contact_with birthday: { month: 12, day: 1 }
         end
         it "returns nil" do
-          caa = Calculate::AverageAge.new
+          caa = Calculate::Age.new
           caa.age_for(@contact).should be_nil
         end
       end
@@ -91,7 +91,7 @@ describe Calculate::AverageAge do
         @contact = contact_with estimated_age: 17, on: Date.civil(2011,3,16) 
       end
       it "returns age using estimated_age and offset from day it was estimated on" do
-        caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16)
+        caa = Calculate::Age.new ref_date: Date.civil(2014,3,16)
         caa.age_for(@contact).should == 20
       end
     end
@@ -100,7 +100,7 @@ describe Calculate::AverageAge do
         @contact = contact_with estimated_age: 17, on: nil
       end
       it "returns estimated_age" do
-        caa = Calculate::AverageAge.new ref_date: Date.civil(2014,3,16)
+        caa = Calculate::Age.new ref_date: Date.civil(2014,3,16)
         caa.age_for(@contact).should == 17
       end
     end

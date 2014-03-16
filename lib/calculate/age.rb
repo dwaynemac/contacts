@@ -1,4 +1,4 @@
-class Calculate::AverageAge 
+class Calculate::Age 
   
   # @param options[Hash]
   # @option options [Array] contacts (nil)
