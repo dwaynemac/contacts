@@ -2,6 +2,15 @@ require 'spec_helper'
 
 describe Calculate::AverageAge do
   describe "#get_age_for" do
+    it "returns nil if age results < 0" do
+      @contact = Contact.make
+      Date.stub(:today).once.and_return Date.civil(2011,3,16)
+      @contact.estimated_age = 17
+      @contact.save!
+      @contact.estimated_age_on.should == Date.civil(2011,3,16)
+      caa = Calculate::AverageAge.new ref_date: Date.civil(1000,3,16)
+      caa.get_age_for(@contact).should be_nil
+    end
     describe "contact with birthday" do
       describe "with year" do
         before do

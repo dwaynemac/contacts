@@ -11,7 +11,7 @@ class Calculate::AverageAge
   end
 
   def get_age_for(contact)
-    if contact.birthday && !contact.birthday.year.blank?
+    age = if contact.birthday && !contact.birthday.year.blank?
       bday = contact.birthday
       @ref_date.year - bday.year.to_i - ((@ref_date.month > bday.month.to_i || (@ref_date.month == bday.month.to_i && @ref_date.day >= bday.day.to_i)) ? 0 : 1)
     elsif contact.estimated_age_on
@@ -20,13 +20,13 @@ class Calculate::AverageAge
     else
       contact.estimated_age
     end
+    (age && age < 0)? nil : age
   end
 
   def ages
-    contacts.map do |contact|
-      if contact.age
-        contact.age
-      end
+    @ages = contacts.map do |contact|
+      age = get_age_for(contact)
+      age if age
     end
   end
 
