@@ -41,6 +41,8 @@ RSpec.configure do |config|
 
   # Clean up all collections before each spec runs.
   config.before do
+    # as classes are not being cached we need to reload blueprints
+    load Rails.root.join('spec/blueprints.rb')
     Mongoid.purge!
 
     padma_account = PadmaAccount.new(:name => "mockedAccount")
