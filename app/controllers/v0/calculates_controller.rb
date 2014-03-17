@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/concerns/contacts_scope'
+require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
 
 ##
 # @restful_api v0
@@ -6,7 +6,7 @@ class V0::CalculatesController < V0::ApplicationController
 
   include V0::ContactsScope
 
-  before_filter :set_cope
+  before_filter :set_scope
   before_filter :refine_scope # defined in ContactsSearch
 
   ##
@@ -18,6 +18,8 @@ class V0::CalculatesController < V0::ApplicationController
   # @url /v0/contacts/calculate
   # @url /v0/accounts/:account_name/contacts/calculate
   # @action GET/POST
+  #
+  # @optional [Date] ref_date . Date for which average age should be calculated. Default: Today
   #
   # @optional [String] account_name will scope contacts to this account
   # @optional [Array] nids return contacts without id in this array
@@ -34,7 +36,9 @@ class V0::CalculatesController < V0::ApplicationController
   #
   # @response_field [Float] result
   def average_age
-    ca = Calculate::Age.new contacts: @scope
+    ref_date = params[:ref_date].to_date if params[:ref_date]
+      
+    ca = Calculate::Age.new contacts: @scope, ref_date: ref_date
     result = ca.average
     render json: { result: result }
   end
@@ -42,6 +46,6 @@ class V0::CalculatesController < V0::ApplicationController
   private
 
   def set_scope
-    @account.present?? @account.contacts : Contact
+    @scope = @account.present?? @account.contacts : Contact.all
   end
 end

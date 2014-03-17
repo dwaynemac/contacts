@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/concerns/contacts_scope'
+require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
 
 ##
 # @restful_api v0

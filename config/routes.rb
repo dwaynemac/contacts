@@ -14,11 +14,11 @@ Contacts::Application.routes.draw do
       resource :avatar, :only => [:create, :destroy]
       resources :history_entries
     end
-    namespace 'contacts' do
+    scope 'contacts' do
       resource :calculate, only: [] do
         collection do
-          get 'average_age'
-          post 'average_age'
+          get 'average_age', to: 'calculates#average_age'
+          post 'average_age', to: 'calculates#average_age'
         end
       end
     end
@@ -49,11 +49,11 @@ Contacts::Application.routes.draw do
         resources :attachments
         resources :tags
       end
-      namespace 'contacts' do
+      scope 'contacts' do
         resource :calculate, only: [] do
           collection do
-            get 'average_age'
-            post 'average_age'
+            get 'average_age', to: 'calculates#average_age'
+            post 'average_age', to: 'calculates#average_age'
           end
         end
       end

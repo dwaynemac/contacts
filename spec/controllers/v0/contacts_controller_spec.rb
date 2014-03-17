@@ -11,7 +11,6 @@ describe V0::ContactsController do
     end
   end
 
-
   describe "#index" do
     def do_request(params)
       get :index, params.merge(app_key: V0::ApplicationController::APP_KEY)
