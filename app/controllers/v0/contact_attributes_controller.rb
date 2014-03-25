@@ -20,11 +20,13 @@ class V0::ContactAttributesController < V0::ApplicationController
   #
   # @author Dwayne Macgowan
   def custom_keys
+
     @scope = if @account
       @account.contacts
     else
       Contact
     end
+
     names = @scope.with_custom_attributes.map { |c| c.custom_attributes }.flatten.map(&:name).uniq
     render json: {collection: names, total: names.count }
   end

@@ -11,6 +11,7 @@ describe Contact do
   it { should have_fields :normalized_first_name, :normalized_last_name }
   it { should have_field(:status).of_type(Symbol)}
   it { should have_field(:level).of_type(Integer)}
+  it { should have_field(:in_professional_training).of_type(Boolean)}
 
   describe "#kshema_id" do
     it { should have_field :kshema_id }
@@ -242,8 +243,17 @@ describe Contact do
 
   describe "#as_json" do
     before do
-      @contact= Contact.make(:owner => Account.make)
+      @contact= Contact.make(:owner => Account.make, level: 'chêla')
       @contact.local_unique_attributes << LocalTeacher.make(account: Account.first)
+
+      @contact.reload.history_entries.delete_all
+      # 20121121 '' -> 'sádhaka'
+      # 20121221 'sádhaka' -> 'yôgin'
+      # 20131121 'yôgin' -> 'chêla'
+      add_level_hchange('',DateTime.civil(2012,11,21,20,34,39).to_time)
+      add_level_hchange('sádhaka',DateTime.civil(2012,12,21,20,34,39).to_time)
+      add_level_hchange('yôgin',DateTime.civil(2013,11,21,20,34,39).to_time)
+      @contact.history_entries.count.should == 3
     end
     it "should not include owner_id" do
       @contact.as_json({select: 'all'}).should_not have_key 'owner_id'
@@ -269,6 +279,24 @@ describe Contact do
       subject { @contact.as_json(select: 'all')}
       it { should_not have_key 'coefficient' }
       it { should_not have_key 'local_teacher' }
+    end
+    describe "with option select" do
+      describe "with attributes names" do
+        it "includes id and chosen attributes" do
+          keys = @contact.as_json(select: [:first_name]).keys
+          keys.size.should == 2
+          keys == [:id, :first_name]
+        end
+      end
+      describe "with attribute hash where key is attribute and value is reference date" do
+        let(:json){@contact.as_json(select: [:first_name, level: '2012-12-1'])}
+        it "includes attribute from keys" do
+          json.keys.should == ["_id", "first_name", :level]
+        end
+        it "returns value at given date in value" do
+          json[:level] == 'sádhaka'
+        end
+      end
     end
   end
 
@@ -863,6 +891,26 @@ describe Contact do
     end
   end
 
+  describe "#attribute_value_at" do
+    before do
+      @contact = Contact.make(level: 'chêla')
+      @contact.reload.history_entries.delete_all
+      add_level_hchange('',DateTime.civil(2012,11,21,20,34,39).to_time)
+      add_level_hchange('sádhaka',DateTime.civil(2012,12,21,20,34,39).to_time)
+      add_level_hchange('yôgin',DateTime.civil(2013,11,21,20,34,39).to_time)
+      @contact.history_entries.count.should == 3
+      # 20121121 '' -> 'sádhaka'
+      # 20121221 'sádhaka' -> 'yôgin'
+      # 20131121 'yôgin' -> 'chêla'
+    end
+    it "returns attribute value at given date" do
+      @contact.attribute_value_at(:level,DateTime.civil(2012,11,20).to_time).should == ''
+      @contact.attribute_value_at(:level,DateTime.civil(2012,11,22).to_time).should == 'sádhaka'
+      @contact.attribute_value_at(:level,DateTime.civil(2012,12,22).to_time).should == 'yôgin'
+      @contact.attribute_value_at(:level,DateTime.civil(2013,12,20).to_time).should == 'chêla'
+    end
+  end
+
   # real life example
   describe ".with_attribute_value_at" do
     describe "with local_unique_attributes" do
@@ -980,6 +1028,22 @@ describe Contact do
     c.should be_valid
   end
 
+  it "stores when age whas estimated" do
+    c = Contact.make
+    c.reload
+    c.estimated_age_on.should be_nil
+    c.estimated_age = 14
+    c.save
+    c.estimated_age_on.should == Date.today
+    Date.stub(:today).and_return(1.month.ago.to_date)
+    c.estimated_age = 20
+    c.save
+    c.estimated_age_on.should == 1.month.ago.to_date
+    c.estimated_age = nil
+    c.save
+    c.estimated_age_on.should be_nil
+  end
+
   describe "when receiving a value with extra white spaces" do
     context "sending an email" do
       before do
@@ -1009,5 +1073,14 @@ describe Contact do
         @c.telephones.last.value.should == "1554665555"
       end
     end
+  end
+  
+  def add_level_hchange(old_value, time)
+    HistoryEntry.create(attribute: :level,
+                        old_value: old_value,
+                        changed_at: time,
+                        historiable_type: 'Contact',
+                        historiable_id: @contact._id
+    )
   end
 end

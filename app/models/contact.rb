@@ -53,10 +53,15 @@ class Contact
   field :estimated_age, type: Integer
   validates_numericality_of :estimated_age, allow_blank: true
 
+  before_save :set_estimated_age_on
+  field :estimated_age_on, type: Date
+
   field :kshema_id
   validates_uniqueness_of :kshema_id, allow_blank: true
 
   field :publish_on_gdp
+
+  field :in_professional_training, type: Boolean
 
   # ordered by hierarchy (last is higher)
   VALID_LEVELS = {
@@ -275,74 +280,92 @@ class Contact
   # @param [Hash] options
   # @option options [Account] account
   # @option options [TrueClass] include_masked
+  # @option options [Array] select. List of attribute names to incluse in response.
+  #                                 You can also send attribute name as key, and reference_date as value to know
+  #                                 attribute's value at a given time.
+  #
+  #                         eg: select: [:first_name, :last_name, level: '2012-1-1']
   def as_json(options = {})
-    options.reverse_merge!({select: [:first_name, :last_name]})
-    # only_name option is a special case used for typeahead selection (for example on attendance app)
-    # TODO: move this option as a select param (same as 'all')
-    if options[:only_name]
-      json = {}
-      json[:id] = self.id
-      json[:name] = self.full_name
-    # if select is an array (of attribute names)  
-    elsif options[:select].present? && options[:select].kind_of?(Array)
+    ActiveSupport::Notifications.instrument('as_json.contact') do
+      # select: [ :first_name, :last_name, level: { at: date }
+      options.reverse_merge!({select: [:first_name, :last_name]})
+      # only_name option is a special case used for typeahead selection (for example on attendance app)
+      # TODO: move this option as a select param (same as 'all')
+      if options[:only_name]
+        json = {}
+        json[:id] = self.id
+        json[:name] = self.full_name
+      # if select is an array (of attribute names)  
+      elsif options[:select].present? && options[:select].kind_of?(Array)
 
-      options[:select] = options[:select].map{|i| i.to_sym }
+        # symbolize select keys, separate value_at_time attributes.
+        value_at_selects = options[:select].select{|i|i.is_a?(Hash)}
+        options[:select] = options[:select].reject{|i|i.is_a?(Hash)}.map{|i| i.to_sym }
 
-      #always include id
-      options[:select] << :_id unless options[:select].include? :_id
+        # always include id
+        options[:select] << :_id unless options[:select].include? :_id
 
-      if options[:select].include? :full_name
-        options[:select] << :first_name
-        options[:select] << :last_name
-      end
-      
-      # select all attributes except for special ones
-      options = options.merge({:only => options[:select], :except => [:contact_attributes, :tags, :local_status, :coefficient, :local_teacher, :observation, :local_unique_attributes, :tag_ids, :owner_id, :history_entries]})
-
-      json = super options
-      
-      account = options[:account]
-      if account
-        #select contact_attributes for the calling account
-        json[:contact_attributes] = self.contact_attributes.for_account(account, options) if options[:select].include? :contact_attributes
-        # tags
-        json[:tags] = self.tags.where(account_id: account.id) if options[:select].include? :tags
-        # local_attributes
-        %w{local_status coefficient local_teacher observation}.each do |local_attribute|
-          json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")  if options[:select].include? local_attribute.to_sym
+        if options[:select].include? :full_name
+          options[:select] << :first_name
+          options[:select] << :last_name
         end
+
+        # select all attributes except for special ones
+        options = options.merge({:only => options[:select], :except => [:contact_attributes, :tags, :local_status, :coefficient, :local_teacher, :observation, :local_unique_attributes, :tag_ids, :owner_id, :history_entries]})
+
+        json = super options
+
+        # add attributes at specific times
+        value_at_selects.each do |pair|
+          attribute = pair.keys.first
+          ref_date = pair[attribute]
+          json[attribute] = self.attribute_value_at(attribute,ref_date)
+        end
+
+
+        account = options[:account]
+        if account
+          #select contact_attributes for the calling account
+          json[:contact_attributes] = self.contact_attributes.for_account(account, options) if options[:select].include? :contact_attributes
+          # tags
+          json[:tags] = self.tags.where(account_id: account.id) if options[:select].include? :tags
+          # local_attributes
+          %w{local_status coefficient local_teacher observation}.each do |local_attribute|
+            json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")  if options[:select].include? local_attribute.to_sym
+          end
+        end
+        json
+      # if select is present and wants all attributes, behave as before.
+      # do this also if select isnt present.
+      elsif options[:select].nil? || options[:select] == "all"
+        account = options[:account]
+        if account
+          # add these options when account_id specified
+          options = options.merge({:except => [:contact_attributes, :local_unique_attributes, :tag_ids]})
+        end
+
+        options = options.merge({:except => [:owner_id, :history_entries],
+                                 :methods => [:owner_name,
+                                              :local_statuses,
+                                              :coefficients_counts,
+                                              :in_active_merge
+                                 ]})
+
+        json = super options
+
+        if account
+          # add these data when account_id specified
+          json[:contact_attributes] = self.contact_attributes.for_account(account, options)
+          json[:tags] = self.tags.where(account_id: account.id)
+          %w{local_status coefficient observation local_teacher}.each do |local_attribute|
+            json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
+          end
+          json[:linked] = self.linked_to?(account) unless options[:except_linked]
+          json[:last_local_status] = self.history_entries.last_value("local_status_for_#{account.name}".to_sym) unless options[:except_last_local_status]
+        end      
       end
       json
-    # if select is present and wants all attributes, behave as before.
-    # do this also if select isnt present.
-    elsif options[:select].nil? || options[:select] == "all"
-      account = options[:account]
-      if account
-        # add these options when account_id specified
-        options = options.merge({:except => [:contact_attributes, :local_unique_attributes, :tag_ids]})
-      end
-
-      options = options.merge({:except => [:owner_id, :history_entries],
-                               :methods => [:owner_name,
-                                            :local_statuses,
-                                            :coefficients_counts,
-                                            :in_active_merge
-                               ]})
-
-      json = super options
-
-      if account
-        # add these data when account_id specified
-        json[:contact_attributes] = self.contact_attributes.for_account(account, options)
-        json[:tags] = self.tags.where(account_id: account.id)
-        %w{local_status coefficient observation local_teacher}.each do |local_attribute|
-          json[local_attribute] = self.send("#{local_attribute}_for_#{account.name}")
-        end
-        json[:linked] = self.linked_to?(account) unless options[:except_linked]
-        json[:last_local_status] = self.history_entries.last_value("local_status_for_#{account.name}".to_sym) unless options[:except_last_local_status]
-      end      
     end
-    json
   end
 
   # @see Account#link
@@ -493,9 +516,11 @@ class Contact
     self.where( contact_attributes: { '$elemMatch' => { _type: 'CustomAttribute'}})
   end
 
+  def attribute_value_at(attribute,ref_date)
+    HistoryEntry.value_at(attribute,ref_date,{class: 'Contact',id: self.id}) || self.send(attribute)
+  end
+
   ##
-  #
-  #
   # @param attribute [String]
   # @param value. Will be casted according to attribute. Level must be given as a string. eg: 'aspirante'
   # @param ref_date [Date]
@@ -639,7 +664,7 @@ class Contact
   def keep_history_of_changes
     unless skip_history_entries
       # level, global_status and teacher_username
-      %W(level status global_teacher_username).each do |att|
+      %W(level status global_teacher_username in_professional_training).each do |att|
         if self.send("#{att}_changed?")
           self.history_entries.create(attribute: att,
                                       changed_at: Time.zone.now.to_time,
@@ -656,6 +681,12 @@ class Contact
     unless duplicates.empty?
       self.errors[:duplicates] << I18n.t('errors.messages.could_have_duplicates')
       self.errors[:possible_duplicates] = duplicates.map {|c| c.minimum_representation}
+    end
+  end
+
+  def set_estimated_age_on
+    if estimated_age_changed?
+      self.estimated_age_on = estimated_age.blank?? nil : Date.today
     end
   end
 

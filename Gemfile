@@ -44,14 +44,15 @@ group :documentation do
 end
 
 group :production do
-  gem 'newrelic_rpm'
-  gem 'newrelic-typhoeus'
   gem 'dalli' # memcache support on heroku
   gem 'memcachier' # memcache migrator for heroku
 end
+  gem 'appsignal'
+  gem 'appsignal-mongo'
 
 group :development do
   gem 'git-pivotal-tracker-integration'
+  gem 'padma-deployment'
 
   gem 'debugger'
   gem 'ruby-mass'
@@ -61,8 +62,6 @@ group :development, :test do
   gem "timecop", '0.3.5'
 
   # Guard
-  gem 'spork', "> 0.9.0.rc"
-  gem 'guard-spork'
   gem 'guard-rspec'
 
   # guard notifications on MAC OS X
@@ -77,7 +76,7 @@ end
 group :test do
   gem "cucumber-rails", '1.2.0'
   gem "rspec-rails", "~> 2.14"
-  gem "shoulda-matchers"
+  gem "shoulda-matchers", :require => false
   gem 'mongoid-rspec', '1.4.4'
   gem "machinist", '1.0.6'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'

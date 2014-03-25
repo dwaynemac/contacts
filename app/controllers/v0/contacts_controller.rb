@@ -1,9 +1,14 @@
+require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
+
 ##
 # @restful_api v0
 class V0::ContactsController < V0::ApplicationController
 
+  include V0::ContactsScope
+
   before_filter :set_list
-  before_filter :set_scope
+  before_filter :set_scope 
+  before_filter :refine_scope, only: [:index, :search] 
   before_filter :convert_local_attributes, only: [:create, :update]
 
   ##
@@ -20,7 +25,7 @@ class V0::ContactsController < V0::ApplicationController
   # @optional [Integer] page will return this page (default: 1)
   # @optional [Integer] per_page will paginate contacts with this amount per page (default: 10)
   # @optional [String] full_text will make a full_text search with this string.
-  # @optional [Array] select return only selected contact attributes. :full_name is an alias for :first_name AND :last_name other: :first_name, :last_name, :telephone, :email, etc.
+  # @optional [Array] select return only selected contact attributes. :full_name is an alias for :first_name AND :last_name other: :first_name, :last_name, :telephone, :email, etc. if you specify an attribute as a key value pair. key will be interpreted as attribute name and value as reference date to get value from.
   # @optional [Hash] where Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status, :date_attribute
   # @optional [Array<Hash>] attributes_value_at Array of hashes with keys: :attribute, :value, :ref_date. This will be ANDed, not ORed.
   #
@@ -34,26 +39,36 @@ class V0::ContactsController < V0::ApplicationController
   # @response_field [Integer] total total amount of contacts in query. (includes all pages.)
   #
   def index
-
-    params[:attribute_values_at].each do |ava|
-      @scope = @scope.with_attribute_value_at(ava['attribute'],ava['value'],ava['ref_date'])
-    end if params[:attribute_values_at]
-
-    @scope = @scope.not_in(_id: params[:nids]) if params[:nids]
-    @scope = @scope.any_in(_id: params[:ids]) if params[:ids]
-
-    @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
-    if params[:where].present?
-      searcher = ContactSearcher.new(@scope, @account.try(:id))
-      @scope = searcher.api_where(params[:where])
+    total = 0
+    ActiveSupport::Notifications.instrument('count.index.contacts_controller') do
+      total = @scope.count
     end
+
+    # sort
     @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
 
-    total = @scope.count
-    @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
+    ActiveSupport::Notifications.instrument('paginate.index.contacts_controller') do
+      @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
+    end
 
-    response.headers['Content-type'] = 'application/json; charset=utf-8'
-    render :json => { :collection => @contacts, :total => total}.as_json(select: params[:select], account: @account, except_linked:true, except_last_local_status: true, only_name: params[:only_name].present?)
+    ActiveSupport::Notifications.instrument('render_json.index.contacts_controller') do
+      ActiveSupport::Notifications.instrument('build_hash.render_json.index.contacts_controller') do
+        @collection_hash = @contacts.as_json(
+          select: params[:select],
+          account: @account,
+          except_linked:true,
+          except_last_local_status: true,
+          only_name: params[:only_name].present?
+        )
+      end
+      ActiveSupport::Notifications.instrument('serializing.render_json.index.contacts_controller') do
+        @json = { :collection => @collection_hash, :total => total}.to_json
+      end
+      ActiveSupport::Notifications.instrument('rendering.render_json.index.contacts_controller') do
+        response.headers['Content-type'] = 'application/json; charset=utf-8'
+        render :json => @json
+      end
+    end
   end
 
   # @url /v0/contacts/search
@@ -90,6 +105,7 @@ class V0::ContactsController < V0::ApplicationController
   #
   # @required [String] id contact_id
   # @optional [String] account_name scope search to this account. Fields will be added to response when this is sent.
+  # @optional [Array] select return only selected contact attributes. :full_name is an alias for :first_name AND :last_name other: :first_name, :last_name, :telephone, :email, etc. if you specify an attribute as a key value pair. key will be interpreted as attribute name and value as reference date to get value from.
   #
   # @example_response
   #   if account_name is provided
@@ -298,18 +314,6 @@ class V0::ContactsController < V0::ApplicationController
     end
   end
 
-
-  def set_list
-    if @account && params[:list_name]
-      # request specifies account and list
-      @list = List.where(account_id: @account._id, name: params[:list_name]).try(:first)
-      unless @list
-        render :text => "List Not Found", :status => 404
-      end
-    end
-  end
-
-  #  Sets the scope
   def set_scope
     @scope = case action_name.to_sym
       when :index, :search, :search_for_select, :update
@@ -320,6 +324,16 @@ class V0::ContactsController < V0::ApplicationController
         @account.present?? @account.contacts : Contact
       else
         Contact
+    end
+  end
+
+  def set_list
+    if @account && params[:list_name]
+      # request specifies account and list
+      @list = List.where(account_id: @account._id, name: params[:list_name]).try(:first)
+      unless @list
+        render :text => "List Not Found", :status => 404
+      end
     end
   end
 

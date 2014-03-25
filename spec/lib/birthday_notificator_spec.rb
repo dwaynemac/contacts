@@ -18,12 +18,14 @@ describe BirthdayNotificator do
         day: Date.today.day,
         category: 'birthday')
     @first_contact.contact_attributes << Email.new(value: 'dwaynemac@gmail.com')
+
     @second_contact = Contact.make(owner: @ac2)
     @second_contact.contact_attributes << DateAttribute.new(
         month: Date.today.month,
         day: Date.today.day,
         category: 'birthday')
     @second_contact.local_unique_attributes <<  LocalStatus.make(account: @ac2, value: 'prospect')
+
     @third_contact = Contact.make(owner: @ac1)
     @third_contact.contact_attributes << DateAttribute.new(
         year: 1982,
@@ -31,6 +33,7 @@ describe BirthdayNotificator do
         day: Date.yesterday.day,
         category: 'birthday')
     @third_contact.local_unique_attributes <<  LocalStatus.make(account: @ac1, value: 'prospect')
+
     @first_contact.save
     @second_contact.save
     @third_contact.save
@@ -38,7 +41,9 @@ describe BirthdayNotificator do
 
   describe "#all_birthdays" do
     it "should get all birthdays" do
-      bn.all_birthdays.count.should == 2
+      bdays = bn.all_birthdays
+      bdays.should == [@first_contact, @second_contact, @third_contact]
+      bn.all_birthdays.count.should == 3
     end
   end
 
