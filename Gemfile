@@ -50,6 +50,10 @@ end
   gem 'appsignal'
   gem 'appsignal-mongo'
 
+group :staging do
+  gem 'rails_12factor'
+end
+
 group :development do
   gem 'git-pivotal-tracker-integration'
   gem 'padma-deployment'
@@ -78,9 +82,12 @@ group :test do
   gem "rspec-rails", "~> 2.14"
   gem "shoulda-matchers", :require => false
   gem 'mongoid-rspec', '1.4.4'
+  gem "shoulda-matchers"
   gem "machinist", '1.0.6'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
   gem 'faker', '0.9.4'
   gem "database_cleaner", ">= 0.6.7"
   gem 'coveralls', require: false
 end
+gem "rspec-rails", "~> 2.14", group: [:test, :staging]
+gem 'mongoid-rspec', '1.4.4', group: [:test, :staging]
