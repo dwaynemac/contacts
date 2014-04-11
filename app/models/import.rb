@@ -268,7 +268,12 @@ class Import
     tel: {
       type: 'contact_attribute',
       name: 'telephone',
-      category: nil
+      category: 'personal'
+    },
+    other_tel: {
+      type: 'contact_attribute',
+      name: 'telephone',
+      category: 'other'
     },
     cel: {
       type: 'contact_attribute',
@@ -459,6 +464,18 @@ class Import
     data_grad: {
       type: 'custom_attribute',
       name: 'data grad'
+    },
+    end_compl_res: {
+      type: 'custom_attribute',
+      name: 'end compl res'
+    },
+    num_res: {
+      type: 'custom_attribute',
+      name: 'num res'
+    },
+    num_com: {
+      type: 'custom_attribute',
+      name: 'num res'
     }
   }
 
