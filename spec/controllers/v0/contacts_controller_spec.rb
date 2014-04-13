@@ -642,6 +642,40 @@ describe V0::ContactsController do
           app_key: V0::ApplicationController::APP_KEY
     end
 
+    describe "allow to ignore validation with flag :ignore_validation" do
+      let(:account){Account.make}
+      before do
+        @invalid_contact = Contact.new
+        @invalid_contact.save validate: false
+        account.link(@invalid_contact)
+      end
+      
+      describe "if flag is set" do
+        it "wont validate contact on update" do
+          put :update, id: @invalid_contact.id, contact: { local_satus: :student },
+              ignore_validation: true, account_name: account.name,
+              app_key: V0::ApplicationController::APP_KEY
+          should respond_with 200
+        end
+        it "will allow setting a local_status" do
+          put :update, id: @invalid_contact.id, contact: { local_status: :student },
+              ignore_validation: true, account_name: account.name,
+              app_key: V0::ApplicationController::APP_KEY
+          @invalid_contact.reload.local_statuses.last.value.should == :student
+        end
+        it "wont allow setting any other attribute"
+      end
+      describe "if flag is not set" do
+        it "will validate contact" do
+          put :update, id: @invalid_contact.id, contact: { local_satus: :student },
+              app_key: V0::ApplicationController::APP_KEY
+          should respond_with 400
+        end
+      end
+
+    end
+
+
     it "should not check for duplicates" do
       a = Account.make
       c = Contact.make(first_name: 'dwayne', last_name: '')
