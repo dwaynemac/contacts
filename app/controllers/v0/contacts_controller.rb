@@ -4,7 +4,7 @@ require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
 # @restful_api v0
 class V0::ContactsController < V0::ApplicationController
 
-  include V0::ContactsScope
+  include V0::Concerns::ContactsScope
 
   before_filter :set_list
   before_filter :set_scope 
