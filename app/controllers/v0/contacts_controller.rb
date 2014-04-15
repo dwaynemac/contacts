@@ -4,7 +4,7 @@ require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
 # @restful_api v0
 class V0::ContactsController < V0::ApplicationController
 
-  include V0::ContactsScope
+  include V0::Concerns::ContactsScope
 
   before_filter :set_list
   before_filter :set_scope 
@@ -204,6 +204,8 @@ class V0::ContactsController < V0::ApplicationController
   #
   # @required [String] id contact id
   # @optional [String] account_name scopes account
+  # @optional [Boolean] ignore_validation saved contact without validating.
+  #                     currently only valid for local_status attribute
   # @required [hash] contact contact attributes
   #
   # @example_response == Successfull
@@ -222,7 +224,13 @@ class V0::ContactsController < V0::ApplicationController
     @contact.request_username = params[:username]
     @contact.request_account_name = params[:account_name]
 
-    if @contact.update_attributes(params[:contact])
+    res = if params[:ignore_validation]
+      set_whitelisted_attributes
+      @contact.save validate: false
+    else
+      @contact.update_attributes(params[:contact])
+    end
+    if res
       @contact.index_keywords!
       render :json => "OK"# , :status => :updated
     else
@@ -345,5 +353,11 @@ class V0::ContactsController < V0::ApplicationController
       criteria = 'normalized_' + criteria
     end
     criteria
+  end
+
+  def set_whitelisted_attributes
+    params[:contact].select{|k,v| k =~ /local_status/}.each do |k,v|
+      @contact.send("#{k}=",v)
+    end
   end
 end
