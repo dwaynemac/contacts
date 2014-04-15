@@ -565,6 +565,17 @@ class Contact
     self.lists.map(&:account).uniq
   end
 
+  def set_status
+    distinct_statuses = local_statuses.distinct(:value)
+    # order of VALID_STATUSES is important
+    VALID_STATUSES.each do |s|
+      if distinct_statuses.include?(s)
+        self.status = s
+        break
+      end
+    end
+  end
+
   protected
 
   def assign_owner
@@ -601,16 +612,7 @@ class Contact
     self.normalized_last_name = self.last_name.try :parameterize
   end
 
-  def set_status
-    distinct_statuses = local_statuses.distinct(:value)
-    # order of VALID_STATUSES is important
-    VALID_STATUSES.each do |s|
-      if distinct_statuses.include?(s)
-        self.status = s
-        break
-      end
-    end
-  end
+
 
   def set_global_teacher
     return if self.owner.nil?
