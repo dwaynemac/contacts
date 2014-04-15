@@ -663,6 +663,12 @@ describe V0::ContactsController do
               app_key: V0::ApplicationController::APP_KEY
           @invalid_contact.reload.local_statuses.last.value.should == :student
         end
+        it "will update global status" do
+          put :update, id: @invalid_contact.id, contact: { local_status: :student },
+              ignore_validation: true, account_name: account.name,
+              app_key: V0::ApplicationController::APP_KEY
+          @invalid_contact.reload.status.should == :student
+        end
         it "wont allow setting any other attribute"
       end
       describe "if flag is not set" do

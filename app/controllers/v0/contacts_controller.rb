@@ -358,6 +358,7 @@ class V0::ContactsController < V0::ApplicationController
   def set_whitelisted_attributes
     params[:contact].select{|k,v| k =~ /local_status/}.each do |k,v|
       @contact.send("#{k}=",v)
+      @contact.set_status
     end
   end
 end
