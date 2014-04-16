@@ -576,6 +576,14 @@ class Contact
     end
   end
 
+  def set_global_teacher
+    return if self.owner.nil?
+    teacher_in_owner_accounts = self.local_teachers.for_account(self.owner.id).first
+    if !teacher_in_owner_accounts.nil? && (teacher_in_owner_accounts.teacher_username != self.global_teacher_username)
+      self.global_teacher_username= teacher_in_owner_accounts.teacher_username
+    end
+  end
+
   protected
 
   def assign_owner
@@ -610,16 +618,6 @@ class Contact
   def update_normalized_attributes
     self.normalized_first_name = self.first_name.try :parameterize
     self.normalized_last_name = self.last_name.try :parameterize
-  end
-
-
-
-  def set_global_teacher
-    return if self.owner.nil?
-    teacher_in_owner_accounts = self.local_teachers.for_account(self.owner.id).first
-    if !teacher_in_owner_accounts.nil? && (teacher_in_owner_accounts.teacher_username != self.global_teacher_username)
-      self.global_teacher_username= teacher_in_owner_accounts.teacher_username
-    end
   end
 
   def post_activity_if_level_changed
