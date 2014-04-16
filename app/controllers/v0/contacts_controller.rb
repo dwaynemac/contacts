@@ -360,5 +360,9 @@ class V0::ContactsController < V0::ApplicationController
       @contact.send("#{k}=",v)
       @contact.set_status
     end
+    params[:contact].select{|k,v| k =~ /local_teacher/}.each do |k,v|
+      @contact.send("#{k}=",v)
+      @contact.set_global_teacher
+    end
   end
 end

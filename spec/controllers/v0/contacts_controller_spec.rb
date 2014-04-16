@@ -642,36 +642,52 @@ describe V0::ContactsController do
           app_key: V0::ApplicationController::APP_KEY
     end
 
-    describe "allow to ignore validation with flag :ignore_validation" do
+    describe "allow to ignore validation with flag ignore_validation:" do
       let(:account){Account.make}
       before do
-        @invalid_contact = Contact.new
+        @invalid_contact = Contact.new status: :prospect
         @invalid_contact.save validate: false
         account.link(@invalid_contact)
       end
       
-      describe "if flag is set" do
+      describe "true, " do
         it "wont validate contact on update" do
           put :update, id: @invalid_contact.id, contact: { local_satus: :student },
               ignore_validation: true, account_name: account.name,
               app_key: V0::ApplicationController::APP_KEY
           should respond_with 200
         end
-        it "will allow setting a local_status" do
-          put :update, id: @invalid_contact.id, contact: { local_status: :student },
-              ignore_validation: true, account_name: account.name,
-              app_key: V0::ApplicationController::APP_KEY
-          @invalid_contact.reload.local_statuses.last.value.should == :student
+        describe "local_status" do
+          before do
+            put :update, id: @invalid_contact.id, contact: { local_status: :student },
+                ignore_validation: true, account_name: account.name,
+                app_key: V0::ApplicationController::APP_KEY
+          end
+          it "is white listed" do
+            @invalid_contact.reload.local_statuses.last.value.should == :student
+          end
+          it "updates global status too" do
+            @invalid_contact.reload.status.should == :student
+          end
         end
-        it "will update global status" do
-          put :update, id: @invalid_contact.id, contact: { local_status: :student },
-              ignore_validation: true, account_name: account.name,
-              app_key: V0::ApplicationController::APP_KEY
-          @invalid_contact.reload.status.should == :student
+        describe "local_teacher" do
+          before do
+            @invalid_contact.status = :student
+            @invalid_contact.save validate: false
+            put :update, id: @invalid_contact.id, contact: { local_teacher: 'dwayne.mac'},
+                ignore_validation: true, account_name: account.name,
+                app_key: V0::ApplicationController::APP_KEY
+          end
+          it "is white listed" do
+            @invalid_contact.reload.local_teachers.last.value.should == 'dwayne.mac'
+          end
+          it "updates global status too" do
+            @invalid_contact.reload.global_teacher_username.should == 'dwayne.mac'
+          end
         end
         it "wont allow setting any other attribute"
       end
-      describe "if flag is not set" do
+      describe "false, " do
         it "will validate contact" do
           put :update, id: @invalid_contact.id, contact: { local_satus: :student },
               app_key: V0::ApplicationController::APP_KEY
