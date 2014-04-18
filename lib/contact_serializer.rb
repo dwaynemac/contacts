@@ -42,7 +42,6 @@ class ContactSerializer
   end
   
   def build_hash
-    debugger
     @json[:first_name] = @contact.first_name if serialize?(:first_name) 
     @json[:last_name] = @contact.last_name if serialize?(:last_name) 
     @json[:id] = @contact.id if serialize?(:id) 
@@ -76,6 +75,9 @@ class ContactSerializer
       unless serialize?('except_last_local_status')
         @json[:last_local_status] = @contact.history_entries.last_value("local_status_for_#{@account.name}".to_sym)
       end
+
+      @json[:email] = @contact.contact_attributes.where(account_id: @account.id, _type: 'Email', primary: true).first.value
+      @json[:telephone] = @contact.contact_attributes.where(account_id: @account.id, _type: 'Telephone', primary: true).first.value
     end
   end
 
@@ -88,10 +90,6 @@ class ContactSerializer
   end
 
   def prepare_select
-    # set default value
-    if @select.nil?
-      @select = [:first_name, :last_name]
-    end
     
     # always include id
     @select << :_id unless @select.include? :_id
