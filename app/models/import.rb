@@ -245,6 +245,11 @@ class Import
       name: 'identification',
       category: 'DNI'
     },
+    cep: {
+      type: 'contact_attribute',
+      name: 'identification',
+      category: 'CEP'
+      },
     nombres: {
       type: 'field',
       name: 'first_name',
@@ -263,13 +268,23 @@ class Import
     tel: {
       type: 'contact_attribute',
       name: 'telephone',
-      category: nil
+      category: 'personal'
+    },
+    other_tel: {
+      type: 'contact_attribute',
+      name: 'telephone',
+      category: 'other'
     },
     cel: {
       type: 'contact_attribute',
       name: 'telephone',
       category: 'mobile'
     },
+    tel_com: {
+      type: 'contact_attribute',
+      name: 'telephone',
+      category: 'office'
+      },
     mail: {
       type: 'contact_attribute',
       name: 'email',
@@ -413,6 +428,54 @@ class Import
     },
     tags: {
       type: :ignore
+    },
+    apelido: {
+      type: 'custom_attribute',
+      name: 'apelido'
+    },
+    commercial_address: {
+      type: 'custom_attribute',
+      name: 'commercial address'
+    },
+    civil_state: {
+      type: 'custom_attribute',
+      name: 'civil state'
+    },
+    indicado_por: {
+      type: 'custom_attribute',
+      name: 'indicado por'
+    },
+    livros_que_leu: {
+      type: 'custom_attribute',
+      name: 'livros que leu'
+    },
+    cargo: {
+      type: 'custom_attribute',
+      name: 'cargo'
+    },
+    ja_practicou: {
+      type: 'custom_attribute',
+      name: 'ja practicou'
+    },
+    ja_similar: {
+      type: 'custom_attribute',
+      name: 'ja similar'
+    },
+    data_grad: {
+      type: 'custom_attribute',
+      name: 'data grad'
+    },
+    end_compl_res: {
+      type: 'custom_attribute',
+      name: 'end compl res'
+    },
+    num_res: {
+      type: 'custom_attribute',
+      name: 'num res'
+    },
+    num_com: {
+      type: 'custom_attribute',
+      name: 'num res'
     }
   }
 
