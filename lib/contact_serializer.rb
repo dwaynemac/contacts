@@ -14,6 +14,7 @@ class ContactSerializer
     @select = attributes[:select] || [:_id, :first_name, :last_name]
     @account = attributes[:account]
     @include_masked = attributes[:include_masked]
+    @except = attributes[:except]
   end
 
   def serialize
@@ -68,16 +69,21 @@ class ContactSerializer
         @json[local_attribute] = @contact.send("#{local_attribute}_for_#{@account.name}") if serialize?(local_attribute.to_sym)
       end
       
-      unless serialize?(:except_linked)
+      unless except?(:except_linked)
         @json[:linked] = @contact.linked_to?(@account)
       end
       
-      unless serialize?('except_last_local_status')
+      unless except?('except_last_local_status')
         @json[:last_local_status] = @contact.history_entries.last_value("local_status_for_#{@account.name}".to_sym)
       end
 
-      @json[:email] = @contact.contact_attributes.where(account_id: @account.id, _type: 'Email', primary: true).first.value
-      @json[:telephone] = @contact.contact_attributes.where(account_id: @account.id, _type: 'Telephone', primary: true).first.value
+      if serialize?('email')
+        @json[:email] = @contact.contact_attributes.where(account_id: @account.id, _type: 'Email', primary: true).first.value
+      end
+      
+      if serialize?('telephone')
+        @json[:telephone] = @contact.contact_attributes.where(account_id: @account.id, _type: 'Telephone', primary: true).first.value
+      end
     end
   end
 
@@ -87,6 +93,10 @@ class ContactSerializer
     else
       attribute.in?(@select)
     end
+  end
+
+  def except? (attribute)
+    @except[attribute]
   end
 
   def prepare_select
