@@ -492,16 +492,6 @@ describe V0::ContactsController do
 
       it { response.should be_success }
       it { assigns(:contact).should_not be_nil }
-
-      it "should include all the contact_attributes" do
-        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
-        result[:contact_attributes].count.should equal(3)
-      end
-
-      it "should include all local_statuses" do
-        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
-        result[:local_statuses].count.should == 3
-      end
     end
 
     describe "when scoped to an account" do
