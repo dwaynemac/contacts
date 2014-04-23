@@ -566,7 +566,7 @@ class Contact
   end
 
   def set_status
-    distinct_statuses = local_statuses.distinct(:value)
+    distinct_statuses = local_statuses.distinct(:value).map(&:to_sym)
     # order of VALID_STATUSES is important
     VALID_STATUSES.each do |s|
       if distinct_statuses.include?(s)
