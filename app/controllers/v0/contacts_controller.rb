@@ -53,13 +53,22 @@ class V0::ContactsController < V0::ApplicationController
 
     ActiveSupport::Notifications.instrument('render_json.index.contacts_controller') do
       ActiveSupport::Notifications.instrument('build_hash.render_json.index.contacts_controller') do
-        @collection_hash = @contacts.as_json(
+        as_json_params = {
           select: params[:select],
           account: @account,
           except_linked:true,
           except_last_local_status: true,
-          only_name: params[:only_name].present?
-        )
+        }
+        
+        if params[:only_name].present?
+          as_json_params[:mode] = 'only_name'
+        elsif params[:select].nil?
+          as_json_params[:mode] = 'all'
+        else
+          as_json_params[:mode] = 'select'
+        end
+
+        @collection_hash = @contacts.as_json(as_json_params)
       end
       ActiveSupport::Notifications.instrument('serializing.render_json.index.contacts_controller') do
         @json = { :collection => @collection_hash, :total => total}.to_json
@@ -87,7 +96,20 @@ class V0::ContactsController < V0::ApplicationController
     @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
 
     respond_to do |format|
-      format.js { render :json => { :collection => @contacts, :total => total}.as_json(account: @account, except_linked:true, except_last_local_status: true, only_name: params[:only_name].present?), :callback => params[:callback] }
+      as_json_params =  {
+        account: @account,
+        except_linked:true,
+        except_last_local_status: true,
+        only_name: params[:only_name].present?
+      }
+      
+      if params[:only_name].present?
+        as_json_params[:mode] = 'only_name'
+      else
+        as_json_params[:mode] = 'select'
+      end
+      
+      format.js { render :json => { :collection => @contacts, :total => total}.as_json(as_json_params), :callback => params[:callback] }
     end    
   end  
 
@@ -119,7 +141,19 @@ class V0::ContactsController < V0::ApplicationController
   # @response_field [String] last_name
   def show
     @contact = @scope.find(params[:id])
-    render :json => @contact.as_json(:select => params[:select], :account => @account, :include_masked => true)
+    as_json_params = {
+      select: params[:select],
+      account: @account,
+      include_masked: true
+    }
+
+    if params[:select].nil?
+      as_json_params[:mode] = 'all'
+    else
+      as_json_params[:mode] = 'select'
+    end
+
+    render :json => @contact.as_json(as_json_params)
   end
 
   ##
