@@ -50,7 +50,7 @@ class ContactSerializer
     @json[:gender] = @contact.gender if serialize?(:gender) 
     @json[:estimated_age] = @contact.estimated_age if serialize?(:estimated_age) 
     @json[:status] = @contact.status if serialize?(:status) 
-    @json[:global_teacher] = @contact.global_teacher_username if serialize?(:global_teacher) 
+    @json[:global_teacher_username] = @contact.global_teacher_username if serialize?(:global_teacher_username) 
     @json[:level] = @contact.level if serialize?(:level) 
     @json[:coefficients_counts] = @contact.coefficients_counts if serialize?(:coefficients_counts)
     @json[:owner_name] = @contact.owner_name if serialize?(:owner_name)
@@ -65,7 +65,7 @@ class ContactSerializer
       
       @json[:tags] = @contact.tags.where(account_id: @account.id).as_json if serialize?(:tags)
 
-      %w{local_status coefficient local_teacher observation}.each do |local_attribute|
+      [:local_status, :coefficient, :local_teacher, :observation].each do |local_attribute|
         @json[local_attribute] = @contact.send("#{local_attribute}_for_#{@account.name}") if serialize?(local_attribute.to_sym)
       end
       
@@ -78,11 +78,17 @@ class ContactSerializer
       end
 
       if serialize?('email')
-        @json[:email] = @contact.contact_attributes.where(account_id: @account.id, _type: 'Email', primary: true).first.value
+        email = @contact.primary_attribute(@account, 'Email')
+        @json[:email] = email.value unless email.nil?
       end
       
       if serialize?('telephone')
-        @json[:telephone] = @contact.contact_attributes.where(account_id: @account.id, _type: 'Telephone', primary: true).first.value
+        telephone = @contact.primary_attribute(@account, 'Telephone') 
+        @json[:telephone] = telephone.value unless telephone.nil?
+      end
+
+      if serialize?('local_statuses')
+        @json[:local_statuses] = @contact.local_statuses
       end
     end
   end
@@ -100,9 +106,8 @@ class ContactSerializer
   end
 
   def prepare_select
-    
     # always include id
-    @select << :_id unless @select.include? :_id
+    @select << :_id unless :_id.in?(@select)
     
     if @select.include? :full_name
       @select << :first_name

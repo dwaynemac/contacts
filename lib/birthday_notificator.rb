@@ -30,7 +30,8 @@ class BirthdayNotificator
                     linked_accounts_names: contact.linked_accounts.map(&:name)
     })
     unless contact.emails.empty?
-      json.merge!({recipient_email: contact.email})
+      gpe = contact.global_primary_attribute('Email')
+      json.merge!({recipient_email: gpe.value}) unless gpe.nil?
     end
     json
   end
