@@ -289,14 +289,7 @@ class Contact
 
     attributes = {}
 
-    if options[:only_name]
-      attributes[:mode] = 'only_name'
-    elsif options[:select]  == 'all'
-      attributes[:mode] = 'all'
-    else
-      attributes[:mode] = 'select'
-    end
-
+    attributes[:mode] = options[:mode]
     attributes[:contact] = self
     attributes[:select] = options[:select]
     attributes[:account] = options[:account]
@@ -305,9 +298,24 @@ class Contact
       except_linked: options[:except_linked],
       except_last_local_status: options[:except_last_local_status]
     }
-    
+        
     cs = ContactSerializer.new(attributes)
     cs.serialize
+  end
+
+  def primary_attribute(account, type)
+    pa = self.contact_attributes.where({
+      account_id: account.id,
+      _type: type,
+      primary: true
+    }).first
+  end
+
+  def global_primary_attribute(type)
+    pa = self.contact_attributes.where({
+      _type: type,
+      primary: true
+    }).last
   end
 
   # @see Account#link
