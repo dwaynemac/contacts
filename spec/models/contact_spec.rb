@@ -256,29 +256,29 @@ describe Contact do
       @contact.history_entries.count.should == 3
     end
     it "should not include owner_id" do
-      @contact.as_json({select: 'all'}).should_not have_key 'owner_id'
+      @contact.as_json({mode: 'all'}).should_not have_key :owner_id
     end
     it "should inclue owner_name" do
-      @contact.as_json({select: 'all'}).should have_key 'owner_name'
+      @contact.as_json({mode: 'all'}).should have_key :owner_name
     end
     it "should include :coefficients_counts key" do
-      @contact.as_json({select: 'all'}).should have_key 'coefficients_counts'
+      @contact.as_json({mode: 'all'}).should have_key :coefficients_counts
     end
     it "should include global_teacher_username" do
-      @contact.as_json({select: 'all'}).should have_key 'global_teacher_username'
+      @contact.as_json({mode: 'all'}).should have_key :global_teacher_username
     end
     it "includes #in_active_merge" do
-      @contact.as_json({select: 'all'}).should have_key 'in_active_merge'
+      @contact.as_json({mode: 'all'}).should have_key :in_active_merge
     end
     context "account specified" do
-      subject { @contact.as_json(account: Account.first, select: 'all')}
-      it { should have_key 'coefficient'}
-      it { should have_key 'local_teacher' }
+      subject { @contact.as_json(account: Account.first, mode: 'all')}
+      it { should have_key :coefficient}
+      it { should have_key :local_teacher }
     end
     context "account not specified" do
-      subject { @contact.as_json(select: 'all')}
-      it { should_not have_key 'coefficient' }
-      it { should_not have_key 'local_teacher' }
+      subject { @contact.as_json(mode: 'all')}
+      it { should_not have_key :coefficient }
+      it { should_not have_key :local_teacher }
     end
     describe "with option select" do
       describe "with attributes names" do
@@ -291,7 +291,7 @@ describe Contact do
       describe "with attribute hash where key is attribute and value is reference date" do
         let(:json){@contact.as_json(select: [:first_name, level: '2012-12-1'])}
         it "includes attribute from keys" do
-          json.keys.should == ["_id", "first_name", :level]
+          json.keys.should == [:first_name, :_id, :level]
         end
         it "returns value at given date in value" do
           json[:level] == 'sádhaka'
