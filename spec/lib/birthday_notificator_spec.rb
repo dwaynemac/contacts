@@ -42,8 +42,8 @@ describe BirthdayNotificator do
   describe "#all_birthdays" do
     it "should get all birthdays" do
       bdays = bn.all_birthdays
-      bdays.should == [@first_contact, @second_contact, @third_contact]
-      bn.all_birthdays.count.should == 3
+      bdays.to_a.should == [@first_contact, @second_contact]
+      bn.all_birthdays.count.should == 2
     end
   end
 

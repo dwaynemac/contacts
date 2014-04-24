@@ -21,7 +21,7 @@ describe Email do
       c = Contact.make(:first_name => "Shinji", :last_name => "Ikari")
       c.contact_attributes << Email.new(:value => "EVA_PILOT_01@GMAIL.COM")
       c.save!
-      c.email.should == "eva_pilot_01@gmail.com"
+      c.global_primary_attribute('Email').value.should == "eva_pilot_01@gmail.com"
     end
   end
 
@@ -41,7 +41,7 @@ describe Email do
       c.contact_attributes << Email.new(:value => "EVA_PILOT_01@GMAIL.COM")
       c.check_duplicates = false
       c.save!
-      c.email.should == "eva_pilot_01@gmail.com"
+      c.global_primary_attribute('Email').value.should == "eva_pilot_01@gmail.com"
     end
 
     describe "and flag allow_duplicate true" do

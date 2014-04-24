@@ -141,7 +141,7 @@ describe ContactAttribute do
     end
   end
 
-  describe "Primary attributes must be copied to related contact as a field" do
+  describe "Primary attributes must be accesible by contact.primary_attribute" do
     before do
       @account = Account.make
       @contact = Contact.make(:owner => @account)
@@ -150,8 +150,8 @@ describe ContactAttribute do
       @contact.reload
     end
 
-    it "should be copied to related contact" do
-      @contact.telephone.should == "1234321"
+    it "should be accesible" do
+      @contact.primary_attribute(@account, 'Telephone').value.should == "1234321"
     end
 
     it "should be updated if new primary is saved" do
@@ -161,7 +161,7 @@ describe ContactAttribute do
         :value => "11235813",
         :primary => true
       )
-      @contact.telephone.should == "11235813"
+      @contact.primary_attribute(@account, 'Telephone').value.should == "11235813"
     end
   end
 end
