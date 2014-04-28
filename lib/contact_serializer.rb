@@ -8,6 +8,17 @@ class ContactSerializer
   # @param [Array] attributes[:select] select attributes
   # @param [Account] attributes[:account] account
   #
+  # == Modes
+  #   select
+  #     serializes contacts with selected attributes|
+  #
+  #   all
+  #     serialized contact with all its attributes
+  #
+  #   only_name
+  #     serializes contact in 2 fields.
+  #         :id
+  #         :name (full_name)
   def initialize(attributes = {})
     @contact = attributes[:contact]
     @mode = attributes[:mode] || 'select'
