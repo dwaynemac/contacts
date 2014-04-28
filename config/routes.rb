@@ -41,12 +41,12 @@ Contacts::Application.routes.draw do
           post 'batch_add'
         end
       end
+      resources :attachments
       resources :contacts do
         collection do
           get  :by_kshema_id, to: 'contacts#show_by_kshema_id'
         end
         resources :contact_attributes
-        resources :attachments
         resources :tags
       end
       scope 'contacts' do

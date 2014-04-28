@@ -23,7 +23,7 @@ class V0::AvatarsController < V0::ApplicationController
     end
     contact.avatar = params[:avatar][:file]
     contact.check_duplicates = false
-    if contact.save!
+    if contact.save validate: false
       render :json => "OK", :status => :created
     else
       render :json => {:message => "Sorry, avatar not created", :errors => contact.errors}.to_json, :status => 400
