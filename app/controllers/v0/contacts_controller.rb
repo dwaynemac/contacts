@@ -147,8 +147,9 @@ class V0::ContactsController < V0::ApplicationController
       include_masked: true
     }
 
-    if params[:select].nil?
+    if params[:select].nil? || params[:select] == 'all'
       as_json_params[:mode] = 'all'
+      params[:select] = nil
     else
       as_json_params[:mode] = 'select'
     end
