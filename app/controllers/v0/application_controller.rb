@@ -30,6 +30,10 @@ class V0::ApplicationController < ApplicationController
     end
   end
 
+  def valid_timezone?(zone_name)
+    zone_name && !ActiveSupport::TimeZone.new(zone_name).nil?
+  end
+
   # will set @account if params[:account_name] is found
   # will create account if it's not mapped localy (Account checks with ACCOUNTS before creating)
   # will set locale to users locale
@@ -44,7 +48,7 @@ class V0::ApplicationController < ApplicationController
         end
 
         # set timezone
-        if @padma_account
+        if @padma_account && valid_timezone?(@padma_account.timezone)
           Time.zone = @padma_account.timezone
         end
 
