@@ -22,7 +22,7 @@ class ContactSerializer
   def initialize(attributes = {})
     @contact = attributes[:contact]
     @mode = attributes[:mode] || 'select'
-    @select = attributes[:select] || [:_id, :first_name, :last_name]
+    @select = attributes[:select].map(&:to_sym) || [:_id, :first_name, :last_name]
     @account = attributes[:account]
     @include_masked = attributes[:include_masked]
     @except = attributes[:except]
@@ -88,17 +88,17 @@ class ContactSerializer
         @json[:last_local_status] = @contact.history_entries.last_value("local_status_for_#{@account.name}".to_sym)
       end
 
-      if serialize?('email')
+      if serialize?(:email)
         email = @contact.primary_attribute(@account, 'Email')
         @json[:email] = email.value unless email.nil?
       end
       
-      if serialize?('telephone')
+      if serialize?(:telephone)
         telephone = @contact.primary_attribute(@account, 'Telephone') 
         @json[:telephone] = telephone.value unless telephone.nil?
       end
 
-      if serialize?('local_statuses')
+      if serialize?(:local_statuses)
         @json[:local_statuses] = @contact.local_statuses
       end
     end
