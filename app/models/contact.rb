@@ -171,7 +171,7 @@ class Contact
     end
     account = self.request_account
     if account.nil?
-      raise 'missing account'
+      raise 'missing request account when trying to set tags'
     else
       previous_ids = tags.where(account_id: {"$ne" => account.id}).map(&:id)
 
