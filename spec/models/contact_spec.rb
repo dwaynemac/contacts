@@ -281,6 +281,11 @@ describe Contact do
       it { should_not have_key :local_teacher }
     end
     describe "with option select" do
+      describe "'all'" do
+        it "still works for backward compatibility." do
+          expect{@contact.as_json(select: 'all')}.not_to raise_exception
+        end
+      end
       describe "with attributes names" do
         it "includes id and chosen attributes" do
           keys = @contact.as_json(select: [:first_name]).keys

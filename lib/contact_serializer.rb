@@ -1,5 +1,7 @@
 class ContactSerializer
   
+
+  DEFAULT_SELECT = [:_id, :first_name, :last_name]
   ##
   # Contact Serializer
   #
@@ -21,8 +23,22 @@ class ContactSerializer
   #         :name (full_name)
   def initialize(attributes = {})
     @contact = attributes[:contact]
+
+    if attributes[:select].blank?
+      @select = DEFAULT_SELECT
+    else
+      if attributes[:select].is_a?(Array)
+        @select = attributes[:select].map{|s| s.is_a?(String)? s.to_sym : s }
+      else
+        # For backward compatibility
+        if attributes[:select] == 'all'
+          attributes[:mode] = 'all'
+          @select = DEFAULT_SELECT
+        end
+      end
+    end
+
     @mode = attributes[:mode] || 'select'
-    @select = attributes[:select].map(&:to_sym) || [:_id, :first_name, :last_name]
     @account = attributes[:account]
     @include_masked = attributes[:include_masked]
     @except = attributes[:except]
