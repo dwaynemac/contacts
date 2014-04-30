@@ -1,6 +1,5 @@
 class ContactSerializer
   
-
   DEFAULT_SELECT = [:_id, :first_name, :last_name]
   ##
   # Contact Serializer
@@ -44,6 +43,10 @@ class ContactSerializer
     @except = attributes[:except]
   end
 
+  def select=(s)
+    @select = s
+  end
+
   def serialize
     ActiveSupport::Notifications.instrument('as_json.contact') do
       @json = {}
@@ -84,6 +87,7 @@ class ContactSerializer
     @json[:check_duplicates] = @contact.check_duplicates if serialize?(:check_duplicates)
     @json[:in_active_merge] = @contact.in_active_merge if serialize?(:in_active_merge)
     @json[:in_professional_training] = @contact.in_professional_training if serialize?(:in_professional_training)
+    @json[:avatar] = @contact.avatar.as_json if serialize?(:avatar)
 
     if @account
       if serialize?(:contact_attributes)
