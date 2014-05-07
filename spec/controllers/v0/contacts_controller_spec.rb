@@ -453,13 +453,21 @@ describe V0::ContactsController do
 
   describe "#show_by_kshema_id" do
     describe "with kshema_id" do
-      before do
-        @contact = Contact.make(kshema_id: '1234')
-        get :show_by_kshema_id, kshema_id: '1234', app_key: V0::ApplicationController::APP_KEY
+      describe "if contact doesnot exist" do
+        before do
+          get :show_by_kshema_id, kshema_id: '1234', app_key: V0::ApplicationController::APP_KEY
+        end
+        it { should respond_with 404 }
       end
-      it { should respond_with(:success)}
-      it "returns contact with given kshema_id" do
-        assigns(:contact).should == @contact
+      describe "if contact exists" do
+        before do
+          @contact = Contact.make(kshema_id: '1234')
+          get :show_by_kshema_id, kshema_id: '1234', app_key: V0::ApplicationController::APP_KEY
+        end
+        it { should respond_with(:success)}
+        it "returns contact with given kshema_id" do
+          assigns(:contact).should == @contact
+        end
       end
     end
     describe "without kshema_id" do

@@ -173,7 +173,11 @@ class V0::ContactsController < V0::ApplicationController
       render json: 'kshema_id missing', status: 400
     else
       @contact = @scope.where(kshema_id: params[:kshema_id]).first
-      render json: @contact.as_json(select: params[:select], account: @account)
+      if @contact
+        render json: @contact.as_json(select: params[:select], account: @account)
+      else
+        render json: 'Not Found', status: 404
+      end
     end
   end
 
