@@ -149,7 +149,8 @@ class V0::ContactsController < V0::ApplicationController
 
     if params[:select].nil? || params[:select] == 'all'
       as_json_params[:mode] = 'all'
-      params[:select] = nil
+      params.delete :select
+      as_json_params.delete :select
     else
       as_json_params[:mode] = 'select'
     end

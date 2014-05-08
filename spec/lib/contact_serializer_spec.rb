@@ -8,7 +8,22 @@ describe ContactSerializer do
 
   describe "with mode: 'all'" do
     let(:mode){ 'all' }
+    describe "with account" do
+      let(:account){Account.make}
+      before do
+        serializer.account = account
+      end
+      describe "#serialize" do
+        it "includes all contact_attributes" do
+          contact.contact_attributes << Telephone.new( value: 1234 , account: account)
+          contact.save!
+          contact.reload.contact_attributes.count.should == 1
+          serializer.serialize[:contact_attributes].count.should == 1
+        end
+      end
+    end
   end
+
   describe "with mode: 'select'" do
     let(:mode){ 'select' }
     describe "with select: [:avatar]" do
@@ -21,7 +36,6 @@ describe ContactSerializer do
       end
       describe "#serialize" do
         it "includes :avatar" do
-          binding.pry
           ( :avatar ).should be_in serialized_keys
         end
       end

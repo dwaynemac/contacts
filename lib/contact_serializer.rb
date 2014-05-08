@@ -24,27 +24,31 @@ class ContactSerializer
     @contact = attributes[:contact]
 
     if attributes[:select].blank?
-      @select = DEFAULT_SELECT
+      self.select = DEFAULT_SELECT
     else
       if attributes[:select].is_a?(Array)
-        @select = attributes[:select].map{|s| s.is_a?(String)? s.to_sym : s }
+        self.select = attributes[:select].map{|s| s.is_a?(String)? s.to_sym : s }
       else
         # For backward compatibility
         if attributes[:select] == 'all'
           attributes[:mode] = 'all'
-          @select = DEFAULT_SELECT
+          self.select = DEFAULT_SELECT
         end
       end
     end
 
     @mode = attributes[:mode] || 'select'
-    @account = attributes[:account]
+    self.account= attributes[:account]
     @include_masked = attributes[:include_masked]
     @except = attributes[:except]
   end
 
   def select=(s)
     @select = s
+  end
+
+  def account=(a)
+    @account = a
   end
 
   def serialize
@@ -133,7 +137,11 @@ class ContactSerializer
   end
 
   def except? (attribute)
-    @except[attribute]
+    if @except
+      @except[attribute]
+    else
+      false
+    end
   end
 
   def prepare_select
