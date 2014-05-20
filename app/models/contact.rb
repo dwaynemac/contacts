@@ -152,7 +152,7 @@ class Contact
 
   # defines Contact#coefficients/...
   # they all return a Criteria scoping to according _type
-  %W(coefficient local_status local_teacher observation).each do |lua|
+  %W(coefficient local_status local_teacher observation last_seen_at).each do |lua|
     delegate lua.pluralize, to: :local_unique_attributes
   end
 
