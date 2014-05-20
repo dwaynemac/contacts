@@ -351,7 +351,7 @@ class V0::ContactsController < V0::ApplicationController
   #   coefficient  -> coefficient_for_CurrentAccountName
   # If there is no current_account (@account) then key is removed from attributes hash.
   def convert_local_attributes
-    %w(local_status coefficient local_teacher).each do |la|
+    %w(local_status coefficient local_teacher last_seen_at).each do |la|
       if @account
         if params[:contact][la]
           params[:contact]["#{la}_for_#{@account.name}"] = params[:contact].delete(la)
