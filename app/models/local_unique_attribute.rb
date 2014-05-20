@@ -13,7 +13,7 @@ class LocalUniqueAttribute
 
   scope :for_account, ->(account_id){ where(account_id: account_id) }
 
-  %W(coefficient local_status local_teacher observation).each do |lua|
+  %W(coefficient local_status local_teacher observation last_seen_at).each do |lua|
     scope lua.pluralize, where( _type: lua.camelcase )
   end
 
