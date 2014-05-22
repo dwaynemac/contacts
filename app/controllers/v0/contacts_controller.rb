@@ -8,7 +8,8 @@ class V0::ContactsController < V0::ApplicationController
 
   before_filter :set_list
   before_filter :set_scope 
-  before_filter :refine_scope, only: [:index, :search] 
+  before_filter :refine_scope, only: [:index, :search]
+  before_filter :convert_last_seen_at_to_time, only: [:update]
   before_filter :convert_local_attributes, only: [:create, :update]
 
   ##
@@ -359,6 +360,12 @@ class V0::ContactsController < V0::ApplicationController
       else
         params[:contact].delete(la)
       end
+    end
+  end
+
+  def convert_last_seen_at_to_time
+    if params[:contact][:last_seen_at]
+      params[:contact][:last_seen_at] = Time.parse(params[:contact][:last_seen_at])
     end
   end
 
