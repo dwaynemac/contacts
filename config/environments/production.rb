@@ -61,4 +61,8 @@ Contacts::Application.configure do
 
   #Disable mongoid logs
   Mongoid.logger = nil
+
+  config.after_initialize do 
+    Delayed::Job.scaler = :null
+  end
 end
