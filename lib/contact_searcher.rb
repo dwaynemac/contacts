@@ -26,7 +26,8 @@ class ContactSearcher
   # @option selector :address
   # @option selector :custom_attribute
   # @option selector :local_status      only considered if account_id is specified
-  # @option selector :local_teacher      only considered if account_id is specified
+  # @option selector :local_teacher     only considered if account_id is specified
+  # @option selector :last_seen_at      only considered if account_id is specified
   # @option selector :attribute_value_at [Hash] keys: attribute, value, ref_date
   #
   # @return [Mongoid::Criteria]
@@ -80,6 +81,13 @@ class ContactSearcher
             self.new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
           when 'updated_at'
             andit({:updated_at => { '$gt' => v }})
+          when 'last_seen_at'
+            if account_id.present?
+              andit({:local_unique_attributes => {'$elemMatch' => {_type: "LastSeenAt",
+                                                                value: {'$lt' => v},
+                                                                account_id: account_id}}
+              })
+            end
           else
             self.new_selector[k] = v
         end
