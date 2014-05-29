@@ -83,8 +83,9 @@ class ContactSearcher
             andit({:updated_at => { '$gt' => v }})
           when 'last_seen_at'
             if account_id.present?
+
               andit({:local_unique_attributes => {'$elemMatch' => {_type: "LastSeenAt",
-                                                                value: {'$lt' => v},
+                                                                value: {'$lt' => DateTime.parse(v).to_time_in_current_zone.utc},
                                                                 account_id: account_id}}
               })
             end
