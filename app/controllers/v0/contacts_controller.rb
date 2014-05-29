@@ -364,8 +364,8 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   def convert_last_seen_at_to_time
-    if params[:contact][:last_seen_at]
-      params[:contact][:last_seen_at] = Time.parse(params[:contact][:last_seen_at])
+    if params[:contact]["last_seen_at"]
+      params[:contact]["last_seen_at"] = Time.parse(params[:contact]["last_seen_at"])
     end
   end
 
