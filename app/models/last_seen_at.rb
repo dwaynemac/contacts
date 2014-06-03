@@ -5,7 +5,8 @@ class LastSeenAt < LocalUniqueAttribute
   private
 
   def valid_date
-    unless self.value && self.value <= Time.now.utc
+
+    unless self.value.blank? || self.value <= Time.now.utc
       errors.add(:value)
       false
     end
