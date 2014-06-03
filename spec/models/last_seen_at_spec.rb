@@ -14,5 +14,9 @@ describe LastSeenAt do
       contact.last_seen_ats.count.should == 1
       contact.last_seen_ats.first.value.round.should == 1.hour.ago.utc.round
     end
+    it "should skip validation if value is blank" do
+      contact.local_unique_attributes << LastSeenAt.new(value: "", account_id: account.id)
+      contact.should be_valid
+    end
   end
 end
