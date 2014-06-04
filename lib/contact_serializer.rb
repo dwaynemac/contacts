@@ -9,6 +9,24 @@ class ContactSerializer
   # @param [Array] attributes[:select] select attributes
   # @param [Account] attributes[:account] account
   #
+  # == Valid options for select.
+  #   - first_name
+  #   - last_name
+  #   - full_name
+  #   - id
+  #   - gender
+  #   ... 
+  #
+  #
+  # If account_name has been indicated
+  #   - email
+  #   - telephone
+  #   - contact_attributes
+  #   - local_teacher
+  #   - local_status
+  #   - 
+  #   ...
+  #
   # == Modes
   #   select
   #     serializes contacts with selected attributes|
