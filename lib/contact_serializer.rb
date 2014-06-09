@@ -140,6 +140,17 @@ class ContactSerializer
         @json[:telephone] = telephone.value unless telephone.nil?
       end
 
+       if serialize?(:address)
+        address = @contact.primary_attribute(@account, 'Address')
+        unless address.nil?
+          @json[:address] = address.value
+          @json[:postal_code] = address.postal_code
+          @json[:city] = address.city
+          @json[:state] = address.state
+          @json[:country] = address.country
+        end
+      end
+
       if serialize?(:local_statuses)
         @json[:local_statuses] = @contact.local_statuses
       end
