@@ -140,7 +140,7 @@ class ContactSerializer
         @json[:telephone] = telephone.value unless telephone.nil?
       end
 
-       if serialize?(:address)
+      if serialize?(:address)
         address = @contact.primary_attribute(@account, 'Address')
         unless address.nil?
           @json[:address] = address.value
