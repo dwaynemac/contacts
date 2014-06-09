@@ -140,6 +140,11 @@ class ContactSerializer
         @json[:telephone] = telephone.value unless telephone.nil?
       end
 
+      if serialize?(:birthday)
+        birthday = @contact.date_attributes.where(category: 'birthday').first
+        @json[:birthday] = birthday.value unless birthday.nil?
+      end
+
       if serialize?(:address)
         address = @contact.primary_attribute(@account, 'Address')
         unless address.nil?
