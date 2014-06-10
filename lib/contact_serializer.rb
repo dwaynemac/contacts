@@ -95,69 +95,76 @@ class ContactSerializer
   end
   
   def build_hash
-    @json[:first_name] = @contact.first_name if serialize?(:first_name) 
-    @json[:last_name] = @contact.last_name if serialize?(:last_name) 
-    @json[:id] = @contact.id if serialize?(:id) 
-    @json[:_id] = @contact.id if serialize?(:_id) 
-    @json[:gender] = @contact.gender if serialize?(:gender) 
-    @json[:estimated_age] = @contact.estimated_age if serialize?(:estimated_age) 
-    @json[:status] = @contact.status if serialize?(:status) 
-    @json[:global_teacher_username] = @contact.global_teacher_username if serialize?(:global_teacher_username) 
-    @json[:level] = @contact.level if serialize?(:level) 
-    @json[:coefficients_counts] = @contact.coefficients_counts if serialize?(:coefficients_counts)
-    @json[:owner_name] = @contact.owner_name if serialize?(:owner_name)
-    @json[:check_duplicates] = @contact.check_duplicates if serialize?(:check_duplicates)
-    @json[:in_active_merge] = @contact.in_active_merge if serialize?(:in_active_merge)
-    @json[:in_professional_training] = @contact.in_professional_training if serialize?(:in_professional_training)
-    @json[:avatar] = @contact.avatar.as_json if serialize?(:avatar)
+    ActiveSupport::Notifications.instrument('build_hash.as_json.contact') do
 
-    if @account
-      if serialize?(:contact_attributes)
-        @json[:contact_attributes] = @contact.contact_attributes.for_account(@account, {include_masked: @include_masked}).as_json
-      end
-      
-      @json[:tags] = @contact.tags.where(account_id: @account.id).as_json if serialize?(:tags)
-
-      [:local_status, :coefficient, :local_teacher, :observation, :last_seen_at].each do |local_attribute|
-        @json[local_attribute] = @contact.send("#{local_attribute}_for_#{@account.name}") if serialize?(local_attribute.to_sym)
-      end
-      
-      unless except?(:except_linked)
-        @json[:linked] = @contact.linked_to?(@account)
-      end
-      
-      unless except?('except_last_local_status')
-        @json[:last_local_status] = @contact.history_entries.last_value("local_status_for_#{@account.name}".to_sym)
+      ActiveSupport::Notifications.instrument('root_attriutes.build_hash.as_json.contact') do
+        @json[:first_name] = @contact.first_name if serialize?(:first_name) 
+        @json[:last_name] = @contact.last_name if serialize?(:last_name) 
+        @json[:id] = @contact.id if serialize?(:id) 
+        @json[:_id] = @contact.id if serialize?(:_id) 
+        @json[:gender] = @contact.gender if serialize?(:gender) 
+        @json[:estimated_age] = @contact.estimated_age if serialize?(:estimated_age) 
+        @json[:status] = @contact.status if serialize?(:status) 
+        @json[:global_teacher_username] = @contact.global_teacher_username if serialize?(:global_teacher_username) 
+        @json[:level] = @contact.level if serialize?(:level) 
+        @json[:coefficients_counts] = @contact.coefficients_counts if serialize?(:coefficients_counts)
+        @json[:owner_name] = @contact.owner_name if serialize?(:owner_name)
+        @json[:check_duplicates] = @contact.check_duplicates if serialize?(:check_duplicates)
+        @json[:in_active_merge] = @contact.in_active_merge if serialize?(:in_active_merge)
+        @json[:in_professional_training] = @contact.in_professional_training if serialize?(:in_professional_training)
+        @json[:avatar] = @contact.avatar.as_json if serialize?(:avatar)
       end
 
-      if serialize?(:email)
-        email = @contact.primary_attribute(@account, 'Email')
-        @json[:email] = email.value unless email.nil?
-      end
-      
-      if serialize?(:telephone)
-        telephone = @contact.primary_attribute(@account, 'Telephone') 
-        @json[:telephone] = telephone.value unless telephone.nil?
-      end
+      ActiveSupport::Notifications.instrument('account_attributes.build_hash.as_json.contact') do
+      if @account
+        if serialize?(:contact_attributes)
+          @json[:contact_attributes] = @contact.contact_attributes.for_account(@account, {include_masked: @include_masked}).as_json
+        end
+        
+        @json[:tags] = @contact.tags.where(account_id: @account.id).as_json if serialize?(:tags)
 
-      if serialize?(:birthday)
-        birthday = @contact.date_attributes.where(category: 'birthday').first
-        @json[:birthday] = birthday.value unless birthday.nil?
-      end
+        [:local_status, :coefficient, :local_teacher, :observation, :last_seen_at].each do |local_attribute|
+          @json[local_attribute] = @contact.send("#{local_attribute}_for_#{@account.name}") if serialize?(local_attribute.to_sym)
+        end
+        
+        unless except?(:except_linked)
+          @json[:linked] = @contact.linked_to?(@account)
+        end
+        
+        unless except?('except_last_local_status')
+          @json[:last_local_status] = @contact.history_entries.last_value("local_status_for_#{@account.name}".to_sym)
+        end
 
-      if serialize?(:address)
-        address = @contact.primary_attribute(@account, 'Address')
-        unless address.nil?
-          @json[:address] = address.value
-          @json[:postal_code] = address.postal_code
-          @json[:city] = address.city
-          @json[:state] = address.state
-          @json[:country] = address.country
+        if serialize?(:email)
+          email = @contact.primary_attribute(@account, 'Email')
+          @json[:email] = email.value unless email.nil?
+        end
+        
+        if serialize?(:telephone)
+          telephone = @contact.primary_attribute(@account, 'Telephone') 
+          @json[:telephone] = telephone.value unless telephone.nil?
+        end
+
+        if serialize?(:birthday)
+          birthday = @contact.date_attributes.where(category: 'birthday').first
+          @json[:birthday] = birthday.value unless birthday.nil?
+        end
+
+        if serialize?(:address)
+          address = @contact.primary_attribute(@account, 'Address')
+          unless address.nil?
+            @json[:address] = address.value
+            @json[:postal_code] = address.postal_code
+            @json[:city] = address.city
+            @json[:state] = address.state
+            @json[:country] = address.country
+          end
+        end
+
+        if serialize?(:local_statuses)
+          @json[:local_statuses] = @contact.local_statuses
         end
       end
-
-      if serialize?(:local_statuses)
-        @json[:local_statuses] = @contact.local_statuses
       end
     end
   end
