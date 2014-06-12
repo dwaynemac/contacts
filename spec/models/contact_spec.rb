@@ -13,6 +13,52 @@ describe Contact do
   it { should have_field(:level).of_type(Integer)}
   it { should have_field(:in_professional_training).of_type(Boolean)}
 
+  describe "#updated_at" do
+    let(:contact){Contact.make}
+    it "changes when a root attribute changes" do
+      pre = contact.updated_at
+      sleep 1
+      contact.first_name = 'a new first name'
+      contact.save
+      post = contact.reload.updated_at
+      post.should > pre
+    end
+    #
+    # The following specs are a description of mongoid behaviour,
+    # for documentation and explicitation.
+    # It is not the preferred behaviour
+    #
+    it "DOES NOT change when an embedded document is added" do
+      contact.contact_attributes.count.should == 0
+      pre = contact.updated_at
+      sleep 1
+      contact.contact_attributes << Email.make
+      contact.save
+      contact.reload.contact_attributes.count.should == 1
+      post = contact.reload.updated_at
+      post.should == pre
+    end
+    it "DOES NOT change when an embedded document is updated" do
+      contact.contact_attributes << Email.make
+      contact.save
+      pre = contact.reload.updated_at
+      sleep 1
+      contact.contact_attributes.last.value = 'new@mail.com'
+      contact.save
+      post = contact.reload.updated_at
+      post.should == pre
+    end
+    it "DOES NOT change when an embedded document is deleted" do
+      contact.contact_attributes << Email.make
+      contact.save
+      pre = contact.reload.updated_at
+      sleep 1
+      contact.contact_attributes.last.destroy
+      post = contact.reload.updated_at
+      post.should == pre
+    end
+  end
+
   describe "#kshema_id" do
     it { should have_field :kshema_id }
     it { should validate_uniqueness_of :kshema_id }
