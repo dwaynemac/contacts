@@ -97,7 +97,7 @@ class ContactSerializer
   def build_hash
     ActiveSupport::Notifications.instrument('build_hash.as_json.contact') do
 
-      ActiveSupport::Notifications.instrument('root_attriutes.build_hash.as_json.contact') do
+      ActiveSupport::Notifications.instrument('root_attributes.build_hash.as_json.contact') do
         @json[:first_name] = @contact.first_name if serialize?(:first_name) 
         @json[:last_name] = @contact.last_name if serialize?(:last_name) 
         @json[:id] = @contact.id if serialize?(:id) 
@@ -128,11 +128,15 @@ class ContactSerializer
         end
         
         unless except?(:except_linked)
-          @json[:linked] = @contact.linked_to?(@account)
+          ActiveSupport::Notifications.instrument('linked_bool.account_attributes.build_hash.as_json.contact') do
+            @json[:linked] = @contact.linked_to?(@account)
+          end
         end
         
         unless except?('except_last_local_status')
-          @json[:last_local_status] = @contact.history_entries.last_value("local_status_for_#{@account.name}".to_sym)
+          ActiveSupport::Notifications.instrument('last_local_status.account_attributes.build_hash.as_json.contact') do
+            @json[:last_local_status] = @contact.history_entries.last_value("local_status_for_#{@account.name}".to_sym)
+          end
         end
 
         if serialize?(:email)
