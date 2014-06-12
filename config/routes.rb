@@ -7,7 +7,7 @@ Contacts::Application.routes.draw do
       end
       collection do
         get  :by_kshema_id, to: 'contacts#show_by_kshema_id'
-        post :search
+        post :search, to: 'contacts#index'
         get :search_for_select
         delete :destroy_multiple
       end
