@@ -81,13 +81,6 @@ class V0::ContactsController < V0::ApplicationController
     end
   end
 
-  # @url /v0/contacts/search
-  # @action POST
-  # @see index
-  def search
-    index
-  end
-
   def search_for_select
     @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
     @scope = @scope.api_where(params[:where], @account.try(:id))   if params[:where].present?
