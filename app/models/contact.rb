@@ -328,9 +328,14 @@ class Contact
     account.unlink(self)
   end
 
+  # @return [Array<Account>]
+  def linked_accounts
+    @linked_accounts ||= self.lists.map(&:account).uniq
+  end
+
   # @see Account#linked_to?
   def linked_to?(account)
-    account.linked_to?(self)
+    account.in?(self.linked_accounts)
   end
 
   def owner_name
@@ -508,11 +513,6 @@ class Contact
       @cached_owner = orig_owner
     end
     @cached_owner
-  end
-
-  # @return [Array<Account>]
-  def linked_accounts
-    self.lists.map(&:account).uniq
   end
 
   def set_status
