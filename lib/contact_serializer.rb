@@ -133,7 +133,7 @@ class ContactSerializer
           end
         end
         
-        unless except?('except_last_local_status')
+        if serialize?(:last_local_status)
           ActiveSupport::Notifications.instrument('last_local_status.account_attributes.build_hash.as_json.contact') do
             @json[:last_local_status] = @contact.history_entries.last_value("local_status_for_#{@account.name}".to_sym)
           end
