@@ -109,7 +109,6 @@ class ContactSerializer
         @json[:level] = @contact.level if serialize?(:level) 
         @json[:coefficients_counts] = @contact.coefficients_counts if serialize?(:coefficients_counts)
         @json[:owner_name] = @contact.owner_name if serialize?(:owner_name)
-        @json[:check_duplicates] = @contact.check_duplicates if serialize?(:check_duplicates)
         @json[:in_active_merge] = @contact.in_active_merge if serialize?(:in_active_merge)
         @json[:in_professional_training] = @contact.in_professional_training if serialize?(:in_professional_training)
         @json[:avatar] = @contact.avatar.as_json if serialize?(:avatar)
