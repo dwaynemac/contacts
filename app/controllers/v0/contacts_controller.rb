@@ -404,5 +404,8 @@ class V0::ContactsController < V0::ApplicationController
       @contact.send("#{k}=",v)
       @contact.set_global_teacher
     end
+    params[:contact].select{|k,v| k =~ /last_seen_at/}.each do |k,v|
+      @contact.send("#{k}=",v)
+    end
   end
 end

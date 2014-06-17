@@ -453,6 +453,19 @@ describe V0::ContactsController do
             @invalid_contact.reload.global_teacher_username.should == 'dwayne.mac'
           end
         end
+        describe "last_seen_at" do
+          let(:now){Time.zone.now}
+          before do
+            @invalid_contact.status = :student
+            @invalid_contact.save validate: false
+            put :update, id: @invalid_contact.id, contact: { last_seen_at: now},
+                ignore_validation: true, account_name: account.name,
+                app_key: V0::ApplicationController::APP_KEY
+          end
+          it "is white listed" do
+            @invalid_contact.reload.last_seen_ats.last.value.to_date.should == now.to_date
+          end
+        end
         it "wont allow setting any other attribute"
       end
       describe "false, " do
