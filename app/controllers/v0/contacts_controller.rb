@@ -41,19 +41,19 @@ class V0::ContactsController < V0::ApplicationController
   #
   def index
     total = 0
-    ActiveSupport::Notifications.instrument('count.index.contacts_controller') do
+    measure('count.index.contacts_controller') do
       total = @scope.count
     end
 
     # sort
     @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
 
-    ActiveSupport::Notifications.instrument('paginate.index.contacts_controller') do
+    measure('paginate.index.contacts_controller') do
       @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
     end
 
-    ActiveSupport::Notifications.instrument('render_json.index.contacts_controller') do
-      ActiveSupport::Notifications.instrument('build_hash.render_json.index.contacts_controller') do
+    measure('render_json.index.contacts_controller') do
+      measure('build_hash.render_json.index.contacts_controller') do
         as_json_params = {
           select: params[:select],
           account: @account,
@@ -71,10 +71,10 @@ class V0::ContactsController < V0::ApplicationController
 
         @collection_hash = @contacts.as_json(as_json_params)
       end
-      ActiveSupport::Notifications.instrument('serializing.render_json.index.contacts_controller') do
+      measure('serializing.render_json.index.contacts_controller') do
         @json = { :collection => @collection_hash, :total => total}.to_json
       end
-      ActiveSupport::Notifications.instrument('rendering.render_json.index.contacts_controller') do
+      measure('rendering.render_json.index.contacts_controller') do
         response.headers['Content-type'] = 'application/json; charset=utf-8'
         render :json => @json
       end
@@ -406,6 +406,15 @@ class V0::ContactsController < V0::ApplicationController
     end
     params[:contact].select{|k,v| k =~ /last_seen_at/}.each do |k,v|
       @contact.send("#{k}=",v)
+    end
+  end
+
+  ##
+  #
+  # identifies block with given key in appsignal
+  def measure(key)
+    ActiveSupport::Notifications.instrument(key) do
+      yield
     end
   end
 end
