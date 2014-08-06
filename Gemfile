@@ -1,10 +1,10 @@
 source 'http://rubygems.org'
 ruby '1.9.3'
 
-gem 'rails', '3.1.6'
+gem 'rails', '~> 3.1.0'
 
 gem 'unicorn'
-gem "mongoid", "2.3.3"
+gem "mongoid", "~> 2.3.0"
 gem 'bson', '= 1.4.0'
 gem "bson_ext", "= 1.4.0"
 gem 'mongoid_search'
@@ -14,8 +14,10 @@ gem 'cancan', '~> 1.6.7'
 gem "logical_model", '~> 0.5.8'
 gem 'activity_stream_client', '~> 0.0.14'
 gem 'overmind_client', '~> 0.0.1'
-gem 'accounts_client', '~> 0.0.18'
+gem 'accounts_client'
 gem 'messaging_client'
+
+gem 'gibbon'
 
 gem 'kaminari', '~> 0.13'
 
@@ -26,6 +28,7 @@ gem 'fog'
 gem 'unf'
 gem 'state_machine', '~> 1.1.2'
 gem 'ethon', '0.4.2'
+
 
 gem 'heroku-mongo-backup', '~> 0.4.3' # Gem for making mongo -> AmazonS3 backups
 gem 'delayed_job_mongoid' # Gem for managing background operations
@@ -79,7 +82,7 @@ group :test do
   gem "rspec-rails", "~> 2.14"
   gem "shoulda-matchers", :require => false
   gem 'mongoid-rspec', '1.4.4'
-  gem "machinist", '1.0.6'
+  gem "machinist", '~> 1.0'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
   gem 'faker', '0.9.4'
   gem "database_cleaner", ">= 0.6.7"
