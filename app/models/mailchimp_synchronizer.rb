@@ -5,14 +5,15 @@ class MailchimpSynchronizer
 
   field :api_key
   field :list_id
-  field :query
   field :status
 
   belongs_to :account
-
-  VALID_STATUSES = [:ready, :working, :finished]
+  has_many :mailchimp_segments
   
   before_create :add_fields
+  before_create :set_default_attributes
+  
+  before_destroy :destroy_segments
 
   def sync_contacts
     return unless status == :ready
@@ -20,6 +21,7 @@ class MailchimpSynchronizer
     update_attribute(:status, :working)
     set_api
     set_i18n
+    # TODO 
     page = get_scope.page(1).per(10)
     @api.lists.batch_subscribe({
       id: list_id,
@@ -28,7 +30,7 @@ class MailchimpSynchronizer
       update_existing: true
     })
 
-    update_attribute(:status, :finished)
+    update_attribute(:status, :ready)
   end
   handle_asynchronously :sync_contacts
   
@@ -122,11 +124,8 @@ class MailchimpSynchronizer
   end
   
   def get_scope
-    if query.nil?
-      account.contacts
-    else
-      account.contacts.where(query)
-    end
+    return account.contacts if mailchimp_segments.empty?
+    account.contacts.any_of(mailchimp_segments.map {|seg| seg.to_query})
   end
   
   def get_primary_attribute_value (contact, type)
@@ -144,5 +143,13 @@ class MailchimpSynchronizer
   
   def set_i18n
     I18n.locale = PadmaAccount.find(account.name).locale
+  end
+  
+  def set_default_attributes
+    status = :ready
+  end
+  
+  def destroy_segments
+    MailchimpSegments.where(mailchimp_synchronizer_id: self.id).destroy_all
   end
 end
