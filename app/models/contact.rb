@@ -63,8 +63,6 @@ class Contact
 
   field :in_professional_training, type: Boolean
 
-  default_scope asc(:first_name)
-
   # ordered by hierarchy (last is higher)
   VALID_LEVELS = {
     "aspirante" => 0,
