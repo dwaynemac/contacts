@@ -1,5 +1,5 @@
 # @restful_api v0
-class V0::MailchimpSynchronizerController < V0::ApplicationController
+class V0::MailchimpSynchronizersController < V0::ApplicationController
 
   before_filter :get_account
 
@@ -9,7 +9,6 @@ class V0::MailchimpSynchronizerController < V0::ApplicationController
   # @action POST
   #
   # @required [String] synchronizer[api_key] Mailchimp API KEY
-  # @required [String] synchronizer[list_id] Mailchimp list id
   # @required [String] account_name
   #
   # @response_field [String] OK message
@@ -17,16 +16,26 @@ class V0::MailchimpSynchronizerController < V0::ApplicationController
   def create
     synchro = MailchimpSynchronizer.new(
       account: @account,
-      api_key: params[:synchronizer][:api_key],
-      list_id: params[:synchronizer][:list_id],
+      api_key: params[:synchronizer][:api_key]
     )
 
     if synchro.save
-      render json: {message: "OK"}.to_json,
+      render json: {message: "OK", id: synchro.id}.to_json,
         status: 201
     else
       render json: {message: "Sorry, The synchronizer could not be created"}.to_json,
         status: 400
+    end
+  end
+  
+  def update
+    synchro = MailchimpSynchronizer.find(params[:id])
+    if !synchro.nil?
+      synchro.update_attributes(params[:synchronizer])
+      synchro.update_fields_in_mailchimp   
+      render json: "OK", status: 200
+    else
+      render json: 'Synchronizer missing', status: 400
     end
   end
 
