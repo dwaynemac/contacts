@@ -10,7 +10,6 @@ class MailchimpSynchronizer
   belongs_to :account
   has_many :mailchimp_segments
   
-  before_create :add_fields
   before_create :set_default_attributes
   
   before_destroy :destroy_segments
@@ -102,7 +101,7 @@ class MailchimpSynchronizer
   #
   # Merge Vars (fields)
   #
-  def add_fields
+  def update_fields_in_mailchimp
     set_api
     set_i18n
     merge_var_add('PHONE', I18n.t('mailchimp.phone.phone'), 'text') 
@@ -115,12 +114,15 @@ class MailchimpSynchronizer
   end
   
   def merge_var_add (tag, name, type)
-    @api.lists.merge_var_add({
-      id: list_id,
-      tag: tag,
-      name: name,
-      options: {field_type: type}
-    }) 
+    begin
+      @api.lists.merge_var_add({
+        id: list_id,
+        tag: tag,
+        name: name,
+        options: {field_type: type}
+      }) 
+    rescue Gibbon::MailChimpError
+    end
   end
   
   def get_scope
@@ -146,10 +148,10 @@ class MailchimpSynchronizer
   end
   
   def set_default_attributes
-    status = :ready
+    self.status = :ready
   end
   
   def destroy_segments
-    MailchimpSegments.where(mailchimp_synchronizer_id: self.id).destroy_all
+    MailchimpSegment.where(mailchimp_synchronizer_id: self.id).destroy_all
   end
 end
