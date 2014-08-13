@@ -11,7 +11,7 @@ class MailchimpSegment
   belongs_to :mailchimp_synchronizer
   before_save :set_default_attributes
   
-  before_destroy :sync_after_segment_destruction
+  before_destroy :sync_after_segment_destruction 
   
   def to_query (negative = false)
     query = {}
@@ -55,6 +55,8 @@ class MailchimpSegment
   end
   
   def sync_after_segment_destruction
+    return if mailchimp.synchronizer.filter_method != :segments
+
     synchro = self.mailchimp_synchronizer
     other_segments = synchro.mailchimp_segments.reject {|s| s.id == self.id}
     querys = other_segments.map {|s| s.to_query(true)}
