@@ -1,5 +1,5 @@
 # @restful_api v0
-class V0::MailchimpSegmentController < V0::ApplicationController
+class V0::MailchimpSegmentsController < V0::ApplicationController
 
   before_filter :get_account
 
@@ -8,7 +8,7 @@ class V0::MailchimpSegmentController < V0::ApplicationController
   # @url /v0/mailchimp_segments
   # @action POST
   #
-  # @required [String segment[api_key] Mailchimp API KEY
+  # @required [String] synchronizer[id] Mailchimp API KEY
   # @optional [Array] segment[statuses] Array of statuses (Strings)
   #   Possible values = student, prospect, former_student
   # @optional [Array] segment[coefficients] Array of coefficients
@@ -21,7 +21,7 @@ class V0::MailchimpSegmentController < V0::ApplicationController
   # @response_field [String] Segment ID
   #
   def create
-    synchro = MailchimpSynchronizer.where(api_key: params[:segment][:api_key]).first
+    synchro = MailchimpSynchronizer.find(params[:synchronizer][:id])
 
     if !synchro.nil?
       segment = MailchimpSegment.new(
@@ -48,20 +48,21 @@ class V0::MailchimpSegmentController < V0::ApplicationController
   # @url /v0/mailchimp_segment/:id
   # @action DELETE
   #
-  # @required [String] segment[api_key] Mailchimp API KEY
+  # @required [String] segment[id] Mailchimp API KEY
   #
   def destroy
-    @synchro = MailchimpSynchronizer.where(api_key: params[:synchronizer][:api_key]).first
-    if !@synchro.nil?
-      if @synchro.status.to_sym != :working
-        MailchimpSegment.find(params[:id]).destroy
+    segment = MailchimpSegment.find(params[:segment][:id])
+    if !segment.nil?
+      synchro = segment.mailchimp_synchronizer
+      if synchro.status.to_sym != :working
+        segment.destroy
         render json: 'destroyed', status: 200
       else
         render json: "Synchronizer is currently working, wait for it to finish before deletion of segments.",
           status: 409
       end
     else
-      render json: 'Synchronizer missing', status: 400
+      render json: 'Segment missing', status: 400
     end
   end
 
