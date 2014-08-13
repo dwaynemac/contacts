@@ -31,8 +31,8 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
   def update
     synchro = MailchimpSynchronizer.find(params[:id])
     if !synchro.nil?
-      synchro.update_attributes(params[:synchronizer])
-      synchro.update_fields_in_mailchimp   
+      synchro.update_sync_options(params[:synchronizer])
+      end
       render json: "OK", status: 200
     else
       render json: 'Synchronizer missing', status: 400
