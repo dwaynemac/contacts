@@ -55,7 +55,7 @@ class MailchimpSegment
   end
   
   def sync_after_segment_destruction
-    return if mailchimp.synchronizer.filter_method != :segments
+    return if mailchimp_synchronizer.filter_method != :segments
 
     synchro = self.mailchimp_synchronizer
     other_segments = synchro.mailchimp_segments.reject {|s| s.id == self.id}
