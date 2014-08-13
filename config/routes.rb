@@ -23,6 +23,7 @@ Contacts::Application.routes.draw do
       end
     end
     resources :mailchimp_synchronizers
+    resources :mailchimp_segments
     resources :imports do
       member do
         get 'failed_rows'
