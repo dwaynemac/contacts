@@ -7,11 +7,13 @@ class MailchimpSegment
   field :gender
   field :coefficients
   field :name
+  field :mailchimp_id
 
   belongs_to :mailchimp_synchronizer
   before_save :set_default_attributes
   
-  before_destroy :sync_after_segment_destruction 
+  before_destroy :sync_before_segment_destruction 
+  before_create :create_segment_in_mailchimp
   
   def to_query (negative = false)
     query = {}
@@ -54,20 +56,29 @@ class MailchimpSegment
     query  
   end
   
-  def sync_after_segment_destruction
-    return if mailchimp_synchronizer.filter_method != :segments
+  def sync_before_segment_destruction
+    synchro = mailchimp_synchronizer
+    
+    if !mailchimp_id.nil?
+      api = Gibbon::API.new(synchro.api_key)
+      api.lists.segment_del({
+        id: synchro.list_id,
+        seg_id: mailchimp_id     
+      })
+    end
 
-    synchro = self.mailchimp_synchronizer
-    other_segments = synchro.mailchimp_segments.reject {|s| s.id == self.id}
-    querys = other_segments.map {|s| s.to_query(true)}
-    querys << self.to_query
-    synchro.unsubscribe_contacts(querys)
+    if synchro.filter_method == 'segments'
+      other_segments = synchro.mailchimp_segments.reject {|s| s.id == self.id}
+      querys = other_segments.map {|s| s.to_query(true)}
+      querys << self.to_query
+      synchro.unsubscribe_contacts(querys)
+    end
   end
   
   def create_segment_in_mailchimp
     synchro = mailchimp_synchronizer
     api = Gibbon::API.new(synchro.api_key)
-    api.lists.segment_add({
+    response = api.lists.segment_add({
       id: synchro.list_id,
       opts: {
         type: 'saved',
@@ -78,25 +89,27 @@ class MailchimpSegment
         }
       }
     })
+    self.mailchimp_id = response['id']
   end
   
   def segment_conditions
     conditions = []
     conditions << status_condition if !statuses.empty?   
-    conditions << coefficient_condition if !conditions.empty?   
+    conditions << coefficient_condition if !coefficients.empty?   
     conditions << gender_condition if gender == 'male'
+    conditions
   end
 
   # The order here is IMPORTANT 
   def status_condition
     value = '|'
-    value << 'p' if status.include?(:prospect)
-    value << 's' if status.include?(:student)
-    value << 'f' if status.include?(:former_student)
+    value << 'p' if statuses.include?('prospect')
+    value << 's' if statuses.include?('student')
+    value << 'f' if statuses.include?('former_student')
     value << '|'
     {
       field: 'SYSSTATUS',
-      op: 'contains',
+      op: 'like',
       value: value
     }
   end
@@ -104,8 +117,8 @@ class MailchimpSegment
   def gender_condition
     {
       field: 'GENDER',
-      op: 'is',
-      value: I18n.t('mailchimp.segment.male')
+      op: 'eq',
+      value: I18n.t('mailchimp.gender.male')
     }
   end
   
@@ -119,7 +132,7 @@ class MailchimpSegment
     
     {
       field: 'SYSCOEFF',
-      op: 'is',
+      op: 'eq',
       value: coefficient
     }
   end

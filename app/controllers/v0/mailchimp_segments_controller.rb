@@ -1,7 +1,7 @@
 # @restful_api v0
 class V0::MailchimpSegmentsController < V0::ApplicationController
 
-  before_filter :get_account
+  before_filter :get_account, except: :destroy
 
   ##
   # Creates a Mailchimp Segment.
@@ -28,7 +28,8 @@ class V0::MailchimpSegmentsController < V0::ApplicationController
         mailchimp_synchronizer: synchro,
         statuses: params[:segment][:statuses],
         coefficients: params[:segment][:coefficients],
-        gender: params[:segment][:gender]
+        gender: params[:segment][:gender],
+        name: params[:segment][:name]
       )
 
       if segment.save
@@ -48,10 +49,10 @@ class V0::MailchimpSegmentsController < V0::ApplicationController
   # @url /v0/mailchimp_segment/:id
   # @action DELETE
   #
-  # @required [String] segment[id] Mailchimp API KEY
+  # @required [String] id Segment id
   #
   def destroy
-    segment = MailchimpSegment.find(params[:segment][:id])
+    segment = MailchimpSegment.find(params[:id])
     if !segment.nil?
       synchro = segment.mailchimp_synchronizer
       if synchro.status.to_sym != :working

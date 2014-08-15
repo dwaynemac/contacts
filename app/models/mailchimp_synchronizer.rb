@@ -21,14 +21,15 @@ class MailchimpSynchronizer
     update_attribute(:status, :working)
     set_api
     set_i18n
-    # TODO 
-    page = get_scope.page(1).per(10)
-    @api.lists.batch_subscribe({
-      id: list_id,
-      batch: get_batch(page),
-      double_optin: false,
-      update_existing: true
-    })
+    get_scope.page(1).per(5000).num_pages.times do |i|
+    page = get_scope.page(i + 1).per(5000)
+      @api.lists.batch_subscribe({
+        id: list_id,
+        batch: get_batch(page),
+        double_optin: false,
+        update_existing: true
+      })
+    end
 
     update_attribute(:status, :ready)
   end
@@ -44,7 +45,7 @@ class MailchimpSynchronizer
 
     contacts_scope.page(1).per(5000).num_pages.times do |i|
       page = contacts_scope.page(i + 1).per(5000)
-      @api.lists.batch_unsubscribe({
+      response = @api.lists.batch_unsubscribe({
         id: list_id,
         batch: get_batch(page, true), 
         delete_member: true,
@@ -58,10 +59,12 @@ class MailchimpSynchronizer
     batch = []
     page.each do |c|
       struct = {}
-      struct['email'] = {email: get_primary_attribute_value(c, 'Email')}
       if !unsubscribe
+        struct['email'] = {email: get_primary_attribute_value(c, 'Email')}
         struct['email_type'] = 'text'
         struct['merge_vars'] =  merge_vars_for_contact(c)
+      else
+        struct['email'] = get_primary_attribute_value(c, 'Email')
       end
       batch << struct
     end
@@ -149,34 +152,26 @@ class MailchimpSynchronizer
     end
   end
   
-  def sync_filtered_contacts_for_first_time
-    subscribe_contacts
-    mailchimp_segments.each {|x| x.create_segment_in_mailchimp} 
-  end
-  handle_asynchronously :sync_filtered_contacts_for_first_time
-  
   def update_sync_options (params)
-    if !params[:list_id].nil?
+    if !params[:list_id].nil? && params[:list_id] != list_id
       update_attribute(:list_id, params[:list_id])
       update_fields_in_mailchimp
     end
     
-    if !params[:filter_method].nil?
-      if filter_method == :not_set && params[:filter_method] == :segments 
-        sync_filtered_contacts_for_first_time
-      elsif filter_method == :all && params[:filter_method] == :segments
+    if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
+      if filter_method == 'all' && params[:filter_method] == 'segments'
         unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})      
       end
       update_attribute(:filter_method, params[:filter_method])
     end
     
-    if !params[:api_key].nil?
+    if !params[:api_key].nil? && params[:api_key] != api_key
       update_attribute(:api_key, params[:api_key])
     end
   end
   
   def get_scope
-    return account.contacts if self.filter_method == :segments
+    return account.contacts if self.filter_method == 'all'
     Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
   end
   
