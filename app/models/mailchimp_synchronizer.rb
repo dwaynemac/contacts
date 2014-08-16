@@ -86,18 +86,20 @@ class MailchimpSynchronizer
   end
 
   def get_system_status (contact)
-    case contact.local_statuses.where(account_id: account.id).first.value
+    case contact.local_statuses.where(account_id: account.id).first.try(:value)
     when :prospect
       '|p||ps||pf|'
     when :student
       '|s||ps||sf|'
     when :former_student
       '|f||pf||sf|'
+    else
+      ''
     end
   end
   
   def get_system_coefficient (contact)
-    case contact.coefficients.where(account_id: account.id).first.value
+    case contact.coefficients.where(account_id: account.id).first.try(:value)
     when 'unknown'
       'unknown'
     when 'perfil', 'pmas'
@@ -106,11 +108,14 @@ class MailchimpSynchronizer
       'fp'
     when 'pmenos'
       'pmenos'
+    else
+      ''
     end
   end    
   
   def get_status_translation (contact)
-    I18n.t('mailchimp.status.' + contact.local_statuses.where(account_id: account.id).first.value.to_s)
+    ls = contact.local_statuses.where(account_id: account.id).first.try(:value).try(:to_s)
+    ls.nil?? '' : I18n.t("mailchimp.status.#{ls}")
   end
   
   def get_gender_translation (contact)
