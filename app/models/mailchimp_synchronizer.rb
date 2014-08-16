@@ -22,7 +22,7 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     get_scope.page(1).per(5000).num_pages.times do |i|
-    page = get_scope.page(i + 1).per(5000)
+      page = get_scope.page(i + 1).per(5000)
       @api.lists.batch_subscribe({
         id: list_id,
         batch: get_batch(page),
@@ -177,11 +177,7 @@ class MailchimpSynchronizer
   
   def get_primary_attribute_value (contact, type)
     attr = contact.primary_attribute(account, type)
-    if attr.nil?
-      nil
-    else
-      attr.value
-    end
+    attr.try :value
   end
   
   def set_api
