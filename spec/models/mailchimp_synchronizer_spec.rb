@@ -30,4 +30,23 @@ describe MailchimpSynchronizer do
       end
     end
   end
+
+  describe "#get_coefficient_translation" do
+    describe "if contacts has no coefficient" do
+      it "return ''" do
+        expect(sync.get_coefficient_translation(contact)).to eq ''
+      end
+    end
+  end
+
+  describe "get_gender_translation" do
+    describe "if contact's gender is not set" do
+      before do
+        contact.update_attribute :gender, nil
+      end
+      it "returns ''" do
+        expect(sync.get_gender_translation(contact)).to eq ''
+      end
+    end
+  end
 end

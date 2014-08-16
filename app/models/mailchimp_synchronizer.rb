@@ -119,11 +119,11 @@ class MailchimpSynchronizer
   end
   
   def get_gender_translation (contact)
-    I18n.t('mailchimp.gender.' + contact.gender)
+    (contact.gender)? I18n.t("mailchimp.gender.#{contact.gender}") : ''
   end
   
   def get_coefficient_translation (contact)
-    contact.coefficients.where(account_id: account.id).first.value.to_s
+    contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || ''
   end
   
   #
