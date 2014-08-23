@@ -10,8 +10,10 @@ describe BirthdayNotificator do
     @ac2 = Account.make
 
     @first_contact = Contact.make(owner: @ac1, gender: 'male')
-    @first_contact.local_unique_attributes <<  LocalStatus.make(account: @ac1, value: 'student')
-    @first_contact.local_unique_attributes <<  Coefficient.new(account: @ac1, value: 'perfil')
+    @first_contact.local_unique_attributes <<  LocalStatus.make(account: @ac1,
+                                                                value: 'student')
+    @first_contact.local_unique_attributes <<  Coefficient.new(account: @ac1,
+                                                               value: 'perfil')
     @first_contact.contact_attributes << DateAttribute.new(
         year: 1982,
         month: Date.today.month,
@@ -24,7 +26,8 @@ describe BirthdayNotificator do
         month: Date.today.month,
         day: Date.today.day,
         category: 'birthday')
-    @second_contact.local_unique_attributes <<  LocalStatus.make(account: @ac2, value: 'prospect')
+    @second_contact.local_unique_attributes <<  LocalStatus.make(account: @ac2,
+                                                                 value: 'prospect')
 
     @third_contact = Contact.make(owner: @ac1)
     @third_contact.contact_attributes << DateAttribute.new(
@@ -32,11 +35,30 @@ describe BirthdayNotificator do
         month: Date.today.month,
         day: Date.yesterday.day,
         category: 'birthday')
-    @third_contact.local_unique_attributes <<  LocalStatus.make(account: @ac1, value: 'prospect')
+    @third_contact.local_unique_attributes <<  LocalStatus.make(account: @ac1,
+                                                                value: 'prospect')
 
     @first_contact.save
     @second_contact.save
     @third_contact.save
+  end
+
+  describe "#deliver_notifications" do
+    it "broadcasts #all_birthdays to messaging" do
+      Messaging::Client.should_receive('post_message')
+                       .with('birthday',anything())
+                       .exactly(bn.all_birthdays.count).times
+                       .and_return true
+      bn.deliver_notifications 
+    end
+    it "boradcasts #json_for of each contact" do
+      bn.all_birthdays.each do |contact|
+        Messaging::Client.should_receive('post_message')
+                         .with('birthday',bn.json_for(contact))
+                         .and_return true
+      end
+      bn.deliver_notifications
+    end
   end
 
   describe "#all_birthdays" do
