@@ -26,8 +26,13 @@ class V0::ContactsController < V0::ApplicationController
   # @optional [Integer] page will return this page (default: 1)
   # @optional [Integer] per_page will paginate contacts with this amount per page (default: 10)
   # @optional [String] full_text will make a full_text search with this string.
-  # @optional [Array] select return only selected contact attributes. :full_name is an alias for :first_name AND :last_name other: :first_name, :last_name, :telephone, :email, etc. if you specify an attribute as a key value pair. key will be interpreted as attribute name and value as reference date to get value from.
+  # @optional [Array] select return only selected contact attributes.
+  #                   - :full_name is an alias for :first_name AND :last_name
+  #                   - other: :first_name, :last_name, :telephone, :email, etc.
+  #                   if you specify an attribute as a key value pair.
+  #                   key will be interpreted as attribute name and value as reference date to get value from.
   # @optional [Hash] where Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status, :date_attribute
+  # @optional [Array] sort Array in the form [attribute,order]. Eg: [:first_name, :asc]
   # @optional [Array<Hash>] attributes_value_at Array of hashes with keys: :attribute, :value, :ref_date. This will be ANDed, not ORed.
   #
   # @example_request
