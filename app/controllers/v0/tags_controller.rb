@@ -3,7 +3,7 @@ class V0::TagsController < V0::ApplicationController
   before_filter :get_account
 
   load_and_authorize_resource
-  skip_load_resource only: :index
+  skip_load_resource only: [:index,:batch_add]
 
   ##
   # Returns all the tags of a contact or of an account
@@ -153,10 +153,19 @@ class V0::TagsController < V0::ApplicationController
     render :json => "OK"
   end
 
+  ##
+  #
+  # Will add all given tags to all given contacts in the background.
+  #
+  # @url /v0/tags/batch_add
+  # @action POST
+  #
+  # @example_response "OK"
+  # @response_code 202
   def batch_add
     Tag.batch_add(params[:tags],params[:contact_ids])
 
-    render :json => "OK"
+    render :json => "OK", status: 202
   end
 
   private

@@ -135,10 +135,17 @@ describe V0::TagsController do
   end
 
   describe "#batch_add" do
-    let(:account){Account.make}
-    let(:tag_a){Tag.make(account_name: account.name, name: 'taga')}
-    let(:contact1){Contact.make(owner: account)}
+    let!(:account){Account.make}
+    let!(:tag_a){Tag.make(account_name: account.name, name: 'taga')}
+    let!(:contact1){Contact.make(owner: account)}
 
+    it "responds with status 202 (Accepted for processing)" do
+      post :batch_add, account_name: account.name,
+                       tags: [tag_a.id],
+                       contact_ids: [contact1.id],
+                       app_key: V0::ApplicationController::APP_KEY
+      should respond_with 202
+    end
 
     it "queues task in delayed_job" do
       expect do post :batch_add, account_name: account.name,
