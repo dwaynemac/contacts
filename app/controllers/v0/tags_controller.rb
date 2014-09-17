@@ -154,14 +154,7 @@ class V0::TagsController < V0::ApplicationController
   end
 
   def batch_add
-    tags = Tag.find(params[:tags])
-    contacts = Contact.find(params[:contact_ids])
-    
-    contacts.each do |contact|
-      contact.tags += tags
-      contact.save
-      contact.index_keywords!
-    end
+    Tag.batch_add(params[:tags],params[:contact_ids])
 
     render :json => "OK"
   end

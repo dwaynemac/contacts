@@ -23,4 +23,18 @@ class Tag
   def account_name
     account.try :name
   end
+
+  # adds given tags to all given contacts
+  # @param [Array] tag_ids
+  # @param [Array] contact_ids
+  def self.batch_add(tag_ids, contact_ids)
+    tags = Tag.find(tag_ids)
+    contacts = Contact.find(contact_ids)
+    
+    contacts.each do |contact|
+      contact.tags += tags
+      contact.save
+      contact.index_keywords!
+    end
+  end
 end
