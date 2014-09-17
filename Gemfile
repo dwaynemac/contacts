@@ -76,7 +76,6 @@ group :development, :test do
 end
 
 group :test do
-  gem "cucumber-rails", '1.2.0'
   gem "rspec-rails", "~> 2.14"
   gem "shoulda-matchers", :require => false
   gem 'mongoid-rspec', '1.4.4'
