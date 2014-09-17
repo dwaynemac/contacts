@@ -18,7 +18,7 @@ describe ContactSerializer do
           contact.contact_attributes << Telephone.new( value: 1234 , account: account)
           contact.save!
           contact.reload.contact_attributes.count.should == 1
-          serializer.serialize['contact_attributes'].count.should == 1
+          serializer.serialize[:contact_attributes].count.should == 1
         end
       end
     end
@@ -26,17 +26,17 @@ describe ContactSerializer do
 
   describe "with mode: 'select'" do
     let(:mode){ 'select' }
-    describe "with select: ['avatar']" do
+    describe "with select: [:avatar]" do
       before do
         #given that contact has an avatar
         contact.avatar = File.open('spec/support/ghibli_main_logo.gif')
 
         #select avatar
-        serializer.select = ['avatar'] 
+        serializer.select = [:avatar] 
       end
       describe "#serialize" do
         it "includes :avatar" do
-          ( 'avatar' ).should be_in serialized_keys
+          ( :avatar ).should be_in serialized_keys
         end
       end
     end
@@ -46,7 +46,7 @@ describe ContactSerializer do
     let(:mode){ 'only_name' }
     describe "#serialize" do
       it "returns :id, :name" do
-        serialized_keys.should == %W(id name)
+        serialized_keys.should == [:id, :name]
       end
     end
   end

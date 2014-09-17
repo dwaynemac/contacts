@@ -1,5 +1,4 @@
 require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
-require 'oj'
 
 ##
 # @restful_api v0
@@ -78,7 +77,7 @@ class V0::ContactsController < V0::ApplicationController
         @collection_hash = @contacts.as_json(as_json_params)
       end
       measure('serializing.render_json.index.contacts_controller') do
-        @json = Oj.dump({ :collection => @collection_hash, :total => total})
+        @json = { :collection => @collection_hash, :total => total}.to_json
       end
       measure('rendering.render_json.index.contacts_controller') do
         response.headers['Content-type'] = 'application/json; charset=utf-8'
