@@ -100,8 +100,8 @@ class ContactSerializer
       ActiveSupport::Notifications.instrument('root_attributes.build_hash.as_json.contact') do
         @json['first_name'] = @contact.first_name if serialize?(:first_name) 
         @json['last_name'] = @contact.last_name if serialize?(:last_name) 
-        @json['id'] = @contact.id if serialize?(:id) 
-        @json['_id'] = @contact.id if serialize?(:_id) 
+        @json['id'] = @contact.id.to_s if serialize?(:id) 
+        @json['_id'] = @contact.id.to_s if serialize?(:_id) 
         @json['gender'] = @contact.gender if serialize?(:gender) 
         @json['estimated_age'] = @contact.estimated_age if serialize?(:estimated_age) 
         @json['status'] = @contact.status if serialize?(:status) 

@@ -20,6 +20,10 @@ describe ContactSerializer do
           contact.reload.contact_attributes.count.should == 1
           serializer.serialize['contact_attributes'].count.should == 1
         end
+        it "render :id as a String" do
+          expect(serializer.serialize['id']).to be_a String
+          expect(serializer.serialize['id']).not_to be_a BSON::ObjectId
+        end
       end
     end
   end
