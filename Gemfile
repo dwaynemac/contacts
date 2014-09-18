@@ -19,6 +19,8 @@ gem 'messaging_client'
 
 gem 'kaminari', '~> 0.13'
 
+gem 'oj'
+
 gem 'rmagick'
 gem 'carrierwave'
 gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
