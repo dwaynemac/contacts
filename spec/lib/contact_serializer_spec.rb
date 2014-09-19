@@ -2,7 +2,8 @@ require 'spec_helper'
 
 describe ContactSerializer do
 
-  let(:serializer){ContactSerializer.new(mode: mode, contact: contact)}
+  let(:account){Account.make}
+  let(:serializer){ContactSerializer.new(mode: mode, contact: contact, account: account)}
   let(:serialized_keys){serializer.serialize.keys}
   let(:contact){Contact.make()}
 
@@ -52,6 +53,19 @@ describe ContactSerializer do
       it "returns :id, :name" do
         serialized_keys.should == %W(id name)
       end
+    end
+  end
+
+  describe "local attribute last_seen_at" do
+    let(:mode){ 'select' }
+    let(:select){ ['last_seen_at'] }
+    before do
+      contact.local_unique_attributes << LastSeenAt.new(value: 1.month.ago.to_time,
+                                                        account: account)
+      serializer.select = select
+    end
+    it "is serialized as a string" do
+      expect(serializer.serialize['last_seen_at']).to be_a String
     end
   end
 
