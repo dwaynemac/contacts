@@ -23,10 +23,10 @@ describe V0::ContactAttributesController do
     context "with app_key" do
       let(:contact){Contact.make(owner: Account.make)}
       before do
-        contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'hobby')
+        contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'hobby', account: contact.owner )
         contact.save!
 
-        @contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'sport')
+        @contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'sport', account: @contact.owner )
         @contact.save!
       end
       def do_request(params={})

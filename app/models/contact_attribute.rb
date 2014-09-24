@@ -113,5 +113,4 @@ class ContactAttribute
   def contact_id
     contact.id
   end
-
 end
