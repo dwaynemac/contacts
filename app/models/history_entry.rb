@@ -146,7 +146,7 @@ class HistoryEntry
     mr_result.find(cond)
   end
 
-  # ]Groups by Historiable(h_id)#attribute
+  # Groups by Historiable(h_id)#attribute
   # @return [String] javascript map function for MongoDB MapReduce
   def self.map_js
     "function(){
