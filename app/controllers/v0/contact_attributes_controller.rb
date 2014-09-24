@@ -27,7 +27,20 @@ class V0::ContactAttributesController < V0::ApplicationController
       Contact
     end
 
-    names = @scope.with_custom_attributes.map { |c| c.custom_attributes }.flatten.map(&:name).uniq
+    names = nil
+    ActiveSupport::Notifications.instrument('map_custom_attributes.get_keys') do
+      names = @scope.with_custom_attributes.map{ |c| c.custom_attributes }
+    end
+    ActiveSupport::Notifications.instrument('flatten.get_keys') do
+      names = names.flatten
+    end
+    ActiveSupport::Notifications.instrument('map_name.get_keys') do
+      names = names.map(&:name)
+    end
+    ActiveSupport::Notifications.instrument('uniq.get_keys') do
+      names = names.uniq
+    end
+
     render json: {collection: names, total: names.count }
   end
 
