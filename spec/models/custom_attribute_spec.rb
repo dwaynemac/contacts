@@ -33,6 +33,16 @@ describe CustomAttribute do
 
         expect(CustomAttribute.custom_keys(account)).not_to include 'other-custom-key'
       end
+      it "wont repeat keys" do
+        c = Contact.make
+        c.link(account)
+        c.contact_attributes << CustomAttribute.new(value: 'as',
+                                                    name: 'second-custom-key',
+                                                    account: account)
+        c.save!
+
+        expect(CustomAttribute.custom_keys(account)).to eq %W(first-custom-key second-custom-key)
+      end
     end
     context "if account has no custom keys" do
       it "returns an empty array" do

@@ -5,29 +5,48 @@ class CustomAttribute < ContactAttribute
 
   # @return [Array] custom keys that account uses
   def self.custom_keys(account)
+    cond = {
+      '$and' => [
+        {contact_attributes: { '$elemMatch' => { _type: 'CustomAttribute'}}},
+        {'$or' => [{list_ids: {'$in' => account.lists.map(&:_id)}}, {owner_id: account._id}]}
+      ]
+    }
     ret = nil
-    scope = if account
-      account.contacts.with_custom_attributes
-    else
-      Contact.with_custom_attributes
-    end
 
-    ActiveSupport::Notifications.instrument('map_custom_attributes.get_keys') do
-      if account
-        ret = scope.map{|c| c.custom_attributes.where(account_id: account.id)}
-      else
-        ret = scope.with_custom_attributes.map{ |c| c.custom_attributes }
+    if Contact.where(cond).count == 0
+      ret = []
+    else
+      ActiveSupport::Notifications.instrument('map_reduce.get_keys') do
+        collection = Contact.collection.map_reduce(map_js(account.id),reduce_js,query: cond, out: 'custom_keys')
+        ret = collection.find().to_a
+      end
+      ActiveSupport::Notifications.instrument('map_name.get_keys') do
+        ret.map!{|mr| mr['_id'] }
       end
     end
-    ActiveSupport::Notifications.instrument('flatten.get_keys') do
-      ret = ret.flatten
-    end
-    ActiveSupport::Notifications.instrument('map_name.get_keys') do
-      ret = ret.map(&:name)
-    end
-    ActiveSupport::Notifications.instrument('uniq.get_keys') do
-      ret = ret.uniq
-    end
+
     ret
+  end
+
+  private
+
+  def self.map_js(account_id)
+<<JS
+function(){
+  this.contact_attributes.forEach(function(ca){
+    if (ca._type == 'CustomAttribute' && ca.account_id == '#{account_id}'){
+      emit(ca.name,1);
+    }
+  });
+}
+JS
+  end
+
+  def self.reduce_js
+<<JS
+function(key,values){
+  return key;
+}
+JS
   end
 end
