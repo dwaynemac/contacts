@@ -514,15 +514,15 @@ describe Contact do
   end
 
   describe "#save with nested attribute params" do
-      before do
-        @account = Account.make
-        @contact = Contact.create(Contact.plan(:owner => @account))
-        @contact.update_attributes(:contact_attributes => [ContactAttribute.plan(:account => nil)])
-      end
+    before do
+      @account = Account.make
+      @contact = Contact.create(Contact.plan(:owner => @account))
+      @contact.update_attributes(:contact_attributes => [ContactAttribute.plan(:account => nil)])
+    end
 
-      it "should set the owner on new attributes" do
-        @contact.contact_attributes.first.account.should == @account
-      end
+    it "should set the owner on new attributes" do
+      @contact.contact_attributes.first.account.should == @account
+    end
   end
 
   describe "mongoid_search" do
