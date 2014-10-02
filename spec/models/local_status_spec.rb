@@ -9,6 +9,13 @@ describe LocalStatus do
     it { should allow_value(s.to_sym).for(:value)}
   end
 
+  it "should allow value nil" do
+    should allow_value(nil).for(:value)
+    c = Contact.make
+    c.local_unique_attributes <<  LocalStatus.make(value: nil)
+    expect(c.save).not_to raise_exception
+  end
+
   ["1234","qwsgdf", :asdf].each do |s|
     it { should_not allow_value(s).for(:value)}
   end
