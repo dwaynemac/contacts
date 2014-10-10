@@ -29,7 +29,6 @@ gem 'unf'
 gem 'state_machine', '~> 1.1.2'
 gem 'ethon', '0.4.2'
 
-gem 'heroku-mongo-backup', '~> 0.4.3' # Gem for making mongo -> AmazonS3 backups
 gem 'delayed_job_mongoid' # Gem for managing background operations
 gem 'workless'
 gem 'daemons'
@@ -39,6 +38,8 @@ gem 'figaro' # for environment variables managment
 gem 'rake'
 
 gem 'i18n', '~> 0.6.6'
+
+gem 'minitest'
 
 group :documentation do
   gem 'yard', '~> 0.8.3'
@@ -51,8 +52,12 @@ group :production do
   gem 'memcachier' # memcache migrator for heroku
 end
 
-  gem 'appsignal', '>= 0.9.4', group: [:production, :development, :deploying]
-  gem 'appsignal-mongo', group: [:production, :development]
+group :heroku do
+  gem 'heroku-mongo-backup', '~> 0.4.3' # Gem for making mongo -> AmazonS3 backups
+end
+
+gem 'appsignal', '>= 0.9.4', group: [:production, :development, :deploying]
+gem 'appsignal-mongo', group: [:production, :development]
 
 group :development do
   gem 'git-pivotal-tracker-integration'
@@ -60,6 +65,12 @@ group :development do
 
   gem 'debugger'
   gem 'ruby-mass'
+
+  gem 'capistrano', '~> 3.1'
+  gem 'capistrano-ext'
+  gem 'capistrano-rails', '~> 1.1'
+  gem 'capistrano-bundler'
+  gem 'capistrano3-unicorn'
 end
 
 group :development, :test do
