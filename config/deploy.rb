@@ -29,8 +29,11 @@ set :linked_dirs, %w{log tmp/pids tmp/cache tmp/sockets vendor/bundle public/sys
 
 set :bundle_bins, %w(rails rake appsignal gem)
 
+set :unicorn_roles, %w(web)
 set :unicorn_options, "-p 5000"
 set :unicorn_rack_env, 'production'
+
+set :delayed_job_server_role, %w(worker)
 
 # Default value for default_env is {}
 # set :default_env, { path: "/opt/ruby/bin:$PATH" }
@@ -45,7 +48,7 @@ namespace :deploy do
   desc 'Restart application'
   task :restart do
     invoke 'unicorn:restart'
-    # invoke 'delayed_job:restart'
+    invoke 'delayed_job:restart'
   end
 
   after :restart, :clear_cache do
@@ -60,5 +63,8 @@ end
 
 desc 'show ssh command'
 task :ssh_line do
+  puts "web"
   puts "ssh #{fetch(:user)}@#{fetch(:domain)} -i #{fetch(:key_path)}"
+  puts "worker"
+  puts "ssh #{fetch(:user)}@#{fetch(:worker_host)} -i #{fetch(:key_path)}"
 end
