@@ -1,4 +1,4 @@
-rake :josue_to_anabella => :environment do
+task :josue_to_anabella => :environment do
   since = Date.civil(2012,2,1)
   old_user = 'josue.barba'
   new_user = 'anabella.tedesco'
