@@ -14,7 +14,7 @@ namespace :rails do
   # - cap production rails:console[--sandbox]
   desc "Open the rails console on app host."
   task :console, [:console_options] do |t, args|
-    on roles(:app), primary: true do |host|
+    on roles(:worker), primary: true do |host|
       rails_env = fetch(:stage)
       execute_interactively "ruby #{current_path}/script/rails console #{rails_env} #{args[:console_options]}"  
     end
