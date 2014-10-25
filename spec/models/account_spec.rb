@@ -65,24 +65,27 @@ describe Account do
     end
 
     describe "#unlink" do
-      it "removes accounts from contact's linked accounts" do
+      before do
         expect(contact.accounts).to include account
-        account.unlink(contact)
-        contact.reload
-        expect(contact.accounts).not_to include account
-      end
-      it "removes contact from account#contacts" do
         expect(account.contacts).to include contact
         account.unlink(contact)
-        expect(account.contacts).not_to include contact
+        account.reload
+        contact.reload
+      end
+      it "wont delete account document" do
+        expect(Account.find(account.id)).not_to be_nil
+      end
+      it "wont delete contact document" do
+        expect(Contact.find(contact.id)).not_to be_nil
+      end
+      it "removes accounts from contact's linked accounts" do
+        expect(account).not_to be_in contact.accounts
+      end
+      it "removes contact from account#contacts" do
+        expect(contact).not_to be_in account.contacts
       end
       it "removes contact from all account's lists" do
-        account.unlink(contact)
-        account.lists.each{|l|l.contacts.should_not include(contact)}
-      end
-      it "removed all link between contact and account" do
-        account.unlink(contact)
-        account.contacts.should_not include(contact)
+        account.lists.each{|l| expect(contact).not_to be_in l.contacts }
       end
     end
 

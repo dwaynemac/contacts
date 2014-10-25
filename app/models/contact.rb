@@ -89,7 +89,7 @@ class Contact
   #
   # This relationship is defined in the contact only to avoid storing
   # all linked contact_ids in the account document
-  has_and_belongs_to_many :accounts
+  has_and_belongs_to_many :accounts, dependent: :nullify
   alias_method :linked_accounts, :accounts
 
   belongs_to :owner, :class_name => "Account"
