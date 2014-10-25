@@ -10,7 +10,7 @@ class V0::ContactAttributesController < V0::ApplicationController
   # @url /v0/contact_attributes/custom_keys
   # @action GET
   #
-  # @optional [String] account_name Scopes to this account
+  # @required [String] account_name Scopes to this account
   #
   # @response_field [Array <String>] collection
   # @response_field [Integer] total
@@ -20,19 +20,22 @@ class V0::ContactAttributesController < V0::ApplicationController
   #
   # @author Dwayne Macgowan
   def custom_keys
-
-    @scope = if @account
-      @account.contacts
+    if @account.nil?
+      render json: "account_name missing", status: 400
     else
-      Contact
-    end
+      @scope = if @account
+        @account.contacts
+      else
+        Contact
+      end
 
-    names = nil
-    ActiveSupport::Notifications.instrument('get_keys') do
-      names = CustomAttribute.custom_keys(@account)
-    end
+      names = nil
+      ActiveSupport::Notifications.instrument('get_keys') do
+        names = CustomAttribute.custom_keys(@account)
+      end
 
-    render json: {collection: names, total: names.count }
+      render json: {collection: names, total: names.count }
+    end
   end
 
   ##

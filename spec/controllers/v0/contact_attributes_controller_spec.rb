@@ -34,17 +34,13 @@ describe V0::ContactAttributesController do
       end
       let(:body){ActiveSupport::JSON.decode(response.body)}
       it "responds with 200" do
-        do_request
+        do_request account_name: Account.make.name
         should respond_with 200
-      end
-      it "returns all custom_attribute names" do
-        do_request
-        body['total'].should == 2
-        body['collection'].should include contact.custom_attributes.last.name
       end
       it "scopes to given account_name" do
         do_request(account_name: @contact.owner_name)
         body['total'].should == 1
+        body['collection'].should include @contact.custom_attributes.last.name
       end
     end
   end
@@ -178,8 +174,7 @@ describe V0::ContactAttributesController do
     describe "as a viewer/editor" do
       before do
         @account = Account.make
-        @account.lists.first.contacts << @contact
-        @account.save
+        @account.link @contact
       end
       it "should not delete the contact attribute" do
         expect{post :destroy, :method => :delete,
