@@ -35,6 +35,7 @@ class Account
   # @param contact [Contact]
   # @return [TrueClass]
   def link(contact)
+    contact.accounts << self
     contact.lists << self.base_list
     contact.owner = self if contact.owner.nil?
     contact.save

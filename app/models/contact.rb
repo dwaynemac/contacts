@@ -84,6 +84,13 @@ class Contact
 
   before_save :set_beginner_on_enrollment
 
+  # accounts that have access to this contact.
+  # These are the accounts the contact is 'linked' to.
+  #
+  # This relationship is defined in the contact only to avoid storing
+  # all linked contact_ids in the account document
+  has_and_belongs_to_many :accounts
+
   belongs_to :owner, :class_name => "Account"
 
   attr_accessor :skip_assign_owner

@@ -4,14 +4,7 @@ describe Account do
 
   it { should validate_presence_of :name }
 
-  it { should have_many_related :owned_contacts }
-
   it { should have_many_related :lists }
-
-  #it do
-  #  Account.make
-  #  should validate_uniqueness_of :name
-  #end
 
   it "should validate existing PadmaAccount" do
       # spec_helper mocks PadmaAccount.find
@@ -49,6 +42,11 @@ describe Account do
     end
   end
 
+
+  it { should have_many_related :owned_contacts }
+  it "should NOT store linked contacts id" do
+    expect(subject).not_to have_and_belong_to_many :contacts
+  end
   describe "#contacts" do
     let(:account){ Account.make }
     before do
@@ -89,6 +87,16 @@ describe Account do
     end
 
     describe "#link" do
+      let(:new_contact){Contact.make(owner: Account.make)}
+      it "adds this account to contact's linked accounts" do
+        account.link(new_contact)
+        new_contact.reload
+        expect(new_contact.accounts).to include account
+      end
+      it "adds contact to Account#contacts" do
+        account.link(new_contact)
+        expect(account.contacts).to include new_contact
+      end
       it "adds contact to account's base list" do
         contact = Contact.make
         account.link(contact)
@@ -116,6 +124,4 @@ describe Account do
     end
 
   end
-
-
 end
