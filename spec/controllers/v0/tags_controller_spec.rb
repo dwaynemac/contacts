@@ -139,7 +139,7 @@ describe V0::TagsController do
     let!(:tag_a){Tag.make(account_name: account.name, name: 'taga')}
     let!(:contact1){Contact.make(owner: account)}
 
-    it "responds with status 202 (Accepted for processing)" do
+    xit "responds with status 202 (Accepted for processing)" do
       post :batch_add, account_name: account.name,
                        tags: [tag_a.id],
                        contact_ids: [contact1.id],
@@ -147,7 +147,7 @@ describe V0::TagsController do
       should respond_with 202
     end
 
-    it "queues task in delayed_job" do
+    xit "queues task in delayed_job" do
       expect do post :batch_add, account_name: account.name,
                        tags: [tag_a.id],
                        contact_ids: [contact1.id],
@@ -155,7 +155,7 @@ describe V0::TagsController do
       end.to change{Delayed::Job.count}.by(1)
     end
 
-    it "calls Tag.batch_add" do
+    xit "calls Tag.batch_add" do
       Tag.should_receive(:batch_add)
       post :batch_add, account_name: account.name,
                        tags: [tag_a.id],
