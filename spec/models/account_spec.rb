@@ -105,6 +105,20 @@ describe Account do
     end
 
     describe "#unlink" do
+      before do
+        account.link(contact)
+      end
+      it "removes accounts from contact's linked accounts" do
+        expect(contact.accounts).to include account
+        account.unlink(contact)
+        contact.reload
+        expect(contact.accounts).not_to include account
+      end
+      it "removes contact from account#contacts" do
+        expect(account.contacts).to include contact
+        account.unlink(contact)
+        expect(account.contacts).not_to include contact
+      end
       it "removes contact from all account's lists" do
         account.unlink(contact)
         account.lists.each{|l|l.contacts.should_not include(contact)}
