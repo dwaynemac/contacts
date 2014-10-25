@@ -23,6 +23,15 @@ describe CustomAttribute do
         expect(CustomAttribute.custom_keys(account).count).to eq 2
         expect(CustomAttribute.custom_keys(account)).to eq %W(first-custom-key second-custom-key)
       end
+      it "wont consider unlinked contacts" do
+        c = Contact.make
+        c.contact_attributes << CustomAttribute.new(value: 'as',
+                                                    name: 'custom-key-in-unlinked-contact',
+                                                    account: account)
+        c.save!
+        account.unlink(c)
+        expect(CustomAttribute.custom_keys(account)).not_to include 'custom-key-in-unlinked-contact'
+      end
       it "wont include other accounts keys" do
         c = Contact.make
         c.link(account)

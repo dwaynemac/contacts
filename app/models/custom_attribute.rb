@@ -8,7 +8,7 @@ class CustomAttribute < ContactAttribute
     cond = {
       '$and' => [
         {contact_attributes: { '$elemMatch' => { _type: 'CustomAttribute'}}},
-        {'$or' => [{list_ids: {'$in' => account.lists.map(&:_id)}}, {owner_id: account._id}]}
+        {account_ids: account.id }
       ]
     }
     ret = nil
