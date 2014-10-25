@@ -53,7 +53,7 @@ class Account
   end
 
   def linked_to?(contact)
-    self.contacts.include?(contact)
+    self._id.in?(contact.account_ids)
   end
 
   protected

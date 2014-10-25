@@ -81,9 +81,7 @@ describe Account do
     let(:account){Account.make}
     let(:contact){Contact.make(owner: account)}
     before do
-      list = List.make(account: account)
-      account.base_list.contacts << contact
-      list.contacts << contact
+      account.link(contact)
     end
 
     describe "#link" do
@@ -105,9 +103,6 @@ describe Account do
     end
 
     describe "#unlink" do
-      before do
-        account.link(contact)
-      end
       it "removes accounts from contact's linked accounts" do
         expect(contact.accounts).to include account
         account.unlink(contact)
@@ -131,11 +126,10 @@ describe Account do
 
     describe "#linked_to?" do
       it "returns true if there is relationship with the contact" do
-        account.should be_linked_to contact
+        expect(account).to be_linked_to contact
         account.unlink contact
-        account.should_not be_linked_to contact
+        expect(account).not_to be_linked_to contact
       end
     end
-
   end
 end
