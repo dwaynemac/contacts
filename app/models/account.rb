@@ -43,6 +43,7 @@ class Account
 
   # Removed this contact from all this accounts lists
   def unlink(contact)
+    contact.account_ids.delete(self.id)
     contact.lists = contact.lists.reject{|l|l.account == self}
     if contact.owner == self
       contact.owner = nil
