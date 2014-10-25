@@ -475,30 +475,36 @@ describe Contact do
     end
   end
 
-  describe "when scoped to a list" do
+  describe "addind a contact to a list" do
+    let!(:account){ Account.make }
+    let!(:list) { List.make account: account }
+    let!(:contact) { Contact.make owner: Account.make }
+
     before do
-      @account = Account.make
-      @contact = @account.lists.first.contacts.create(:first_name => "Marge")
+      contact.lists << list
+      contact.save
+      contact.reload
+      list.reload
     end
 
-    it "should set the owner" do
-      @contact.owner.should == @account
+    it "WONT link it to it" do
+      expect(contact).not_to be_linked_to account
     end
 
     it "should update the lists contacts" do
-      @contact.in?(@account.lists.first.contacts).should be_true
+      expect(contact).to be_in list.contacts
     end
 
-    describe "and after adding the contact to a new list" do
+    describe "adding a second list" do
       before do
         @account_b = Account.make(:lists => [List.make])
-        @contact.lists << @account_b.lists.first
+        contact.lists << @account_b.lists.first
       end
 
-      specify { @contact.lists.count.should == 2 }
+      specify { contact.lists.count.should == 2 }
 
       it "should not update the owner" do
-        @contact.owner.should == @account
+        expect(contact.owner).not_to eq @account_b
       end
     end
   end
@@ -750,14 +756,18 @@ describe Contact do
   describe "#unlink" do
     let(:contact){Contact.make}
     let(:account){Account.make}
+    let!(:list){ List.make(account: account) }
+
     before do
-      account.base_list.contacts << contact
+      account.link(contact)
+      contact.lists << list
+      contact.save
     end
 
     it "removes all account's lists from contact" do
       contact.unlink(account)
-      account.base_list.in?(contact.reload.lists).should be_false
-      #contact.reload.lists.should_not include(account.base_list)
+      contact.reload
+      expect(contact.lists).not_to include list
     end
 
     context "if account is owner" do
@@ -929,37 +939,44 @@ describe Contact do
 
   describe "#linked_accounts" do
     let(:account){Account.make}
+    let(:other_account){Account.make}
     let(:contact){Contact.make(owner: account)}
+    before do
+      other_account.link(contact)
+    end
     it "lists accounts linked with contact" do
-      contact.linked_accounts.should include account
+      contact.reload
+      expect(account).to be_in contact.linked_accounts
+      expect(other_account).to be_in contact.linked_accounts
     end
   end
 
   describe "owner auto assignment" do
-    before do
-      @account = Account.make
-      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [ContactAttribute.plan()]))
-      @contact.lists = []
-      @contact.save
-    end
+    let(:account){ Account.make }
+    let(:contact){Contact.create(Contact.plan(owner: account, contact_attributes: [ContactAttribute.plan()]))}
 
     context "if contact has no status" do
-
-      it "on save a contact without status should set the owners main list" do
-        @contact.lists.first.should == @account.base_list
+      it "should be linked to account" do
+        contact.save
+        contact.reload
+        expect(account).to be_in contact.accounts
       end
     end
 
     context "if contact is a student" do
+      let!(:new_account){ Account.make name: 'accname' }
       before do
-        @new_acc = Account.make
-        @contact.local_status={account_id: @new_acc.id, status: :student}
-        @contact.save
-        @contact.reload
-        @contact.status.should == :student
+        expect do
+          contact.local_status_for_accname = :student
+          contact.save
+          contact.reload
+        end.to change{contact.status}.to :student
       end
       example "account where it is student should own it" do
-        @contact.owner.should == @new_acc
+        expect(contact.owner).to eq new_account
+      end
+      it "should be linked to the owner" do
+        expect(contact.accounts).to include new_account
       end
     end
   end

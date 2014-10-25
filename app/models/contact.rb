@@ -90,17 +90,18 @@ class Contact
   # This relationship is defined in the contact only to avoid storing
   # all linked contact_ids in the account document
   has_and_belongs_to_many :accounts
+  alias_method :linked_accounts, :accounts
 
   belongs_to :owner, :class_name => "Account"
 
   attr_accessor :skip_assign_owner
-  before_validation :assign_owner, unless: :skip_assign_owner
+  after_save :assign_owner, unless: :skip_assign_owner
+  before_save :ensure_linked_to_owner
 
   field :global_teacher_username, type: String
   before_validation :set_global_teacher
 
   references_and_referenced_in_many :lists
-  before_save :update_lists
 
   references_and_referenced_in_many :tags
 
@@ -335,11 +336,6 @@ class Contact
     account.unlink(self)
   end
 
-  # @return [Array<Account>]
-  def linked_accounts
-    @linked_accounts ||= self.lists.map(&:account).uniq
-  end
-
   # @see Account#linked_to?
   def linked_to?(account)
     account.in?(self.linked_accounts)
@@ -544,31 +540,39 @@ class Contact
   protected
 
   def assign_owner
-    case self.status
+    old_owner_id = self.owner_id
+
+    new_owner = case self.status
       when :student
-        self.owner = self.local_statuses.where(value: :student).first.try :account
+        self.local_statuses.where(value: :student).first.try :account
       when :former_student
-        unless owner.present?
-          self.owner = self.local_statuses.where(value: :former_student).first.try :account
+        if self.owner.nil?
+          self.local_statuses
+              .where(value: :former_student).first.try :account
         end
       else
-        unless self.owner.present?
-          self.owner = lists.first.account unless lists.empty?
+        if self.owner.nil?
+          self.accounts.first
         end
     end
 
-    # Callbacks arent called when mass-assigning nested models.
-    # Iterate over the contact_attributes and set the owner.
-    # TODO cascade_callbacks should make this un-necessary
-    if self.owner.present?
-      contact_attributes.each { |att| att.account = owner unless att.account.present? }
+    if new_owner && new_owner.id != old_owner_id
+      self.owner = new_owner
+      self.skip_assign_owner = true
+      self.save
+      
+      # Callbacks arent called when mass-assigning nested models.
+      # Iterate over the contact_attributes and set the owner.
+      # TODO cascade_callbacks should make this un-necessary
+      contact_attributes.each do |att|
+        att.account = owner unless att.account.present?
+      end
     end
   end
 
-  def update_lists
-    # always include contacts in owner's base_list
-    if self.owner && !self.lists.map(&:account).include?(self.owner)
-      self.lists << self.owner.base_list
+  def ensure_linked_to_owner
+    if self.owner.present? && !self.owner.id.in?(self.account_ids)
+      self.account_ids << self.owner.id
     end
   end
 
@@ -594,7 +598,6 @@ class Contact
             public: true,
         )
         a.create(username: activity_username, account_name: activity_account)
-
       end
     end
   end

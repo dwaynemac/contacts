@@ -13,30 +13,16 @@ class Account
 
   validates :name, :presence => true, :uniqueness => true, :existance_on_padma => true
 
-  before_create :create_base_list
-
-  # @return [List] base_list
-  def base_list
-    bl = self.lists.find_or_initialize_by(name: self.name)
-    # find_or_create_by generated conflicts in some situations like: contact.rb:226
-    if bl.new?
-      bl.account = self
-      bl.save!
-    end
-    bl
-  end
-
   # All contacts included in a list of this account
   def contacts
-    Contact.where('$or' => [{list_ids: {'$in' => self.lists.map(&:_id)}}, {owner_id: self._id}])
+    Contact.where(account_ids: self._id)
   end
 
-  # Adds contact to base_list
+  # Links contact with account
   # @param contact [Contact]
   # @return [TrueClass]
   def link(contact)
     contact.accounts << self
-    contact.lists << self.base_list
     contact.owner = self if contact.owner.nil?
     contact.save
   end
@@ -54,13 +40,5 @@ class Account
 
   def linked_to?(contact)
     self._id.in?(contact.account_ids)
-  end
-
-  protected
-
-  def create_base_list
-    if lists.empty?
-      lists << List.create(:name => self.name)
-    end
   end
 end

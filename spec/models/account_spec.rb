@@ -21,59 +21,26 @@ describe Account do
       acc.should_not be_valid
   end
 
-  it "should create base list on creation" do
-    acc = Account.make_unsaved
-    acc.save
-    acc.reload.lists.should have_at_least(1).list
-  end
-
-  describe "#base_list" do
-    it "returns account's base list" do
-      a = Account.make
-      a.base_list.should be_a(List)
-      a.base_list.name.should == a.name
-    end
-    it "created base_list if it doesn't exist" do
-      a = Account.make
-      List.where(name: a.name).destroy
-      a.reload
-      a.base_list.should be_a List
-      a.base_list.name.should == a.name
-    end
-  end
-
-
   it { should have_many_related :owned_contacts }
   it "should NOT store linked contacts id" do
     expect(subject).not_to have_and_belong_to_many :contacts
   end
   describe "#contacts" do
     let(:account){ Account.make }
-    before do
-      list_a = List.make(account: account)
-      list_b = List.make(account: account)
-      @contact = Contact.make
-      account.base_list.contacts << @contact
-      3.times{ account.base_list.contacts << Contact.make }
-      3.times{ list_a.contacts << Contact.make }
-      list_b.contacts << Contact.make
-      list_a.save!
-      list_b.save!
-      account.reload
+    let!(:linked_contact){ Contact.make accounts: [account] }
+    let!(:owned_contact){ Contact.make owner: account }
+    let!(:owned_and_linked_contact){ Contact.make owner: account, accounts: [account] }
+    it "returns linked contacts" do
+      expect(account.contacts).to include linked_contact
     end
     it "returns a Mongoid::Criteria" do
-      account.contacts.should be_a Mongoid::Criteria
-    end
-    it "returns contacts from all account's lists" do
-      account.contacts.count.should == 8
+      expect(account.contacts).to be_a Mongoid::Criteria
     end
     it "returns owned contacts" do
-      Contact.make(owner: account)
-      account.contacts.count.should == 9
+      expect(account.contacts).to include owned_contact
     end
-    it "doesnt repeat contacts" do
-      account.lists.last.contacts << @contact
-      account.contacts.count.should == 8
+    it "wont duplicate" do
+      expect(account.contacts.count).to eq 3
     end
   end
 
@@ -94,11 +61,6 @@ describe Account do
       it "adds contact to Account#contacts" do
         account.link(new_contact)
         expect(account.contacts).to include new_contact
-      end
-      it "adds contact to account's base list" do
-        contact = Contact.make
-        account.link(contact)
-        contact.in?(account.base_list.contacts).should be_true
       end
     end
 

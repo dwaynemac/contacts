@@ -46,16 +46,17 @@ describe V0::ContactsController do
     end
 
     context "specifying valid account and list_name" do
+      let!(:account_a){ Account.make name: 'a' }
+      let!(:account_b){ Account.make name: 'b' }
+      let!(:list_a){ List.make account: account_a, name: 'a' }
+      let!(:list_b){ List.make account: account_b }
       before do
-        account_a = Account.make(:name => "a")
-        account_b = Account.make(:name => "b")
-
         3.times do
-          account_a.lists.first.contacts << Contact.make
+          list_a.contacts << Contact.make
         end
 
         @contact_b = Contact.make
-        account_b.lists.first.contacts << @contact_b
+        list_b.contacts << @contact_b
 
         l = List.make(:account => account_a )
         @contact_l = Contact.make
@@ -63,7 +64,7 @@ describe V0::ContactsController do
 
         get :index, {:account_name => "a", :list_name => "a", :app_key => V0::ApplicationController::APP_KEY}
       end
-      it { response.should be_success }
+      it { should respond_with 200 }
       it { assigns(:contacts).should_not be_nil }
       it "should return contacts of specified account and list" do
         assigns(:contacts).size.should == 3
@@ -624,18 +625,16 @@ describe V0::ContactsController do
         end
       end
       context "of an account without local_status" do
-        before do
-          account = Account.make
-          @contact.lists << account.lists.first
-          @contact.save
+        it "should create local status" do
+          account = Account.make name: 'theaccname'
+          account.link(@contact)
+          expect(@contact.local_status_for_theaccname).to be_nil
           put(:update, :app_key => V0::ApplicationController::APP_KEY,
               :id => @contact.id,
               :account_name => account.name,
               :contact => { :local_status => :student })
-        end
-        it "should create local status" do
           @contact.reload
-          @contact.local_statuses.count.should == 3
+          expect(@contact.local_status_for_theaccname).to eq :student
         end
       end
     end
@@ -712,8 +711,8 @@ describe V0::ContactsController do
       it "should set the owner if scoped to an account" do
         Contact.last.owner.should == @account
       end
-      it "should set the default list if scoped to an account" do
-        assigns(:contact).in?(@account.base_list.contacts).should be_true
+      it "should link contact to the account" do
+        expect(@account.contacts).to include assigns(:contact)
       end
     end
 

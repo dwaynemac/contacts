@@ -8,7 +8,7 @@ class V0::ContactsController < V0::ApplicationController
   include V0::Concerns::ContactsScope
 
   before_filter :set_list
-  before_filter :set_scope 
+  before_filter :set_scope, except: [:create]
   before_filter :refine_scope, only: [:index, :search]
   before_filter :convert_last_seen_at_to_time, only: [:update]
   before_filter :convert_local_attributes, only: [:create, :update]
@@ -213,7 +213,8 @@ class V0::ContactsController < V0::ApplicationController
 
     authorize! :create, Contact
 
-    @contact =  @scope.new(params[:contact])
+    @contact = Contact.new(params[:contact])
+    @contact.owner = @account if @account
 
     @contact.request_account_name = params[:account_name]
     @contact.request_username = params[:username]
@@ -292,7 +293,7 @@ class V0::ContactsController < V0::ApplicationController
   #   {message: 'Sorry, couldnt link contact', errors: [...]}
   def link
     @contact = Contact.find(params[:id])
-    if @account && @contact.link(@account)
+    if @account && @account.link(@contact)
       render :json => "OK"
     else
       render :json => {
@@ -372,8 +373,6 @@ class V0::ContactsController < V0::ApplicationController
     @scope = case action_name.to_sym
       when :index, :search, :search_for_select, :update
         @account.present?? (@list.present?? @list.contacts : @account.contacts ) : Contact
-      when :create
-        @account.present?? (@list.present?? @list.contacts : @account.owned_contacts) : Contact
       when :destroy, :destroy_multiple
         @account.present?? @account.contacts : Contact
       else
