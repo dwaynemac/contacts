@@ -188,8 +188,7 @@ describe V0::TagsController do
     describe "as a viewer/editor" do
       before do
         @another_account = Account.make
-        @another_account.lists.first.contacts << @contact
-        @another_account.save
+        @another_account.link @contact
       end
       it "should not delete the tag" do
         expect{delete :destroy,
