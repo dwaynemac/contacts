@@ -14,14 +14,11 @@ task :josue_to_anabella => :environment do
 end
 
 task :link_contacts_and_accounts => :environment do
-  Contact.all.each do |contact|
-    puts "linking contact #{contact.id}"
-    puts "pre: #{contact.account_ids}"
-    contact.account_ids = contact.lists.map do|l|
-      puts "with #{l.account_id}"
+  Contact.where(link_upgraded: nil).each do |contact|
+    cur_account_ids = contact.account_ids
+    contact.account_ids = cur_account_ids + contact.lists.map do|l|
       l.account_id
     end
-    puts "post: #{contact.account_ids}"
     contact.save(validate: false)
   end
 end
