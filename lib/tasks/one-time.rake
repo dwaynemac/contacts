@@ -11,5 +11,17 @@ task :josue_to_anabella => :environment do
     contact.local_teacher_for_palermo= new_user
     contact.save
   end
+end
 
+task :link_contacts_and_accounts => :environment do
+  Contact.all.each do |contact|
+    puts "linking contact #{contact.id}"
+    puts "pre: #{contact.account_ids}"
+    contact.account_ids = contact.lists.map do|l|
+      puts "with #{l.account_id}"
+      l.account_id
+    end
+    puts "post: #{contact.account_ids}"
+    contact.save(validate: false)
+  end
 end
