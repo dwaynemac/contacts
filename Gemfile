@@ -88,10 +88,12 @@ group :development, :test do
   gem 'libnotify', :require => false if RUBY_PLATFORM =~ /linux/i
 end
 
+# needed for rake ¿?
+gem "rspec-rails", "~> 2.14"
+gem 'mongoid-rspec', '1.4.4'
+  
 group :test do
-  gem "rspec-rails", "~> 2.14"
   gem "shoulda-matchers", :require => false
-  gem 'mongoid-rspec', '1.4.4'
   gem "machinist", '1.0.6'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
   gem 'faker', '0.9.4'
