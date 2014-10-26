@@ -9,15 +9,15 @@ describe Telephone do
 
   it { should validate_presence_of :value }
 
-  ["15 4099 5071", "4568-8754"].each do |v|
-    it { should_not allow_value(v).for(:value) }
-  end
-
-  ["47746357", "1234321", "12341234"].each do |v|
+  ["15 4099 5071", "4568-8754", "(11) 99999-9999"].each do |v|
     it { should allow_value(v).for(:value) }
   end
 
-  ["-165", "654."].each do |v|
+  ["47746357", "12343210", "12341234"].each do |v|
+    it { should allow_value(v).for(:value) }
+  end
+
+  ["-165", "654.", "123412341234123412341234123412341234123123123412341234123412341234123412341234123123"].each do |v|
     it { should_not allow_value(v).for(:value)}
   end
 
