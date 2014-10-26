@@ -7,6 +7,8 @@ class Account
 
   has_many :owned_contacts, :foreign_key => :owner_id, :class_name => "Contact"
 
+  has_and_belongs_to_many :contacts
+
   has_many :lists, :autosave => true
 
   has_many :tags, :autosave => true
