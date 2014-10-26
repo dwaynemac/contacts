@@ -19,6 +19,7 @@ task :link_contacts_and_accounts => :environment do
     contact.account_ids = cur_account_ids + contact.lists.map do|l|
       l.account_id
     end
+    contact.link_upgraded = true
     contact.save(validate: false)
   end
 end
