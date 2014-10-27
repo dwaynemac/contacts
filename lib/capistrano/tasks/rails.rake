@@ -14,9 +14,9 @@ namespace :rails do
   # - cap production rails:console[--sandbox]
   desc "Open the rails console on app host."
   task :console, [:console_options] do |t, args|
-    on roles(:worker), primary: true do |host|
+    on roles(:worker) do |host|
       rails_env = fetch(:stage)
-      execute_interactively "ruby #{current_path}/script/rails console #{rails_env} #{args[:console_options]}"  
+      execute_interactively "ruby #{current_path}/script/rails console #{rails_env} #{args[:console_options]}", host
     end
   end
 
@@ -31,7 +31,7 @@ namespace :rails do
   task :rake, [:task_name, :task_arguments, :rake_options] do |t, args|
     on roles(:app), primary: true do |host|
       rails_env = fetch(:stage)
-      execute_interactively "RAILS_ENV=#{rails_env} bundle exec rake #{args[:task_name]}[#{args[:task_arguments]}] #{args[:rake_options]}"
+      execute_interactively "RAILS_ENV=#{rails_env} bundle exec rake #{args[:task_name]}[#{args[:task_arguments]}] #{args[:rake_options]}", host
     end
   end
  
@@ -45,11 +45,12 @@ namespace :rails do
   task :dbconsole, [:console_options] do |t, args|
     on roles(:db), primary: true do |host|
       rails_env = fetch(:stage)
-      execute_interactively "ruby #{current_path}/script/rails dbconsole #{rails_env} #{args[:console_options]}"  
+      execute_interactively "ruby #{current_path}/script/rails dbconsole #{rails_env} #{args[:console_options]}", host
     end
   end
  
-  def execute_interactively(command)
-    exec "ssh #{fetch(:user)}@#{fetch(:domain)} -i #{fetch(:key_path)} -t 'cd #{current_path} && #{command}'"
+  def execute_interactively(command,host=nil)
+    host = fetch(:domain) if host.nil?
+    exec "ssh #{fetch(:user)}@#{host} -i #{fetch(:key_path)} -t 'cd #{current_path} && #{command}'"
   end
 end
