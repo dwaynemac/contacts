@@ -93,7 +93,7 @@ describe V0::ContactsController do
         account = Account.make
 
         @first_name = Contact.make(first_name: "dwayne")
-        @first_name.contact_attributes << Telephone.new(account_id: account._id, value: "1234")
+        @first_name.contact_attributes << Telephone.new(account_id: account._id, value: "12341234")
         @first_name.save
 
         @email = Contact.make(last_name: "mac")
@@ -253,7 +253,7 @@ describe V0::ContactsController do
   describe "#show" do
     before(:each) do
       @contact = Contact.first
-      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
+      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "12343210")
       @contact.contact_attributes << Email.make(:account => Account.make, :public => true)
       @contact.contact_attributes << Address.make(:account => Account.make, :public => false)
 

@@ -16,7 +16,7 @@ describe ContactSerializer do
       end
       describe "#serialize" do
         it "includes all contact_attributes" do
-          contact.contact_attributes << Telephone.new( value: 1234 , account: account)
+          contact.contact_attributes << Telephone.new( value: '12341234' , account: account)
           contact.save!
           contact.reload.contact_attributes.count.should == 1
           serializer.serialize['contact_attributes'].count.should == 1

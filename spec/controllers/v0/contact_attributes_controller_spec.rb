@@ -6,7 +6,7 @@ describe V0::ContactAttributesController do
 
   before do
     @contact = Contact.make(owner: Account.make)
-    @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
+    @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "12343210")
     @contact.save
     @contact.reload
   end
@@ -48,7 +48,7 @@ describe V0::ContactAttributesController do
   describe "#update" do
     context "with app_key" do
       before do
-        @new_value = "5432154"
+        @new_value = "54321541"
         put :update, :account_name => @contact.owner_name, :contact_id => @contact.id,
             :id => @contact.contact_attributes.first.id, :contact_attribute => {:value => @new_value},
             :app_key => V0::ApplicationController::APP_KEY
@@ -75,7 +75,7 @@ describe V0::ContactAttributesController do
     context "called by contact owner" do
       context "sending :category, :value" do
         before do
-          @telephone = "5432154"
+          @telephone = "54321541"
           post :create, :account_name => @contact.owner.name, :contact_id => @contact.id,
                :contact_attribute => {:category => :home, :value => @telephone, '_type' => "Telephone"},
                :app_key => V0::ApplicationController::APP_KEY
@@ -113,7 +113,7 @@ describe V0::ContactAttributesController do
     context "called by un-linked account" do
       let(:other_account){Account.make}
       before do
-        @telephone = "5432154"
+        @telephone = "54321541"
         post :create, :account_name => other_account.name, :contact_id => @contact.id,
              :contact_attribute => {
                 :category => :home,
@@ -128,7 +128,7 @@ describe V0::ContactAttributesController do
       let(:other_account){Account.make}
       before do
         other_account.link(@contact)
-        @telephone = "5432154"
+        @telephone = "54321541"
         post :create, :account_name => other_account.name, :contact_id => @contact.id,
              :contact_attribute => {
                 :category => :home,
