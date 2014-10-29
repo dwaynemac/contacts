@@ -55,7 +55,6 @@ class Import
             unless contact.valid?
               contact = fix_errors(contact)
             end
-
             if contact.valid?
               if contact.save
                 create_tags(contact,row)
@@ -78,7 +77,6 @@ class Import
       Rails.logger.warn e.message
       self.update_attribute(:status, :failed)
     end
-
   end
   handle_asynchronously :process_CSV
 
@@ -158,16 +156,12 @@ class Import
     category = att[:category]
 
     # needs to be casted to integer
-    if %w(telephone).include? type
-      value = cast_to_integer(value)
-    end
+    # if %w(telephone).include? type
+    #   value = cast_to_integer(value)
+    # end
 
     args = {value: value, category: category, account_id: self.account.id}
-
-    # needs to be allowed as duplicate
-    if (type == 'telephone' && category == 'mobile') || (type == 'email')
-      args[:allow_duplicate] = true
-    end
+    args[:allow_duplicate] = true
 
     @contact.contact_attributes << type.camelize.singularize.constantize.new(args)
   end
@@ -556,29 +550,26 @@ class Import
         contact_attribute_errors = error_messages[:contact_attributes].join(" ")
         # if email format is not valid
         if contact_attribute_errors =~ /email/
-          contact.custom_attributes << CustomAttribute.new(name: 'rescued_email_from_import',
-                                                              value: contact.emails.first.value)
+          contact.contact_attributes << CustomAttribute.new(name: 'rescued_email_from_import',
+                                                              value: contact.emails.first.value,
+                                                              account_id: self.account.id)
           contact.emails.first.destroy
         end
 
         # if telephone is not correct
-        if characters = (contact_attribute_errors =~ /is not a number/)
-          # get the value
-          tel = error_messages[:contact_attributes].join(" ").first(characters - 1)
-          contact.custom_attributes << CustomAttribute.new(name: 'rescued_phone_from_import',
-                                                            value: tel)
-          contact.telephones.where(value: tel).destroy
-        end
-
-        # if telephone is set as 0
-        if contact_attribute_errors =~ /must be greater than 0/
-          contact.telephones.where(value: 0).destroy
+        if characters = (contact_attribute_errors =~ /phone/)
+          contact.telephones.each do |tel|
+            if !tel.valid?
+              contact.telephones.where(value: tel.value).first.destroy
+              contact.contact_attributes << CustomAttribute.new(contact_id: contact.id, name: 'rescued_phone_from_import', value: tel.value, account_id: self.account.id)
+            end
+          end
+          
         end
       end
       unless error_messages[:gender].nil?
         contact.gender = convert_gender(contact.gender)
       end
-      
       return contact
     end
 

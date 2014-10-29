@@ -149,10 +149,12 @@ describe Import do
           cont = Contact.where(kshema_id: "50013").first
           cont.should_not be_nil
           cont.emails.count.should == 0
+          cont.telephones.count.should == 1
           cont.level.should be_nil
           cont.birthday.should be_nil
           cont.estimated_age.should be_nil
           cont.status.should == :prospect
+          cont.custom_attributes.where(name: "rescued_phone_from_import", value: "telefono errado").count.should == 1
         end
       end
       context "if contact has duplicate email" do
