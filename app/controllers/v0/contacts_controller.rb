@@ -140,7 +140,9 @@ class V0::ContactsController < V0::ApplicationController
   # @response_field [String] first_name
   # @response_field [String] last_name
   def show
-    @contact = @scope.find(params[:id])
+    measure 'find_contact.show.contacts_controller' do
+      @contact = @scope.find(params[:id])
+    end
     as_json_params = {
       select: params[:select],
       account: @account,
@@ -155,7 +157,11 @@ class V0::ContactsController < V0::ApplicationController
       as_json_params[:mode] = 'select'
     end
 
-    render :json => @contact.as_json(as_json_params)
+    json = nil
+    measure 'to_json.show.contacts_controller' do
+      json = @contact.as_json(as_json_params)
+    end
+    render json: json
   end
 
   ##
