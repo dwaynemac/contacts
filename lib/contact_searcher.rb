@@ -57,15 +57,20 @@ class ContactSearcher
             andit(aux) unless aux.nil?
           when 'local_status', 'coefficient', 'local_teacher'
             if account_id.present?
-              andit({
-                  :local_unique_attributes => {'$elemMatch' => {_type: k.to_s.camelcase,
-                                                                value: {'$in' => v.to_a},
-                                                                account_id: account_id}}
-              })
+              unless k == 'coefficient' && v.select{|coef| coef =! ''}.size == Coefficient::VALID_LEVELS.size
+                andit({
+                    :local_unique_attributes => {'$elemMatch' => {_type: k.to_s.camelcase,
+                                                                  value: {'$in' => v.to_a},
+                                                                  account_id: account_id}}
+                })
+              end
             end
           when 'level' # convert level name to level number
             if v.is_a? Array
-              andit({:level => { '$in' => v.map {|lvl| Contact::VALID_LEVELS[lvl]} }})
+              # ignore filter if all levels are considered
+              unless v.select{|lvl| lvl != ''}.size == Contact::VALID_LEVELS.size
+                andit({:level => { '$in' => v.map {|lvl| Contact::VALID_LEVELS[lvl]} }})
+              end
             else
               andit({:level => Contact::VALID_LEVELS[v]})
             end
