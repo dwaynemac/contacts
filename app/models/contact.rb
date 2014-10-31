@@ -338,7 +338,7 @@ class Contact
 
   # @see Account#linked_to?
   def linked_to?(account)
-    account.in?(self.linked_accounts)
+    account.id.in?(self.account_ids)
   end
 
   def owner_name
