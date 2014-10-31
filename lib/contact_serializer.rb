@@ -123,7 +123,9 @@ class ContactSerializer
         @json['tags'] = @contact.tags.where(account_id: @account.id).as_json if serialize?(:tags)
 
         %W(local_status coefficient local_teacher observation last_seen_at).each do |local_attribute|
-          @json[local_attribute] = @contact.send("#{local_attribute}_for_#{@account.name}").try(:to_s) if serialize?(local_attribute.to_sym)
+          if serialize?(local_attribute)
+            @json[local_attribute] = @contact.local_value_for_account(local_attribute,@account.id).try(:to_s)
+          end
         end
         
         unless except?(:except_linked)
@@ -176,7 +178,7 @@ class ContactSerializer
     if @mode == 'all'
       true
     else
-      attribute.in?(@select)
+      attribute.to_sym.in?(@select)
     end
   end
 
