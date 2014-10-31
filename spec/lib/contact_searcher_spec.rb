@@ -49,7 +49,7 @@ describe ContactSearcher do
       let(:selector){{:email => "dwa", :first_name => "Ale"}}
       it "should be analog to .where(contact_attributes: { '$elemMatch' => { '_type' => 'Email', 'value' => /dwa/}}).where('first_name' => /Ale/)" do
         searcher.api_where(selector).selector.should == {
-          :first_name =>/Ale/i,
+          'first_name' =>/Ale/i,
           :contact_attributes=>{"$elemMatch"=>{"_type"=>"Email", "value"=>/dwa/i}}
         }
       end
@@ -67,7 +67,7 @@ describe ContactSearcher do
     context "status: 'student'" do
       let(:sel){{status: 'student'}}
       it "should not set a regex" do
-        searcher.api_where(sel).selector.should == {status: :student}
+        searcher.api_where(sel).selector.should == { 'status' => :student}
       end
     end
     
@@ -101,7 +101,7 @@ describe ContactSearcher do
     end
     
     context " - coefficient - " do
-      let(:account){Account.make}
+      let!(:account){Account.make(name: 'belgrano')}
       context "{coefficient: 'perfil'}, account" do
         it "should return local_unique_attribute criteria" do
           account = Account.make
@@ -113,31 +113,36 @@ describe ContactSearcher do
           }
         end
       end
+      context "{coefficient_for_belgrano: 'perfil'}" do
+        it "should return local_unique_attribute criteria" do
+          searcher.api_where({coefficient_for_belgrano: 'perfil'}).selector.should == {
+            local_unique_attributes: {
+              '$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['perfil']}, account_id: account.id}
+            }
+          }
+        end
+      end
 
       context "{coefficient: ['','unknown','fp','pmenos','pmas','perfil'], account" do
         let(:query){{coefficient: ['','unknown','fp','pmenos','pmas','perfil']}}
         it "should ignore criteria" do
           searcher.account_id = account.id
-          expect(searcher.api_where(query).selector).not_to eq( {
-              local_unique_attributes: {
-                '$elemMatch' => {_type: 'Coefficient',
-                                 value: {'$in' => ['perfil','pmas']},
-                                 account_id: account.id}
-              }
-          })
+          expect(searcher.api_where(query).selector).to eq( {} )
         end
       end
+
       context "{coefficient: ['unknown','fp','pmenos','pmas','perfil'], account" do
         let(:query){{coefficient: ['unknown','fp','pmenos','pmas','perfil']}}
         it "should ignore criteria" do
           searcher.account_id = account.id
-          expect(searcher.api_where(query).selector).not_to eq( {
-              local_unique_attributes: {
-                '$elemMatch' => {_type: 'Coefficient',
-                                 value: {'$in' => ['perfil','pmas']},
-                                 account_id: account.id}
-              }
-          })
+          expect(searcher.api_where(query).selector).to eq({})
+        end
+      end
+
+      context "{coefficient_for_belgrano: ['unknown','fp','pmenos','pmas','perfil']" do
+        let(:query){{coefficient_for_belgrano: ['unknown','fp','pmenos','pmas','perfil']}}
+        it "should ignore criteria" do
+          expect(searcher.api_where(query).selector).to eq( {} )
         end
       end
 
@@ -156,22 +161,18 @@ describe ContactSearcher do
       end
 
       context "{coefficient_for_belgrano: 'pmas'}" do
-        before do
-          @account = Account.make(name: 'belgrano')
-        end
-
         it "should return local_unique_attribute criteria inside $and if there are other criterias" do
           searcher.api_where({email: 'asdf', coefficient_for_belgrano: 'pmas'}).selector.should == {
             '$and' => [
               {contact_attributes: {'$elemMatch' => {'_type' => 'Email', 'value' => /asdf/i}}},
-              {local_unique_attributes: {'$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: @account.id}}}
+              {local_unique_attributes: {'$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: account.id}}}
             ]
           }
         end
 
         it "should return local_unique_attribute criteria if there are no other criterias" do
           searcher.api_where({coefficient_for_belgrano: 'pmas'}).selector.should == {local_unique_attributes: {
-              '$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: @account.id}
+              '$elemMatch' => {_type: 'Coefficient', value: {'$in' => ['pmas']}, account_id: account.id}
             }
           }
         end
