@@ -1,8 +1,8 @@
 # @restful_api v0
 class V0::ContactAttributesController < V0::ApplicationController
 
-  before_filter :get_contact, except: [:custom_keys]
-  before_filter :set_scope, except: [:custom_keys]
+  before_filter :get_contact, except: [:custom_keys, :create_from_kshema]
+  before_filter :set_scope, except: [:custom_keys, :create_from_kshema]
 
   ##
   # Returns names of CustomAttributes
@@ -153,6 +153,44 @@ class V0::ContactAttributesController < V0::ApplicationController
       end
     end
     render :json => "OK"
+  end
+
+  ##
+  # Updates specified values of a contact
+  #
+  # @url /v0/contact_attribute_attributes 
+  # @action POST
+  #
+  # @required [String] kshema_id contact kshema id
+  # @optional [String] account_name scopes account
+  # @required [hash] contact contact attributes
+  #
+  # @example_response == Successfull
+  #   "OK"
+  #
+  # @example_response == Failed (status: 400)
+  #   {
+  #     message: 'Sorry, contact not updated',
+  #     errors: [ email: 'is invalid' ]
+  #   }
+  def create_from_kshema
+    authorize! :create, ContactAttribute
+    contact = Contact.where(kshema_id: params[:kshema_id]).first
+    
+    if !contact.nil?
+      @contact_attribute = contact.contact_attributes.new(params[:contact_attribute])
+      @contact_attribute._type = params[:contact_attribute][:_type]
+      @contact_attribute.account = @account
+      
+      if @contact_attribute.save
+        contact.index_keywords!
+        render :json => { :id => @contact_attribute.id, :primary => @contact_attribute.primary }.to_json, :status => :created
+      else
+        render :json => { :message => "Sorry, contact attribute not created",
+         :error_codes => [],
+         :errors => contact.deep_error_messages }.to_json, :status => 400
+      end
+    end
   end
 
   private
