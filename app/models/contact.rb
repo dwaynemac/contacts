@@ -35,6 +35,9 @@ class Contact
 
   after_create :post_activity_of_creation
 
+  # TEMPORARY FOR DB UPDATE
+  field :link_upgraded
+
   field :first_name
   field :last_name
 
@@ -86,9 +89,6 @@ class Contact
 
   # accounts that have access to this contact.
   # These are the accounts the contact is 'linked' to.
-  #
-  # This relationship is defined in the contact only to avoid storing
-  # all linked contact_ids in the account document
   has_and_belongs_to_many :accounts, dependent: :nullify
   alias_method :linked_accounts, :accounts
 
@@ -216,6 +216,14 @@ class Contact
     ls
   end
 
+  # @return LocalUniqueAttribute.value 
+  def local_value_for_account(attr_name,account_id)
+    return self.local_unique_attributes
+               .where(account_id: account_id, '_type' => attr_name.camelcase)
+               .first
+               .try :value
+  end
+
   # @method xxx_for_yyy=(value)
   # @param value
   # Sets xxx local_unique_attribute on account_id yyy with value :value
@@ -237,7 +245,7 @@ class Contact
       if a.nil?
         return nil
       else
-        return self.local_unique_attributes.where(:account_id => a._id, '_type' => attr_name.camelcase).first.try :value
+        return local_value_for_account(attr_name,a._id)
       end
     # local_unique_attribute setter for an account_name
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
@@ -338,7 +346,7 @@ class Contact
 
   # @see Account#linked_to?
   def linked_to?(account)
-    account.in?(self.linked_accounts)
+    account.id.in?(self.account_ids)
   end
 
   def owner_name

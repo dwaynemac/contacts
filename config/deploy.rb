@@ -68,3 +68,10 @@ task :ssh_line do
   puts "worker"
   puts "ssh #{fetch(:user)}@#{fetch(:worker_host)} -i #{fetch(:key_path)}"
 end
+
+task :open_ssh, [:role] do |t, args|
+  args[:role] = :worker if args[:role].nil?
+  on roles(args[:role]) do |host|
+    exec "ssh #{fetch(:user)}@#{host} -i #{fetch(:key_path)}"
+  end
+end
