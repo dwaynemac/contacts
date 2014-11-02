@@ -372,66 +372,67 @@ class Contact
   # Returns contacts that are similar to this one.
   # @return [Array<Contact>]
   def similar
-    contacts = Contact.all
+    ActiveSupport::Notifications.instrument("get_similar_contacts") do
+      contacts = Contact.all
 
-    if self.last_name.blank?
-      unless self.first_name.blank?
-        self.first_name.split.each do |first_name|
-          contacts = contacts.any_of(:normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+      if self.last_name.blank?
+        unless self.first_name.blank?
+          self.first_name.split.each do |first_name|
+            contacts = contacts.any_of(:normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+          end
+        end
+      else
+        self.last_name.split.each do |last_name|
+          self.first_name.split.each do |first_name|
+            contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
+                                       :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+          end
         end
       end
-    else
-      self.last_name.split.each do |last_name|
-        self.first_name.split.each do |first_name|
-          contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
-                                     :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+
+      if self.new?
+        self.emails.map(&:value).each do |email|
+          contacts = contacts.any_of(contact_attributes: { '$elemMatch' => {
+                                                          '_type' => 'Email',
+                                                          'value' => email,
+          }})
+        end
+
+        self.mobiles.map(&:value).each do |mobile|
+          contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+            '_type' => 'Telephone',
+            'category' => /mobile/i,
+            'value' => mobile
+          }})
+        end
+
+        self.identifications.each do |identification|
+          contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+              _type: 'Identification',
+              category: identification.category,
+              value: identification.get_normalized_value
+          }})
         end
       end
-    end
 
-    if self.new?
-      self.emails.map(&:value).each do |email|
-        contacts = contacts.any_of(contact_attributes: { '$elemMatch' => {
-                                                        '_type' => 'Email',
-                                                        'value' => email,
-        }})
+      if self.id.present?
+        contacts = contacts.excludes(:id => self.id)
       end
 
-      self.mobiles.map(&:value).each do |mobile|
-        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
-          '_type' => 'Telephone',
-          'category' => /mobile/i,
-          'value' => mobile
-        }})
-      end
+      contacts = contacts.to_a
 
-      self.identifications.each do |identification|
-        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
-            _type: 'Identification',
-            category: identification.category,
-            value: identification.get_normalized_value
-        }})
-      end
-    end
-
-    if self.id.present?
-      contacts = contacts.excludes(:id => self.id)
-    end
-
-    contacts = contacts.to_a
-
-    contacts.delete_if do |c|
-      not_similar = false
-      c.identifications.each do |id|
-        if self.identifications.where(:category => id.category).select{ |id_v|
-            id_v.get_normalized_value != id.get_normalized_value
-          }.length > 0
-          not_similar = true
+      contacts.delete_if do |c|
+        not_similar = false
+        c.identifications.each do |id|
+          if self.identifications.where(:category => id.category).select{ |id_v|
+              id_v.get_normalized_value != id.get_normalized_value
+            }.length > 0
+            not_similar = true
+          end
         end
+        not_similar
       end
-      not_similar
     end
-
   end
 
   def check_duplicates= value
