@@ -17,6 +17,7 @@ class Contact
 
   embeds_many :accounts_views, cascade_callbaks: true
 
+## ==== REMOVE THIS BLOCK AFTER DATA MIGRATION 
   embeds_many :attachments, cascade_callbacks: true
   accepts_nested_attributes_for :attachments, allow_destroy: true
 
@@ -27,6 +28,7 @@ class Contact
   embeds_many :local_unique_attributes, validate: true, cascade_callbacks: true
   validates_associated :local_unique_attributes
   accepts_nested_attributes_for :local_unique_attributes, allow_destroy: true
+## ==== end block
 
   has_many :history_entries, as: 'historiable', dependent: :delete
   after_save :keep_history_of_changes
@@ -36,9 +38,6 @@ class Contact
   attr_accessor :skip_level_change_activity # default: nil
 
   after_create :post_activity_of_creation
-
-  # TEMPORARY FOR DB UPDATE
-  field :link_upgraded
 
   field :first_name
   field :last_name
