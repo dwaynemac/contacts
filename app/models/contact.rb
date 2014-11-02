@@ -13,7 +13,9 @@ class Contact
   include Mongoid::Timestamps
 
   include Mongoid::Search
-  search_in :first_name, :last_name, {:contact_attributes => :value }, {:tags => :name} , {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
+  search_in :first_name, :last_name, {accounts_views: {:contact_attributes => :value }}, {:tags => :name} , {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
+
+  embeds_many :accounts_views, cascade_callbaks: true
 
   embeds_many :attachments, cascade_callbacks: true
   accepts_nested_attributes_for :attachments, allow_destroy: true
@@ -143,27 +145,6 @@ class Contact
     write_attribute(:level, VALID_LEVELS[s])
   end
 
-  # defines Contact#emails/telephones/addresses/custom_attributes/etc
-  # they all return a Criteria scoping to according _type
-  %W(email telephone address custom_attribute date_attribute identification contact_attachment social_network_id).each do |k|
-    delegate k.pluralize, to: :contact_attributes
-  end
-
-  # @return [Array<Telephone>] mobile telephones embedded in this contact
-  def mobiles
-    self.contact_attributes.telephones.mobiles
-  end
-
-  def birthday
-    self.date_attributes.where(category: 'birthday').first
-  end
-
-  # defines Contact#coefficients/...
-  # they all return a Criteria scoping to according _type
-  %W(coefficient local_status local_teacher observation last_seen_at).each do |lua|
-    delegate lua.pluralize, to: :local_unique_attributes
-  end
-
   def tag_ids_for_request_account
     account = self.request_account
     if account.nil?
@@ -206,22 +187,22 @@ class Contact
   # @return [LocalStatus]
   def local_status=(options)
     return unless options.is_a?(Hash)
-    ls = self.local_statuses.where(:account_id => options[:account_id]).first
-    if ls.nil?
-      ls = LocalStatus.new(account_id: options[:account_id], value: options[:status])
-      self.local_unique_attributes << ls
+    av = self.accounts_views.where(account_id: options[:account_id]).first
+    if av.nil?
+      av = self.accounts_views.new(account_id: options[:account_id])
+      av.status = options[:status]
     else
-      ls.status = options[:status]
+      av.status = options[:status]
     end
-    ls
+    av.value
   end
 
   # @return LocalUniqueAttribute.value 
   def local_value_for_account(attr_name,account_id)
-    return self.local_unique_attributes
-               .where(account_id: account_id, '_type' => attr_name.camelcase)
+    return self.accounts_views
+               .where(account_id: account_id)
                .first
-               .try :value
+               .try attr_name
   end
 
   # @method xxx_for_yyy=(value)
@@ -263,12 +244,11 @@ class Contact
       if a.nil?
         raise 'account_id not found'
       else
-        lua = self.local_unique_attributes.where(:account_id => a._id, '_type' => attr_name.camelcase).first
-        if lua.nil?
-          self.local_unique_attributes << attr_name.camelcase.constantize.new(account: a, value: arguments.first)
-        else
-          lua.value = arguments.first
+        av = self.accounts_views.where(account_id: a._id)
+        if av.nil?
+          av = self.accounts_views.new(account_id: a._id)
         end
+        av.send("#{attr_name}=",arguments.first)
         return
       end
     else
@@ -285,7 +265,7 @@ class Contact
   end
 
   def coefficients_counts
-    Coefficient::VALID_VALUES.map{ |vv| {vv => self.coefficients.where(value: vv).count} }.inject(:merge)
+    Coefficient::VALID_VALUES.map{ |vv| {vv => self.accounts_views.were(coefficient: vv).count} }.inject(:merge)
   end
 
   # If account_id is specified some addtional attributes are added:
@@ -320,18 +300,16 @@ class Contact
   end
 
   def primary_attribute(account, type)
-    pa = self.contact_attributes.where({
-      account_id: account.id,
-      _type: type,
-      primary: true
-    }).first
+    self.accounts_views.where(account_id: account._id).first.primary_attribute(type)
   end
 
   def global_primary_attribute(type)
-    pa = self.contact_attributes.where({
-      _type: type,
-      primary: true
-    }).last
+    self.accounts_views.map do |av|
+      av.contact_attributes.where({
+        _type: type,
+        primary: true
+      }).last
+    end.flatten
   end
 
   # @see Account#link
@@ -391,23 +369,27 @@ class Contact
       end
 
       if self.new?
-        self.emails.map(&:value).each do |email|
-          contacts = contacts.any_of(contact_attributes: { '$elemMatch' => {
-                                                          '_type' => 'Email',
-                                                          'value' => email,
-          }})
+        self.accounts_views.map{|av| av.emails.map(&:value)}.flatten.each do |email|
+          contacts = contacts.any_of(accounts_views: { 
+                                       contact_attributes: {
+                                         '$elemMatch' => {
+                                           '_type' => 'Email',
+                                           'value' => email
+                                         }
+                                       }
+          })
         end
 
-        self.mobiles.map(&:value).each do |mobile|
-          contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+        self.accounts_views.map{|av| av.mobiles.map(&:value)}.flatten.each do |mobile|
+          contacts = contacts.any_of(accounts_views: { contact_attributes: {'$elemMatch' => {
             '_type' => 'Telephone',
             'category' => /mobile/i,
             'value' => mobile
-          }})
+          }}})
         end
 
-        self.identifications.each do |identification|
-          contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+        self.accounts_views.map{|av| av.identifications }.flatten.each do |identification|
+          contacts = contacts.any_of(accounts_views: {contact_attributes: {'$elemMatch' => {
               _type: 'Identification',
               category: identification.category,
               value: identification.get_normalized_value
@@ -421,6 +403,7 @@ class Contact
 
       contacts = contacts.to_a
 
+      # TODO migrate to AccountsView paradigm
       contacts.delete_if do |c|
         not_similar = false
         c.identifications.each do |id|
@@ -480,7 +463,7 @@ class Contact
   end
 
   def self.with_custom_attributes
-    self.where( contact_attributes: { '$elemMatch' => { _type: 'CustomAttribute'}})
+    self.where( accounts_views: { contact_attributes: { '$elemMatch' => { _type: 'CustomAttribute'}}})
   end
 
   def attribute_value_at(attribute,ref_date)
@@ -528,7 +511,7 @@ class Contact
   end
 
   def set_status
-    distinct_statuses = local_statuses.distinct(:value).compact.map(&:to_sym)
+    distinct_statuses = self.accounts_views.distinct(:status).compact.map(&:to_sym)
     # order of VALID_STATUSES is important
     VALID_STATUSES.each do |s|
       if distinct_statuses.include?(s)
@@ -540,9 +523,9 @@ class Contact
 
   def set_global_teacher
     return if self.owner.nil?
-    teacher_in_owner_accounts = self.local_teachers.for_account(self.owner.id).first
-    if !teacher_in_owner_accounts.nil? && (teacher_in_owner_accounts.teacher_username != self.global_teacher_username)
-      self.global_teacher_username= teacher_in_owner_accounts.teacher_username
+    teacher_in_owner_account = self.accounts_views.where(account_ids: self.owner.id).first.try(:teacher)
+    if !teacher_in_owner_account.nil? && (teacher_in_owner_account != self.global_teacher_username)
+      self.global_teacher_username= teacher_in_owner_account
     end
   end
 
@@ -553,11 +536,11 @@ class Contact
 
     new_owner = case self.status
       when :student
-        self.local_statuses.where(value: :student).first.try :account
+        self.accounts_views.where(status: :student).first.try :account
       when :former_student
         if self.owner.nil?
-          self.local_statuses
-              .where(value: :former_student).first.try :account
+          self.accounts_views
+              .where(status: :former_student).first.try :account
         end
       else
         if self.owner.nil?
@@ -569,13 +552,6 @@ class Contact
       self.owner = new_owner
       self.skip_assign_owner = true
       self.save
-      
-      # Callbacks arent called when mass-assigning nested models.
-      # Iterate over the contact_attributes and set the owner.
-      # TODO cascade_callbacks should make this un-necessary
-      contact_attributes.each do |att|
-        att.account = owner unless att.account.present?
-      end
     end
   end
 
