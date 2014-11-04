@@ -3,6 +3,13 @@ require 'spec_helper'
 
 describe Tag do
 
+  describe "#account_name" do
+    let(:tag){Tag.make}
+    it "returns tag.account.name" do
+      expect(tag.account_name).to eq tag.account.name
+    end
+  end
+
   context "removing all tags with no contacts associated" do
     before do
       @first_account = Account.make()
