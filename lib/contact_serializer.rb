@@ -117,7 +117,9 @@ class ContactSerializer
       ActiveSupport::Notifications.instrument('account_attributes.build_hash.as_json.contact') do
       if @account
         if serialize?(:contact_attributes)
-          @json['contact_attributes'] = @contact.contact_attributes.for_account(@account, {include_masked: @include_masked}).as_json
+          @json['contact_attributes'] = @contact.contact_attributes
+                                                .for_account(@account, {include_masked: @include_masked})
+                                                .as_json
         end
         
         @json['tags'] = @contact.tags.where(account_id: @account.id).as_json if serialize?(:tags)
