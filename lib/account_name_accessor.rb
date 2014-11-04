@@ -14,7 +14,7 @@ module AccountNameAccessor
       @account_name = Rails.cache.read(['account_name_by_id',self.account_id])
       if @account_name.nil?
         @account_name = self.account.try(:name)
-        Rails.cache.write(['account_name_for_id',self.account_id],@account_name)
+        Rails.cache.write(['account_name_by_id',self.account_id],@account_name)
       end
     end
     return @account_name
