@@ -116,7 +116,7 @@ class ContactSerializer
 
       ActiveSupport::Notifications.instrument('account_attributes.build_hash.as_json.contact') do
       if @account
-        if serialize?(:contact_attributes)
+        if serialize?(:contact_attributes) || serialize?(:date_attribute)
           @json['contact_attributes'] = @contact.contact_attributes
                                                 .for_account(@account, {include_masked: @include_masked})
                                                 .as_json
