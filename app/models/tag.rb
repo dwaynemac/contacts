@@ -1,6 +1,8 @@
 class Tag
   include Mongoid::Document
 
+  include AccountNameAccessor
+
   field :name
   belongs_to :account
   references_and_referenced_in_many :contacts
@@ -18,10 +20,6 @@ class Tag
   def as_json(options = nil)
     options = {} if options.nil?
     json = super options.merge({except: :account_id, methods: [:account_name]})
-  end
-
-  def account_name
-    account.try :name
   end
 
   class << self
