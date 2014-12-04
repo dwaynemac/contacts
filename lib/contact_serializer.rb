@@ -142,6 +142,12 @@ class ContactSerializer
           end
         end
 
+        if serialize?(:attachments)
+          @json['attachments'] = @contact.attachments
+                                          .for_account(@account)
+                                          .as_json
+        end
+
         if serialize?(:email)
           email = @contact.primary_attribute(@account, 'Email')
           @json['email'] = email.value unless email.nil?
