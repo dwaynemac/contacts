@@ -3,5 +3,6 @@ class Address < ContactAttribute
   field :postal_code
   field :city
   field :state
+  field :neighborhood
   field :country
 end
