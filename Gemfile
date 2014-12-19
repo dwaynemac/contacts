@@ -4,7 +4,7 @@ ruby '1.9.3'
 gem 'rails', '~> 3.1.0'
 
 gem 'unicorn'
-gem "mongoid", "~> 2.3.0"
+gem "mongoid", "2.3.3"
 gem 'bson', '= 1.4.0'
 gem "bson_ext", "= 1.4.0"
 gem 'mongoid_search'
