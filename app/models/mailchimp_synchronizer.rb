@@ -35,6 +35,7 @@ class MailchimpSynchronizer
   end
   
   def unsubscribe_contacts (querys = [])
+    update_attribute(:status, :working)
     set_api
     
     if !querys.empty?
@@ -52,6 +53,7 @@ class MailchimpSynchronizer
         send_goodbye: false 
       })
     end   
+    update_attribute(:status, :ready)
   end
   handle_asynchronously :unsubscribe_contacts
  
