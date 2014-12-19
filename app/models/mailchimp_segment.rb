@@ -90,6 +90,9 @@ class MailchimpSegment
       }
     })
     self.mailchimp_id = response['id']
+  rescue Gibbon::MailChimpError => e
+    Rails.logger.warn "Couldnt create segment #{self.id} in Mailchimp. Error: #{e.message}"
+    return nil
   end
   
   def segment_conditions
