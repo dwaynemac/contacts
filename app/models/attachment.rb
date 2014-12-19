@@ -50,4 +50,15 @@ class Attachment
   def contact_id
     contact.id
   end
+
+  # Returns Attachments visible to account
+  #
+  #
+  # @param [Account] account
+  # @param [Hash] options
+  #
+  #    @return [Criteria]
+  def self.for_account(account, options = {})
+    any_of({account_id: account.id}, { public: true})
+  end
 end

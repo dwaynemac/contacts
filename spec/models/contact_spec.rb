@@ -3,6 +3,7 @@ require 'spec_helper'
 
 describe Contact do
 
+  it { should have_and_belong_to_many :accounts }
   it { should belong_to_related :owner }
 
   it { should reference_and_be_referenced_in_many :lists }
@@ -104,7 +105,7 @@ describe Contact do
           before { merge.update_attribute :state, :merged }
           it { should be_empty }
         end
-        [:ready, :merging, :pending].each do |state|
+        %W(ready merging pending).each do |state|
           context "with state #{state}" do
             before { merge.update_attribute :state, state }
             it { should_not be_empty }
@@ -123,7 +124,7 @@ describe Contact do
           before { merge.update_attribute :state, :merged }
           it { should_not be_in_active_merge }
         end
-        [:ready, :merging, :pending].each do |state|
+        %W(ready merging pending).each do |state|
           context "with state #{state}" do
             before { merge.update_attribute :state, state }
             it { should be_in_active_merge }
@@ -302,29 +303,29 @@ describe Contact do
       @contact.history_entries.count.should == 3
     end
     it "should not include owner_id" do
-      @contact.as_json({mode: 'all'}).should_not have_key :owner_id
+      @contact.as_json({mode: 'all'}).should_not have_key 'owner_id'
     end
     it "should inclue owner_name" do
-      @contact.as_json({mode: 'all'}).should have_key :owner_name
+      @contact.as_json({mode: 'all'}).should have_key 'owner_name'
     end
     it "should include :coefficients_counts key" do
-      @contact.as_json({mode: 'all'}).should have_key :coefficients_counts
+      @contact.as_json({mode: 'all'}).should have_key 'coefficients_counts'
     end
     it "should include global_teacher_username" do
-      @contact.as_json({mode: 'all'}).should have_key :global_teacher_username
+      @contact.as_json({mode: 'all'}).should have_key 'global_teacher_username'
     end
     it "includes #in_active_merge" do
-      @contact.as_json({mode: 'all'}).should have_key :in_active_merge
+      @contact.as_json({mode: 'all'}).should have_key 'in_active_merge'
     end
     context "account specified" do
       subject { @contact.as_json(account: Account.first, mode: 'all')}
-      it { should have_key :coefficient}
-      it { should have_key :local_teacher }
+      it { should have_key 'coefficient'}
+      it { should have_key 'local_teacher' }
     end
     context "account not specified" do
       subject { @contact.as_json(mode: 'all')}
-      it { should_not have_key :coefficient }
-      it { should_not have_key :local_teacher }
+      it { should_not have_key 'coefficient' }
+      it { should_not have_key 'local_teacher' }
     end
     describe "with option select" do
       describe "'all'" do
@@ -342,10 +343,10 @@ describe Contact do
       describe "with attribute hash where key is attribute and value is reference date" do
         let(:json){@contact.as_json(select: [:first_name, level: '2012-12-1'])}
         it "includes attribute from keys" do
-          json.keys.should == [:first_name, :_id, :level]
+          json.keys.should == %W(first_name _id level)
         end
         it "returns value at given date in value" do
-          json[:level] == 'sádhaka'
+          json['level'] == 'sádhaka'
         end
       end
     end
@@ -474,30 +475,36 @@ describe Contact do
     end
   end
 
-  describe "when scoped to a list" do
+  describe "addind a contact to a list" do
+    let!(:account){ Account.make }
+    let!(:list) { List.make account: account }
+    let!(:contact) { Contact.make owner: Account.make }
+
     before do
-      @account = Account.make
-      @contact = @account.lists.first.contacts.create(:first_name => "Marge")
+      contact.lists << list
+      contact.save
+      contact.reload
+      list.reload
     end
 
-    it "should set the owner" do
-      @contact.owner.should == @account
+    it "WONT link it to it" do
+      expect(contact).not_to be_linked_to account
     end
 
     it "should update the lists contacts" do
-      @contact.in?(@account.lists.first.contacts).should be_true
+      expect(contact).to be_in list.contacts
     end
 
-    describe "and after adding the contact to a new list" do
+    describe "adding a second list" do
       before do
         @account_b = Account.make(:lists => [List.make])
-        @contact.lists << @account_b.lists.first
+        contact.lists << @account_b.lists.first
       end
 
-      specify { @contact.lists.count.should == 2 }
+      specify { contact.lists.count.should == 2 }
 
       it "should not update the owner" do
-        @contact.owner.should == @account
+        expect(contact.owner).not_to eq @account_b
       end
     end
   end
@@ -514,15 +521,15 @@ describe Contact do
   end
 
   describe "#save with nested attribute params" do
-      before do
-        @account = Account.make
-        @contact = Contact.create(Contact.plan(:owner => @account))
-        @contact.update_attributes(:contact_attributes => [ContactAttribute.plan(:account => nil)])
-      end
+    before do
+      @account = Account.make
+      @contact = Contact.create(Contact.plan(:owner => @account))
+      @contact.update_attributes(:contact_attributes => [ContactAttribute.plan(:account => nil)])
+    end
 
-      it "should set the owner on new attributes" do
-        @contact.contact_attributes.first.account.should == @account
-      end
+    it "should set the owner on new attributes" do
+      @contact.contact_attributes.first.account.should == @account
+    end
   end
 
   describe "mongoid_search" do
@@ -749,14 +756,18 @@ describe Contact do
   describe "#unlink" do
     let(:contact){Contact.make}
     let(:account){Account.make}
+    let!(:list){ List.make(account: account) }
+
     before do
-      account.base_list.contacts << contact
+      account.link(contact)
+      contact.lists << list
+      contact.save
     end
 
     it "removes all account's lists from contact" do
       contact.unlink(account)
-      account.base_list.in?(contact.reload.lists).should be_false
-      #contact.reload.lists.should_not include(account.base_list)
+      contact.reload
+      expect(contact.lists).not_to include list
     end
 
     context "if account is owner" do
@@ -928,37 +939,44 @@ describe Contact do
 
   describe "#linked_accounts" do
     let(:account){Account.make}
+    let(:other_account){Account.make}
     let(:contact){Contact.make(owner: account)}
+    before do
+      other_account.link(contact)
+    end
     it "lists accounts linked with contact" do
-      contact.linked_accounts.should include account
+      contact.reload
+      expect(account).to be_in contact.linked_accounts
+      expect(other_account).to be_in contact.linked_accounts
     end
   end
 
   describe "owner auto assignment" do
-    before do
-      @account = Account.make
-      @contact = Contact.create(Contact.plan(:owner => @account, :contact_attributes => [ContactAttribute.plan()]))
-      @contact.lists = []
-      @contact.save
-    end
+    let(:account){ Account.make }
+    let(:contact){Contact.create(Contact.plan(owner: account, contact_attributes: [ContactAttribute.plan()]))}
 
     context "if contact has no status" do
-
-      it "on save a contact without status should set the owners main list" do
-        @contact.lists.first.should == @account.base_list
+      it "should be linked to account" do
+        contact.save
+        contact.reload
+        expect(account).to be_in contact.accounts
       end
     end
 
     context "if contact is a student" do
+      let!(:new_account){ Account.make name: 'accname' }
       before do
-        @new_acc = Account.make
-        @contact.local_status={account_id: @new_acc.id, status: :student}
-        @contact.save
-        @contact.reload
-        @contact.status.should == :student
+        expect do
+          contact.local_status_for_accname = :student
+          contact.save
+          contact.reload
+        end.to change{contact.status}.to :student
       end
       example "account where it is student should own it" do
-        @contact.owner.should == @new_acc
+        expect(contact.owner).to eq new_account
+      end
+      it "should be linked to the owner" do
+        expect(contact.accounts).to include new_account
       end
     end
   end

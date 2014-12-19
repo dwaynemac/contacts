@@ -359,7 +359,13 @@ describe Merge do
       @son_list = List.make
 
       #Father
-      @father = Contact.make(:first_name => "Son", :last_name => "Goku", :level => "aspirante", :lists => [@father_list])
+      @father = Contact.make(first_name: "Son",
+                             last_name: "Goku",
+                             level: "aspirante",
+                             lists: [@father_list],
+                             owner: @account_1,
+                             accounts: [@account_1,@account_2]
+                            )
 
       @father.local_unique_attributes << LocalStatus.make(:value => :student, :account => @account_1)
       @father.local_unique_attributes << LocalStatus.make(:value => :prospect, :account => @account_2)
@@ -370,8 +376,15 @@ describe Merge do
 
       @father.save
 
+      @check_link_account = Account.make
       #Son
-      @son = Contact.make(:first_name => "Son", :last_name => "Goku2", :level => "maestro", :lists => [@son_list])
+      @son = Contact.make(first_name: "Son",
+                          last_name: "Goku2",
+                          level: "maestro",
+                          lists: [@son_list],
+                          owner: @account_1,
+                          accounts: [@account_1, @account_2, @account_3, @check_link_account]
+                         )
 
       @son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => @account_1)
       @son.local_unique_attributes << LocalStatus.make(:value => :former_student, :account => @account_2)
@@ -433,6 +446,10 @@ describe Merge do
     it "should keep all the lists" do
       @father.lists.include?(@father_list).should == true
       @father.lists.include?(@son_list).should == true
+    end
+
+    it "should keep links to all accounts" do
+      expect(@check_link_account).to be_in @father.accounts
     end
 
     describe "keeps son's first_name as a custom_attributes" do

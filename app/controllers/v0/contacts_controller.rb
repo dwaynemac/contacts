@@ -1,4 +1,5 @@
 require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
+require 'oj'
 
 ##
 # @restful_api v0
@@ -7,7 +8,7 @@ class V0::ContactsController < V0::ApplicationController
   include V0::Concerns::ContactsScope
 
   before_filter :set_list
-  before_filter :set_scope 
+  before_filter :set_scope, except: [:create]
   before_filter :refine_scope, only: [:index, :search]
   before_filter :convert_last_seen_at_to_time, only: [:update]
   before_filter :convert_local_attributes, only: [:create, :update]
@@ -26,8 +27,13 @@ class V0::ContactsController < V0::ApplicationController
   # @optional [Integer] page will return this page (default: 1)
   # @optional [Integer] per_page will paginate contacts with this amount per page (default: 10)
   # @optional [String] full_text will make a full_text search with this string.
-  # @optional [Array] select return only selected contact attributes. :full_name is an alias for :first_name AND :last_name other: :first_name, :last_name, :telephone, :email, etc. if you specify an attribute as a key value pair. key will be interpreted as attribute name and value as reference date to get value from.
+  # @optional [Array] select return only selected contact attributes.
+  #                   - :full_name is an alias for :first_name AND :last_name
+  #                   - other: :first_name, :last_name, :telephone, :email, etc.
+  #                   if you specify an attribute as a key value pair.
+  #                   key will be interpreted as attribute name and value as reference date to get value from.
   # @optional [Hash] where Mongoid where selector with additional keys -> :email, :telephone, :address, :local_status, :date_attribute
+  # @optional [Array] sort Array in the form [attribute,order]. Eg: [:first_name, :asc]
   # @optional [Array<Hash>] attributes_value_at Array of hashes with keys: :attribute, :value, :ref_date. This will be ANDed, not ORed.
   #
   # @example_request
@@ -72,7 +78,7 @@ class V0::ContactsController < V0::ApplicationController
         @collection_hash = @contacts.as_json(as_json_params)
       end
       measure('serializing.render_json.index.contacts_controller') do
-        @json = { :collection => @collection_hash, :total => total}.to_json
+        @json = Oj.dump({ 'collection' => @collection_hash, 'total' => total})
       end
       measure('rendering.render_json.index.contacts_controller') do
         response.headers['Content-type'] = 'application/json; charset=utf-8'
@@ -134,7 +140,9 @@ class V0::ContactsController < V0::ApplicationController
   # @response_field [String] first_name
   # @response_field [String] last_name
   def show
-    @contact = @scope.find(params[:id])
+    measure 'find_contact.show.contacts_controller' do
+      @contact = @scope.find(params[:id])
+    end
     as_json_params = {
       select: params[:select],
       account: @account,
@@ -149,7 +157,11 @@ class V0::ContactsController < V0::ApplicationController
       as_json_params[:mode] = 'select'
     end
 
-    render :json => @contact.as_json(as_json_params)
+    json = nil
+    measure 'to_json.show.contacts_controller' do
+      json = @contact.as_json(as_json_params)
+    end
+    render json: json
   end
 
   ##
@@ -207,7 +219,8 @@ class V0::ContactsController < V0::ApplicationController
 
     authorize! :create, Contact
 
-    @contact =  @scope.new(params[:contact])
+    @contact = Contact.new(params[:contact])
+    @contact.owner = @account if @account
 
     @contact.request_account_name = params[:account_name]
     @contact.request_username = params[:username]
@@ -286,7 +299,7 @@ class V0::ContactsController < V0::ApplicationController
   #   {message: 'Sorry, couldnt link contact', errors: [...]}
   def link
     @contact = Contact.find(params[:id])
-    if @account && @contact.link(@account)
+    if @account && @account.link(@contact)
       render :json => "OK"
     else
       render :json => {
@@ -366,8 +379,6 @@ class V0::ContactsController < V0::ApplicationController
     @scope = case action_name.to_sym
       when :index, :search, :search_for_select, :update
         @account.present?? (@list.present?? @list.contacts : @account.contacts ) : Contact
-      when :create
-        @account.present?? (@list.present?? @list.contacts : @account.owned_contacts) : Contact
       when :destroy, :destroy_multiple
         @account.present?? @account.contacts : Contact
       else

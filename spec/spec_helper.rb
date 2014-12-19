@@ -20,6 +20,7 @@ Dir[Rails.root.join("lib/**/*.rb")].each {|f| require f}
 Dir[Rails.root.join("app/**/concerns/*.rb")].each {|f| require f}
 
 RSpec.configure do |config|
+=begin
   # RSpec automatically cleans stuff out of backtraces;
   # sometimes this is annoying when trying to debug something e.g. a gem
   puts "                      ATTENTION: Backtraces are scoped to app code only."
@@ -31,6 +32,7 @@ RSpec.configure do |config|
       /spec\/spec_helper\.rb/,
       /lib\/rspec\/(core|expectations|matchers|mocks)/
   ]
+=end
   config.include Mongoid::Matchers
 
   config.mock_with :rspec

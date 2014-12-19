@@ -156,8 +156,7 @@ describe V0::AttachmentsController do
     describe "as a viewer/editor" do
       before do
         @account = Account.make
-        @account.lists.first.contacts << @contact
-        @account.save
+        @account.link @contact
       end
       it "should not delete the contact attribute" do
         expect{post :destroy, :method => :delete,

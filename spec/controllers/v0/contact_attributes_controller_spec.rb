@@ -6,7 +6,7 @@ describe V0::ContactAttributesController do
 
   before do
     @contact = Contact.make(owner: Account.make)
-    @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
+    @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "12343210")
     @contact.save
     @contact.reload
   end
@@ -23,10 +23,10 @@ describe V0::ContactAttributesController do
     context "with app_key" do
       let(:contact){Contact.make(owner: Account.make)}
       before do
-        contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'hobby')
+        contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'hobby', account: contact.owner )
         contact.save!
 
-        @contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'sport')
+        @contact.contact_attributes << ContactAttribute.make(_type: 'CustomAttribute', value: 'surf', name: 'sport', account: @contact.owner )
         @contact.save!
       end
       def do_request(params={})
@@ -34,17 +34,13 @@ describe V0::ContactAttributesController do
       end
       let(:body){ActiveSupport::JSON.decode(response.body)}
       it "responds with 200" do
-        do_request
+        do_request account_name: Account.make.name
         should respond_with 200
-      end
-      it "returns all custom_attribute names" do
-        do_request
-        body['total'].should == 2
-        body['collection'].should include contact.custom_attributes.last.name
       end
       it "scopes to given account_name" do
         do_request(account_name: @contact.owner_name)
         body['total'].should == 1
+        body['collection'].should include @contact.custom_attributes.last.name
       end
     end
   end
@@ -52,7 +48,7 @@ describe V0::ContactAttributesController do
   describe "#update" do
     context "with app_key" do
       before do
-        @new_value = "5432154"
+        @new_value = "54321541"
         put :update, :account_name => @contact.owner_name, :contact_id => @contact.id,
             :id => @contact.contact_attributes.first.id, :contact_attribute => {:value => @new_value},
             :app_key => V0::ApplicationController::APP_KEY
@@ -79,7 +75,7 @@ describe V0::ContactAttributesController do
     context "called by contact owner" do
       context "sending :category, :value" do
         before do
-          @telephone = "5432154"
+          @telephone = "54321541"
           post :create, :account_name => @contact.owner.name, :contact_id => @contact.id,
                :contact_attribute => {:category => :home, :value => @telephone, '_type' => "Telephone"},
                :app_key => V0::ApplicationController::APP_KEY
@@ -117,7 +113,7 @@ describe V0::ContactAttributesController do
     context "called by un-linked account" do
       let(:other_account){Account.make}
       before do
-        @telephone = "5432154"
+        @telephone = "54321541"
         post :create, :account_name => other_account.name, :contact_id => @contact.id,
              :contact_attribute => {
                 :category => :home,
@@ -132,7 +128,7 @@ describe V0::ContactAttributesController do
       let(:other_account){Account.make}
       before do
         other_account.link(@contact)
-        @telephone = "5432154"
+        @telephone = "54321541"
         post :create, :account_name => other_account.name, :contact_id => @contact.id,
              :contact_attribute => {
                 :category => :home,
@@ -178,8 +174,7 @@ describe V0::ContactAttributesController do
     describe "as a viewer/editor" do
       before do
         @account = Account.make
-        @account.lists.first.contacts << @contact
-        @account.save
+        @account.link @contact
       end
       it "should not delete the contact attribute" do
         expect{post :destroy, :method => :delete,

@@ -15,6 +15,8 @@ class ContactSearcher
     self.account_id = acc_id
   end
 
+  LOCAL_ATTRIBUTE_META_ACCESSOR_REGEX = /^(.+)_for_([^=]+)$/
+
   # This is same as #where but will make some transformations on selector.
   #
   # first_name and last_name are converted to Regex
@@ -38,10 +40,12 @@ class ContactSearcher
 
     selector.each do |k,v|
       unless v.blank?
-        case k.to_s
+        k = k.to_s
+
+        case k
           when 'telephone', 'email', 'address', 'custom_attribute'
             andit({
-              :contact_attributes => { '$elemMatch' => { "_type" => k.to_s.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
+              :contact_attributes => { '$elemMatch' => { "_type" => k.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
             })
           when 'country', 'state', 'city', 'postal_code'
             andit({:contact_attributes => { '$elemMatch' => { "_type" => "Address", k => Regexp.new(v.to_s)}}})
@@ -57,25 +61,36 @@ class ContactSearcher
             andit(aux) unless aux.nil?
           when 'local_status', 'coefficient', 'local_teacher'
             if account_id.present?
-              andit({
-                  :local_unique_attributes => {'$elemMatch' => {_type: k.to_s.camelcase,
-                                                                value: {'$in' => v.to_a},
-                                                                account_id: account_id}}
-              })
+              if k == 'coefficient'
+                filter_by_coefficient v, account_id
+              else
+                andit({
+                    :local_unique_attributes => {'$elemMatch' => {_type: k.camelcase,
+                                                                  value: {'$in' => v.to_a},
+                                                                  account_id: account_id}}
+                })
+              end
             end
           when 'level' # convert level name to level number
             if v.is_a? Array
-              andit({:level => { '$in' => v.map {|lvl| Contact::VALID_LEVELS[lvl]} }})
+              # ignore filter if all levels are considered
+              unless v.select{|lvl| lvl != ''}.size == Contact::VALID_LEVELS.size
+                andit({:level => { '$in' => v.map {|lvl| Contact::VALID_LEVELS[lvl]} }})
+              end
             else
               andit({:level => Contact::VALID_LEVELS[v]})
             end
-          when /^(.+)_for_([^=]+)$/
+          when LOCAL_ATTRIBUTE_META_ACCESSOR_REGEX
             local_attribute = $1
             a = get_account($2)
             if a
-              andit({
-                :local_unique_attributes => {'$elemMatch' => {_type: local_attribute.to_s.camelcase, value: {'$in' => v.to_a}, account_id: a.id}}
-              })
+              if local_attribute.to_s == 'coefficient'
+                filter_by_coefficient v, a.id
+              else
+                andit({
+                  :local_unique_attributes => {'$elemMatch' => {_type: local_attribute.to_s.camelcase, value: {'$in' => v.to_a}, account_id: a.id}}
+                })
+              end
             end
           when 'first_name', 'last_name'
             self.new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
@@ -127,6 +142,16 @@ class ContactSearcher
     end
 
     a
+  end
+
+  def filter_by_coefficient(value,account_id)
+    unless value.is_a?(Array) && value.select{|coef| coef != ''}.size == Coefficient::VALID_VALUES.size
+      andit({
+          :local_unique_attributes => {'$elemMatch' => {_type: 'Coefficient',
+                                                        value: {'$in' => value.to_a},
+                                                        account_id: account_id}}
+      })
+    end
   end
   
 end

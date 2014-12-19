@@ -32,6 +32,7 @@ Contacts::Application.routes.draw do
     resources :contact_attributes do
       collection do
         get :custom_keys
+        post :create_from_kshema, to: 'contact_attributes#create_from_kshema'
       end
     end
     resources :attachments

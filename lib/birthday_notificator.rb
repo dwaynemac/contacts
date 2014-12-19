@@ -6,13 +6,17 @@ class BirthdayNotificator
 
   def deliver_notifications
     all_birthdays.each do |contact|
-      #TODO manage different responses: 201, 500, etc...
-      Messaging::Client.post_message('birthday', json_for(contact))
+      log("broadcasting birthday of #{contact.id}")
+      unless Messaging::Client.post_message('birthday', json_for(contact))
+        warn("bday broadcast for #{contact.id} failed.")
+      end
     end
   end
 
   def all_birthdays
-    Contact.api_where(date_attribute: {category: 'birthday', month: Date.today.month, day: Date.today.day})
+    Contact.api_where(date_attribute: {category: 'birthday',
+                                       month: Date.today.month,
+                                       day: Date.today.day})
   end
 
   def json_for(contact)
@@ -34,5 +38,22 @@ class BirthdayNotificator
       json.merge!({recipient_email: gpe.value}) unless gpe.nil?
     end
     json
+  end
+
+  private
+
+  def log(msg)
+    logger.info("[birthday_notificator] #{msg}")
+  end
+
+  def warn(msg)
+    logger.warn("[birthday_notificator] #{msg}")
+  end
+
+  ##
+  # Encapsulated logger here in case we wish to change it
+  # for BirthdayNotificator
+  def logger
+    Rails.logger
   end
 end

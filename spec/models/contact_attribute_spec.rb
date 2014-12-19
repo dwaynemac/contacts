@@ -145,13 +145,13 @@ describe ContactAttribute do
     before do
       @account = Account.make
       @contact = Contact.make(:owner => @account)
-      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "1234321")
+      @contact.contact_attributes << Telephone.new(:account => @contact.owner, :category => :home, :value => "12343210")
       @contact.save
       @contact.reload
     end
 
     it "should be accesible" do
-      @contact.primary_attribute(@account, 'Telephone').value.should == "1234321"
+      @contact.primary_attribute(@account, 'Telephone').value.should == "12343210"
     end
 
     it "should be updated if new primary is saved" do

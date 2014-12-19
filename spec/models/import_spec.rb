@@ -11,18 +11,18 @@ describe Import do
                 id_scan_migrated padma_follow_id tags)
     @former_student = ["50001",	"30 366 832", "Dwayne",	"Macgowan", "Arribeños 2153 14B", "4783.6951", "15.4099.5071",
                  "dwaynemac@gmail.com",	"asistente", "daniel.ferztand", "exalumno", "male",
-                 "/home/alex/workspace/Padma/public/persona/foto/50001/654da12b6a7905f62633eae7e76688c5.jpg",
+                 "spec/support/ghibli_main_logo.gif",
                  "1983-05-21", "2005-05-13", "Instr. Método DeRose", "<p>alguna observacion</p>", "true", "5",
                  "1428", "1", "", "", "2011-02-19 18:04:12 -0300", "", "", "", "", "", "", "", "", "",
                  "false", "", "", "", "", "", "", "",""]
     @student =  ["50010", "", "Alex", "Falke", "", "4782 1495",	"15 5466 7896",	"afalkear@gmail.com", "asistente",
                  "lucia.gagliardini", "alumno", "female",
-                 "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
+                 "spec/support/ghibli_main_logo.gif", "1983-03-11", "2004-12-01",
                  "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",	"1667392", "",
                  "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "true", "", "", "", "", "",""]
     @student2 =  ["50010", "", "Alex", "Falke", "", "4782 1395", "14 5466 7896", "afkear@gmail.com", "asistente",
                  "lucia.gagliardini", "alumno", "female",
-                 "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
+                 "spec/support/ghibli_main_logo.gif", "1983-03-11", "2004-12-01",
                  "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
                  "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", "",""]
     @p_visit = ["50178", "", "Daniel", "Werber", "", "", "15 4437-6580", "werber@fibertel.com.ar", "aspirante", "",	"perfil", "female",
@@ -114,7 +114,7 @@ describe Import do
           @new_import.process_CSV_without_delay
           alex = Contact.where(first_name: "Alex").first
           alex.avatar.should_not be_nil
-          alex.avatar.url.should match /249140_10150188276702336_1924524_n\.jpg/
+          alex.avatar.url.should match /ghibli_main_logo\.gif/
         end
       end
     end
@@ -123,7 +123,7 @@ describe Import do
         before do
           @incorrect_student =  ["50013", "", "Alex", "Falke", "", "telefono errado", "15 5466 7896", "mail.mal.puesto", "6",
                    "lucia.gagliardini", "perfil", "h",
-                   "/home/alex/workspace/Padma/public/persona/foto/50010/alex_web.jpg", "--/23/23", "2004-12-01",
+                   "spec/support/ghibli_main_logo.gif", "--/23/23", "2004-12-01",
                    "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",  "1667392", "",
                    "2013-01-11 14:03:29 -0300", "bad_age", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", "",""]
           CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
@@ -149,17 +149,19 @@ describe Import do
           cont = Contact.where(kshema_id: "50013").first
           cont.should_not be_nil
           cont.emails.count.should == 0
+          cont.telephones.count.should == 1
           cont.level.should be_nil
           cont.birthday.should be_nil
           cont.estimated_age.should be_nil
           cont.status.should == :prospect
+          cont.custom_attributes.where(name: "rescued_phone_from_import", value: "telefono errado").count.should == 1
         end
       end
       context "if contact has duplicate email" do
         before do
           duplicate_contact = ["50013", "", "Alex", "Falke", "", "4782 1495",	"15 5466 7896",	"afalkear@gmail.com", "asistente",
            "lucia.gagliardini", "perfil", "male",
-           "https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/249140_10150188276702336_1924524_n.jpg", "1983-03-11", "2004-12-01",
+           "spec/support/ghibli_main_logo.gif", "1983-03-11", "2004-12-01",
            "Instructor del Método DeRose. Ingeniero informático.", "", "true", "5", "", "1",	"1667392", "",
            "2013-01-11 14:03:29 -0300", "", "", "", "", "", "", "", "", "", "true", "", "", "", "", "", "", "",""]
           CSV.open("#{Rails.root}/spec/support/test.csv", "w") do |csv|
@@ -210,13 +212,16 @@ describe Import do
       @new_import = Import.make(account: @account, headers: @headers)
       @new_import.attachment = Attachment.new(name: "CSV", file: @csv_file, account: @account)
       @new_import.save
-      @new_import.process_CSV_without_delay
+    end
+    it "should create all contacts except the one with errors" do
+      expect{@new_import.process_CSV_without_delay}.to change{Contact.count}.by(29)
     end
     it "should return a CSV with all the failed errors" do
+      @new_import.process_CSV_without_delay
       csv = @new_import.failed_rows_to_csv
       csv.should_not be_nil
       # the failed person is Anoopa and her kshema_id is 50015
-      csv.should include("Laurens", "50015")
+      csv.should include("un.mal.mail")
       # the failed row is 26
       csv.should include("16")
     end

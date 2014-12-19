@@ -35,6 +35,9 @@ class Contact
 
   after_create :post_activity_of_creation
 
+  # TEMPORARY FOR DB UPDATE
+  field :link_upgraded
+
   field :first_name
   field :last_name
 
@@ -84,16 +87,21 @@ class Contact
 
   before_save :set_beginner_on_enrollment
 
+  # accounts that have access to this contact.
+  # These are the accounts the contact is 'linked' to.
+  has_and_belongs_to_many :accounts, dependent: :nullify
+  alias_method :linked_accounts, :accounts
+
   belongs_to :owner, :class_name => "Account"
 
   attr_accessor :skip_assign_owner
-  before_validation :assign_owner, unless: :skip_assign_owner
+  after_save :assign_owner, unless: :skip_assign_owner
+  before_save :ensure_linked_to_owner
 
   field :global_teacher_username, type: String
   before_validation :set_global_teacher
 
   references_and_referenced_in_many :lists
-  before_save :update_lists
 
   references_and_referenced_in_many :tags
 
@@ -208,6 +216,14 @@ class Contact
     ls
   end
 
+  # @return LocalUniqueAttribute.value 
+  def local_value_for_account(attr_name,account_id)
+    return self.local_unique_attributes
+               .where(account_id: account_id, '_type' => attr_name.camelcase)
+               .first
+               .try :value
+  end
+
   # @method xxx_for_yyy=(value)
   # @param value
   # Sets xxx local_unique_attribute on account_id yyy with value :value
@@ -229,7 +245,7 @@ class Contact
       if a.nil?
         return nil
       else
-        return self.local_unique_attributes.where(:account_id => a._id, '_type' => attr_name.camelcase).first.try :value
+        return local_value_for_account(attr_name,a._id)
       end
     # local_unique_attribute setter for an account_name
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
@@ -328,14 +344,9 @@ class Contact
     account.unlink(self)
   end
 
-  # @return [Array<Account>]
-  def linked_accounts
-    @linked_accounts ||= self.lists.map(&:account).uniq
-  end
-
   # @see Account#linked_to?
   def linked_to?(account)
-    account.in?(self.linked_accounts)
+    account.id.in?(self.account_ids)
   end
 
   def owner_name
@@ -361,66 +372,67 @@ class Contact
   # Returns contacts that are similar to this one.
   # @return [Array<Contact>]
   def similar
-    contacts = Contact.all
+    ActiveSupport::Notifications.instrument("get_similar_contacts") do
+      contacts = Contact.all
 
-    if self.last_name.blank?
-      unless self.first_name.blank?
-        self.first_name.split.each do |first_name|
-          contacts = contacts.any_of(:normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+      if self.last_name.blank?
+        unless self.first_name.blank?
+          self.first_name.split.each do |first_name|
+            contacts = contacts.any_of(:normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+          end
+        end
+      else
+        self.last_name.split.each do |last_name|
+          self.first_name.split.each do |first_name|
+            contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
+                                       :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+          end
         end
       end
-    else
-      self.last_name.split.each do |last_name|
-        self.first_name.split.each do |first_name|
-          contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
-                                     :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+
+      if self.new?
+        self.emails.map(&:value).each do |email|
+          contacts = contacts.any_of(contact_attributes: { '$elemMatch' => {
+                                                          '_type' => 'Email',
+                                                          'value' => email,
+          }})
+        end
+
+        self.mobiles.map(&:value).each do |mobile|
+          contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+            '_type' => 'Telephone',
+            'category' => /mobile/i,
+            'value' => mobile
+          }})
+        end
+
+        self.identifications.each do |identification|
+          contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+              _type: 'Identification',
+              category: identification.category,
+              value: identification.get_normalized_value
+          }})
         end
       end
-    end
 
-    if self.new?
-      self.emails.map(&:value).each do |email|
-        contacts = contacts.any_of(contact_attributes: { '$elemMatch' => {
-                                                        '_type' => 'Email',
-                                                        'value' => email,
-        }})
+      if self.id.present?
+        contacts = contacts.excludes(:id => self.id)
       end
 
-      self.mobiles.map(&:value).each do |mobile|
-        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
-          '_type' => 'Telephone',
-          'category' => /mobile/i,
-          'value' => mobile
-        }})
-      end
+      contacts = contacts.to_a
 
-      self.identifications.each do |identification|
-        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
-            _type: 'Identification',
-            category: identification.category,
-            value: identification.get_normalized_value
-        }})
-      end
-    end
-
-    if self.id.present?
-      contacts = contacts.excludes(:id => self.id)
-    end
-
-    contacts = contacts.to_a
-
-    contacts.delete_if do |c|
-      not_similar = false
-      c.identifications.each do |id|
-        if self.identifications.where(:category => id.category).select{ |id_v|
-            id_v.get_normalized_value != id.get_normalized_value
-          }.length > 0
-          not_similar = true
+      contacts.delete_if do |c|
+        not_similar = false
+        c.identifications.each do |id|
+          if self.identifications.where(:category => id.category).select{ |id_v|
+              id_v.get_normalized_value != id.get_normalized_value
+            }.length > 0
+            not_similar = true
+          end
         end
+        not_similar
       end
-      not_similar
     end
-
   end
 
   def check_duplicates= value
@@ -516,7 +528,7 @@ class Contact
   end
 
   def set_status
-    distinct_statuses = local_statuses.distinct(:value).map(&:to_sym)
+    distinct_statuses = local_statuses.distinct(:value).compact.map(&:to_sym)
     # order of VALID_STATUSES is important
     VALID_STATUSES.each do |s|
       if distinct_statuses.include?(s)
@@ -537,31 +549,39 @@ class Contact
   protected
 
   def assign_owner
-    case self.status
+    old_owner_id = self.owner_id
+
+    new_owner = case self.status
       when :student
-        self.owner = self.local_statuses.where(value: :student).first.try :account
+        self.local_statuses.where(value: :student).first.try :account
       when :former_student
-        unless owner.present?
-          self.owner = self.local_statuses.where(value: :former_student).first.try :account
+        if self.owner.nil?
+          self.local_statuses
+              .where(value: :former_student).first.try :account
         end
       else
-        unless self.owner.present?
-          self.owner = lists.first.account unless lists.empty?
+        if self.owner.nil?
+          self.accounts.first
         end
     end
 
-    # Callbacks arent called when mass-assigning nested models.
-    # Iterate over the contact_attributes and set the owner.
-    # TODO cascade_callbacks should make this un-necessary
-    if self.owner.present?
-      contact_attributes.each { |att| att.account = owner unless att.account.present? }
+    if new_owner && new_owner.id != old_owner_id
+      self.owner = new_owner
+      self.skip_assign_owner = true
+      self.save
+      
+      # Callbacks arent called when mass-assigning nested models.
+      # Iterate over the contact_attributes and set the owner.
+      # TODO cascade_callbacks should make this un-necessary
+      contact_attributes.each do |att|
+        att.account = owner unless att.account.present?
+      end
     end
   end
 
-  def update_lists
-    # always include contacts in owner's base_list
-    if self.owner && !self.lists.map(&:account).include?(self.owner)
-      self.lists << self.owner.base_list
+  def ensure_linked_to_owner
+    if self.owner.present? && !self.owner.id.in?(self.account_ids)
+      self.account_ids << self.owner.id
     end
   end
 
@@ -587,7 +607,6 @@ class Contact
             public: true,
         )
         a.create(username: activity_username, account_name: activity_account)
-
       end
     end
   end

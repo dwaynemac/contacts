@@ -1,6 +1,8 @@
 class Tag
   include Mongoid::Document
 
+  include AccountNameAccessor
+
   field :name
   belongs_to :account
   references_and_referenced_in_many :contacts
@@ -20,7 +22,20 @@ class Tag
     json = super options.merge({except: :account_id, methods: [:account_name]})
   end
 
-  def account_name
-    account.try :name
+  class << self
+    # adds given tags to all given contacts
+    # @param [Array] tag_ids
+    # @param [Array] contact_ids
+    def batch_add(tag_ids, contact_ids)
+      tags = Tag.find(tag_ids)
+      contacts = Contact.find(contact_ids)
+      
+      contacts.each do |contact|
+        contact.tags += tags
+        contact.save
+        contact.index_keywords!
+      end
+    end
+    handle_asynchronously :batch_add
   end
 end

@@ -4,14 +4,7 @@ describe Account do
 
   it { should validate_presence_of :name }
 
-  it { should have_many_related :owned_contacts }
-
   it { should have_many_related :lists }
-
-  #it do
-  #  Account.make
-  #  should validate_uniqueness_of :name
-  #end
 
   it "should validate existing PadmaAccount" do
       # spec_helper mocks PadmaAccount.find
@@ -28,54 +21,26 @@ describe Account do
       acc.should_not be_valid
   end
 
-  it "should create base list on creation" do
-    acc = Account.make_unsaved
-    acc.save
-    acc.reload.lists.should have_at_least(1).list
+  it { should have_many_related :owned_contacts }
+  it "should NOT store linked contacts id" do
+    expect(subject).not_to have_and_belong_to_many :contacts
   end
-
-  describe "#base_list" do
-    it "returns account's base list" do
-      a = Account.make
-      a.base_list.should be_a(List)
-      a.base_list.name.should == a.name
-    end
-    it "created base_list if it doesn't exist" do
-      a = Account.make
-      List.where(name: a.name).destroy
-      a.reload
-      a.base_list.should be_a List
-      a.base_list.name.should == a.name
-    end
-  end
-
   describe "#contacts" do
     let(:account){ Account.make }
-    before do
-      list_a = List.make(account: account)
-      list_b = List.make(account: account)
-      @contact = Contact.make
-      account.base_list.contacts << @contact
-      3.times{ account.base_list.contacts << Contact.make }
-      3.times{ list_a.contacts << Contact.make }
-      list_b.contacts << Contact.make
-      list_a.save!
-      list_b.save!
-      account.reload
+    let!(:linked_contact){ Contact.make accounts: [account] }
+    let!(:owned_contact){ Contact.make owner: account }
+    let!(:owned_and_linked_contact){ Contact.make owner: account, accounts: [account] }
+    it "returns linked contacts" do
+      expect(account.contacts).to include linked_contact
     end
     it "returns a Mongoid::Criteria" do
-      account.contacts.should be_a Mongoid::Criteria
-    end
-    it "returns contacts from all account's lists" do
-      account.contacts.count.should == 8
+      expect(account.contacts).to be_a Mongoid::Criteria
     end
     it "returns owned contacts" do
-      Contact.make(owner: account)
-      account.contacts.count.should == 9
+      expect(account.contacts).to include owned_contact
     end
-    it "doesnt repeat contacts" do
-      account.lists.last.contacts << @contact
-      account.contacts.count.should == 8
+    it "wont duplicate" do
+      expect(account.contacts.count).to eq 3
     end
   end
 
@@ -83,39 +48,53 @@ describe Account do
     let(:account){Account.make}
     let(:contact){Contact.make(owner: account)}
     before do
-      list = List.make(account: account)
-      account.base_list.contacts << contact
-      list.contacts << contact
+      account.link(contact)
     end
 
     describe "#link" do
-      it "adds contact to account's base list" do
-        contact = Contact.make
-        account.link(contact)
-        contact.in?(account.base_list.contacts).should be_true
+      let(:new_contact){Contact.make(owner: Account.make)}
+      it "adds this account to contact's linked accounts" do
+        account.link(new_contact)
+        new_contact.reload
+        expect(new_contact.accounts).to include account
+      end
+      it "adds contact to Account#contacts" do
+        account.link(new_contact)
+        expect(account.contacts).to include new_contact
       end
     end
 
     describe "#unlink" do
-      it "removes contact from all account's lists" do
+      before do
+        expect(contact.accounts).to include account
+        expect(account.contacts).to include contact
         account.unlink(contact)
-        account.lists.each{|l|l.contacts.should_not include(contact)}
+        account.reload
+        contact.reload
       end
-      it "removed all link between contact and account" do
-        account.unlink(contact)
-        account.contacts.should_not include(contact)
+      it "wont delete account document" do
+        expect(Account.find(account.id)).not_to be_nil
+      end
+      it "wont delete contact document" do
+        expect(Contact.find(contact.id)).not_to be_nil
+      end
+      it "removes accounts from contact's linked accounts" do
+        expect(account).not_to be_in contact.accounts
+      end
+      it "removes contact from account#contacts" do
+        expect(contact).not_to be_in account.contacts
+      end
+      it "removes contact from all account's lists" do
+        account.lists.each{|l| expect(contact).not_to be_in l.contacts }
       end
     end
 
     describe "#linked_to?" do
       it "returns true if there is relationship with the contact" do
-        account.should be_linked_to contact
+        expect(account).to be_linked_to contact
         account.unlink contact
-        account.should_not be_linked_to contact
+        expect(account).not_to be_linked_to contact
       end
     end
-
   end
-
-
 end
