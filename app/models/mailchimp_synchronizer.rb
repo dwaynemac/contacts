@@ -15,20 +15,27 @@ class MailchimpSynchronizer
   
   before_destroy :destroy_segments
 
+  CONTACTS_BATCH_SIZE = 1000
+
   def subscribe_contacts
     return unless status == :ready
 
     update_attribute(:status, :working)
     set_api
     set_i18n
-    get_scope.page(1).per(5000).num_pages.times do |i|
-      page = get_scope.page(i + 1).per(5000)
-      @api.lists.batch_subscribe({
-        id: list_id,
-        batch: get_batch(page),
-        double_optin: false,
-        update_existing: true
-      })
+    get_scope.page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
+      page = get_scope.page(i + 1).per(CONTACTS_BATCH_SIZE)
+      begin
+        @api.lists.batch_subscribe({
+          id: list_id,
+          batch: get_batch(page),
+          double_optin: false,
+          update_existing: true
+        })
+      rescue Timeout::Error 
+        Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp, retrying"
+        retry
+      end
     end
 
     update_attribute(:status, :ready)
@@ -44,8 +51,8 @@ class MailchimpSynchronizer
       contacts_scope = Contact.all
     end
 
-    contacts_scope.page(1).per(5000).num_pages.times do |i|
-      page = contacts_scope.page(i + 1).per(5000)
+    contacts_scope.page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
+      page = contacts_scope.page(i + 1).per(CONTACTS_BATCH_SIZE)
       response = @api.lists.batch_unsubscribe({
         id: list_id,
         batch: get_batch(page, true), 

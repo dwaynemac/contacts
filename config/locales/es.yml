@@ -5,8 +5,10 @@ es:
     status:
       status: estado
       prospect: prospect
+      student: alumno
+      former_student: ex-alumno
     gender:
-      gender: Sexo
+      gender: Genero
       female: mujer
       male: hombre
     address:
