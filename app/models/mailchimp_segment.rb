@@ -77,6 +77,7 @@ class MailchimpSegment
   
   def create_segment_in_mailchimp
     synchro = mailchimp_synchronizer
+    synchro.set_i18n
     api = Gibbon::API.new(synchro.api_key)
     response = api.lists.segment_add({
       id: synchro.list_id,
