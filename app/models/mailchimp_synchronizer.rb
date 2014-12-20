@@ -205,7 +205,7 @@ class MailchimpSynchronizer
   
   def set_default_attributes
     self.status = :ready
-    self.filter_method = :not_set
+    self.filter_method = 'segments'
   end
   
   def destroy_segments
