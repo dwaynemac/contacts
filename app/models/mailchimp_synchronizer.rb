@@ -40,6 +40,7 @@ class MailchimpSynchronizer
 
     update_attribute(:status, :ready)
   end
+  handle_asynchronously :subscribe_contacts
   
   def unsubscribe_contacts (querys = [])
     update_attribute(:status, :working)
