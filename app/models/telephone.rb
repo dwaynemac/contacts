@@ -26,7 +26,7 @@ class Telephone < ContactAttribute
     return if self.allow_duplicate
     return unless category.to_s == 'mobile'
 
-    r = Contact.excludes(_id: self.contact._id).where(
+    r = Contact.excludes(_id: self[:contact_id]).where(
                        'contact_attributes._type' => 'Telephone',
                        'contact_attributes.category' => /mobile/i,
                        'contact_attributes.value' => value )

@@ -118,7 +118,7 @@ class V0::ContactAttributesController < V0::ApplicationController
     authorize! :create, ContactAttribute
 
     @contact_attribute = @scope.new(params[:contact_attribute])
-    @contact_attribute._type = params[:contact_attribute][:_type]
+    @contact_attribute = @contact_attribute.becomes(params[:contact_attribute][:_type].constantize)
     @contact_attribute.account = @account
 
     if @contact_attribute.save
