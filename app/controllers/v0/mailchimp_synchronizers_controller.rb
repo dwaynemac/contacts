@@ -53,7 +53,7 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
         render json: 'destroyed', status: 200
       else
         render json: "Synchronizer is currently working, wait for it to finish before deletion.",
-          status: 409
+               status: 409
       end
     else
       render json: 'Synchronizer missing', status: 400
