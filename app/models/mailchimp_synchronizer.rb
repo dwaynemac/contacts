@@ -41,6 +41,7 @@ class MailchimpSynchronizer
     end
 
     update_attribute(:status, :ready)
+    return true
   rescue => e
     Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed"
     update_attribute(:status, :failed)
