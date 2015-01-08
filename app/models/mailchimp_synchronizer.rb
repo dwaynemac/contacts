@@ -41,6 +41,10 @@ class MailchimpSynchronizer
     end
 
     update_attribute(:status, :ready)
+  rescue => e
+    Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed"
+    update_attribute(:status, :failed)
+    raise e
   end
   handle_asynchronously :subscribe_contacts
   
