@@ -5,6 +5,12 @@ describe MailchimpSynchronizer do
   let(:sync){MailchimpSynchronizer.new(account: account)}
   let(:contact){Contact.make}
 
+  describe "#get_scope" do
+    subject { sync.get_scope }
+    describe "when no segments" do
+      it { should_not raise_exception }
+    end
+  end
   describe "#get_system_status" do
     subject { sync.get_system_status(contact) }
     describe "for contact with local_status :student" do
