@@ -9,6 +9,8 @@ class MailchimpSynchronizer
   field :filter_method
 
   belongs_to :account
+  validates_presence_of :account
+
   has_many :mailchimp_segments
   
   before_create :set_default_attributes
@@ -96,7 +98,7 @@ class MailchimpSynchronizer
   end
 
   def get_system_status (contact)
-    case contact.local_statuses.where(account_id: account.id).first.try(:value).try(:to_sym)
+    case contact.local_statuses.where(account_id: account.id).first.try(:value)
     when :prospect
       '|p||ps||pf|'
     when :student
@@ -200,9 +202,9 @@ class MailchimpSynchronizer
   end
   
   def set_i18n
-    account = PadmaAccount.find(account.name)
-    if account
-      I18n.locale = account.locale
+    padma_account = PadmaAccount.find(account.name)
+    if padma_account
+      I18n.locale = padma_account.locale
     end
   end
   

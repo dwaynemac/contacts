@@ -1,9 +1,21 @@
 require 'spec_helper'
 
 describe MailchimpSynchronizer do
-  let(:account){Account.make}
+  let(:account){Account.make(name: 'myaccname')}
   let(:sync){MailchimpSynchronizer.new(account: account)}
   let(:contact){Contact.make}
+
+  describe "#get_system_status" do
+    subject { sync.get_system_status(contact) }
+    describe "for contact with local_status :student" do
+      let(:contact){ Contact.make(local_status_for_myaccname: :student) }
+      it { should eq '|s||ps||sf|' }
+    end
+    describe "for contact with local_status 'student'" do
+      let(:contact){ Contact.make(local_status_for_myaccname: "student") }
+      it { should eq '|s||ps||sf|' }
+    end
+  end
 
   describe "#get_primary_attribute_value" do
     describe "if contact has none" do
