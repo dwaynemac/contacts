@@ -103,7 +103,7 @@ class MailchimpSynchronizer
   end
 
   def get_system_status (contact)
-    case contact.local_statuses.where(account_id: account.id).first.try(:value)
+    case contact.local_statuses.where(account_id: account.id).first.try(:value).try(:to_sym)
     when :prospect
       '|p||ps||pf|'
     when :student
