@@ -26,10 +26,13 @@ class Telephone < ContactAttribute
     return if self.allow_duplicate
     return unless category.to_s == 'mobile'
 
-    r = Contact.excludes(_id: self.contact._id).where(
-                       'contact_attributes._type' => 'Telephone',
-                       'contact_attributes.category' => /mobile/i,
-                       'contact_attributes.value' => value )
+    r = Contact.excludes(_id: self.contact._id)
+               .where( contact_attributes: {
+                         '$elemMatch' => {
+                            '_type' => 'Telephone',
+                            category: /mobile/i,
+                            value: value
+               }} )
 
     errors[:value] << "mobile is not unique" if r.count > 0
   end
