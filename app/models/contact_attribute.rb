@@ -101,6 +101,7 @@ class ContactAttribute
   end
 
   def ensure_at_least_one_primary
+    return if self.contact.nil?
     if self.contact.contact_attributes.where(_type: self._type, account_id: self.account_id, primary: true).count == 0
       self.primary = true
     end

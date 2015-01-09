@@ -1,4 +1,21 @@
 es:
+  mailchimp:
+    phone:
+      phone: telefono
+    status:
+      status: estado
+      prospect: prospect
+      student: alumno
+      former_student: ex-alumno
+    gender:
+      gender: Genero
+      female: mujer
+      male: hombre
+    address:
+      address: direccion
+    coefficient:
+      coefficient: Coeficiente
+
   errors:
     messages:
       invalid_format: "Formato invalido"

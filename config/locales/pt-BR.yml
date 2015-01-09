@@ -1,0 +1,15 @@
+pt-BR:
+  mailchimp:
+    phone:
+      phone: telephone
+    status:
+      status: estado
+      prospect: prospect
+    address:
+      address: endereco
+    gender:
+      gender: Sexo
+      male: homem
+      female: mulher
+    coefficient:
+      coefficient: Coeficiente

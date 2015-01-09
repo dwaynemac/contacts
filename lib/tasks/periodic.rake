@@ -10,4 +10,12 @@ namespace :periodic do
     bd = BirthdayNotificator.new
     bd.deliver_notifications
   end
+
+  desc 'synchronize with mailchimp'
+  task :synchronize_with_mailchimp => :environment do
+    MailchimpSynchronizer.all.each do |ms|
+      Rails.logger.info "MAILCHIMP - synchronizing #{ms.account.name}"
+      ms.subscribe_contacts # this will queue to background
+    end
+  end
 end

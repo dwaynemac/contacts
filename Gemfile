@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 ruby '1.9.3'
 
-gem 'rails', '3.1.6'
+gem 'rails', '~> 3.1.0'
 
 gem 'unicorn'
 gem "mongoid", "2.3.3"
@@ -14,8 +14,10 @@ gem 'cancan', '~> 1.6.7'
 gem "logical_model", '~> 0.5.8'
 gem 'activity_stream_client', '~> 0.0.14'
 gem 'overmind_client', '~> 0.0.1'
-gem 'accounts_client', '~> 0.0.18'
+gem 'accounts_client'
 gem 'messaging_client'
+
+gem 'gibbon'
 
 gem 'kaminari', '~> 0.13'
 
@@ -61,7 +63,6 @@ gem 'appsignal-mongo', group: [:production, :development]
 
 group :development do
   gem 'git-pivotal-tracker-integration'
-  gem 'padma-deployment'
 
   gem 'debugger'
   gem 'ruby-mass'
@@ -90,12 +91,12 @@ end
 
 # needed for rake ¿?
 gem "rspec-rails", "~> 2.14"
-gem 'mongoid-rspec', '1.4.4'
   
 group :test do
   gem "shoulda-matchers", :require => false
   gem "machinist", '1.0.6'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
+  gem 'mongoid-rspec', '1.4.4'
   gem 'faker', '0.9.4'
   gem "database_cleaner", ">= 0.6.7"
   gem 'coveralls', require: false

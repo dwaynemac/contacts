@@ -11,3 +11,20 @@ en:
       existence_of_contacts: "At least one of the contacts doesn't exist"
       similarity_of_contacts: "Contacts must be similar"
       uniqueness: "This contacts are already being merged"
+  
+  mailchimp:
+    gender:
+      gender: Gender
+      male: Male
+      female: Female
+    status:
+      status: Status
+      prospect: Prospect
+      student: Student
+      former_student: Former Student
+    coefficient:
+      coefficient: Coefficient
+    address:
+      address: Address
+    phone:
+      phone: Phone

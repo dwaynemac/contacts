@@ -551,7 +551,7 @@ class Contact
   def assign_owner
     old_owner_id = self.owner_id
 
-    new_owner = case self.status
+    new_owner = case self.status.try(:to_sym)
       when :student
         self.local_statuses.where(value: :student).first.try :account
       when :former_student
