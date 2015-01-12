@@ -10,7 +10,11 @@ class Identification < ContactAttribute
 
   def check_value_uniqueness
     return if _parent.nil? || !_parent.check_duplicates
-    if Contact.where({'_id' => {'$ne' =>contact._id}}).and({'contact_attributes.value' => value}).and({'contact_attributes.category' => category}).exists?
+    if Contact.where({'_id' => {'$ne' =>contact._id}})
+              .and( contact_attributes: { '$elemMatch' => {
+                      value: value,
+                      category: category }})
+              .exists?
       errors.add(
             :value,
             :taken
