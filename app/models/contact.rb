@@ -35,9 +35,6 @@ class Contact
 
   after_create :post_activity_of_creation
 
-  # TEMPORARY FOR DB UPDATE
-  field :link_upgraded
-
   field :first_name
   field :last_name
 
