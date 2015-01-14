@@ -10,15 +10,13 @@ class Identification < ContactAttribute
 
   def check_value_uniqueness
     return if _parent.nil? || !_parent.check_duplicates
-    if Contact.where({'_id' => {'$ne' =>contact._id}})
+    r = Contact.where({'_id' => {'$ne' =>contact._id}})
               .and( contact_attributes: { '$elemMatch' => {
                       value: value,
                       category: category }})
-              .exists?
-      errors.add(
-            :value,
-            :taken
-          )
+    if r.count > 0
+      errors[:value] << I18n.t('errors.messages.is_not_unique')
+      contact.errors[:possible_duplicates] << r.map {|c| c.minimum_representation}
     end
   end
 

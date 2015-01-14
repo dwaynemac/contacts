@@ -34,7 +34,10 @@ class Telephone < ContactAttribute
                             value: value
                }} )
 
-    errors[:value] << "mobile is not unique" if r.count > 0
+    if r.count > 0
+      errors[:value] << I18n.t('errors.messages.is_not_unique')
+      self.contact.errors[:possible_duplicates] << r.map {|c| c.minimum_representation}
+    end
   end
 
   def camelize_category

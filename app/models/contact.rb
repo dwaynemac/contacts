@@ -465,7 +465,7 @@ class Contact
           obj.errors.messages.map do |attr,messages|
             if attr == :value
               "#{obj.value} #{messages.join(', ')}"
-            else
+            elsif attr != :possible_duplicates
               "#{attr} #{obj.send(attr)} #{messages.join(', ')}"
             end
           end.flatten

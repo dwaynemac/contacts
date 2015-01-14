@@ -11,7 +11,9 @@ class EmailUniquenessValidator < ActiveModel::EachValidator
         value: value
         } 
     }})
-
-    record.errors[attribute] << (options[:message] || "is not unique") if r.count > 0
+    if r.count > 0
+      record.errors[attribute] << (options[:message] || I18n.t('errors.messages.is_not_unique'))
+      record.errors[:possible_duplicates] << r.map {|c| c.minimum_representation}
+    end
   end
 end
