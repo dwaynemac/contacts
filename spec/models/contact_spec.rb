@@ -830,7 +830,7 @@ describe Contact do
       end
       it "it should show 'Email xxx is not unique'" do
         @contact.should_not be_valid
-        @contact.deep_error_messages.should include(contact_attributes: [["this@mail.com already belongs to another contact", nil]])
+        @contact.deep_error_messages.should include(:contact_attributes => [["this@mail.com already belongs to another contact"]])
       end
     end
   end
