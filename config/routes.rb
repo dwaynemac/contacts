@@ -33,6 +33,7 @@ Contacts::Application.routes.draw do
       collection do
         get :custom_keys
         post :create_from_kshema, to: 'contact_attributes#create_from_kshema'
+        put :update_neighborhood_from_kshema, to: 'contact_attributes#update_neighborhood_from_kshema'
       end
     end
     resources :attachments
