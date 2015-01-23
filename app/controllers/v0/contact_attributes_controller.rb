@@ -198,9 +198,9 @@ class V0::ContactAttributesController < V0::ApplicationController
     contact = Contact.where(kshema_id: params[:kshema_id]).first
 
     if !contact.nil?
-      address = contact.contact_attributes.where(:"_type" => "Address", :category => "home").first
+      address = contact.contact_attributes.where(:"_type" => "Address", category: "personal").first
       address.neighborhood = params[:contact_attribute][:neighborhood] unless address.nil?
-      if address.save
+      if !address.nil? && address.save
         render :json => { :id => address }.to_json, :status => :created
       else
         render :json => { :message => "Sorry, contact attribute not updated",
