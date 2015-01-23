@@ -222,6 +222,7 @@ class Import
     city = get_value_for('city', @current_row)
     state = get_value_for('state', @current_row)
     country = get_value_for('country_id', @current_row)
+    neighborhood = get_value_for('locality', @current_row)
 
     address_values = {value: value, category: category, postal_code: postal_code, city: city, state: state, country: country}
     @contact.contact_attributes << Address.new(address_values)
