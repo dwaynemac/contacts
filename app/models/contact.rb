@@ -387,29 +387,27 @@ class Contact
         end
       end
 
-      if self.new?
-        self.emails.map(&:value).each do |email|
-          contacts = contacts.any_of(contact_attributes: { '$elemMatch' => {
-                                                          '_type' => 'Email',
-                                                          'value' => email,
-          }})
-        end
+      self.emails.map(&:value).each do |email|
+        contacts = contacts.any_of(contact_attributes: { '$elemMatch' => {
+                                                        '_type' => 'Email',
+                                                        'value' => email,
+        }})
+      end
 
-        self.mobiles.map(&:value).each do |mobile|
-          contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
-            '_type' => 'Telephone',
-            'category' => /mobile/i,
-            'value' => mobile
-          }})
-        end
+      self.mobiles.map(&:value).each do |mobile|
+        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+          '_type' => 'Telephone',
+          'category' => /mobile/i,
+          'value' => mobile
+        }})
+      end
 
-        self.identifications.each do |identification|
-          contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
-              _type: 'Identification',
-              category: identification.category,
-              value: identification.get_normalized_value
-          }})
-        end
+      self.identifications.each do |identification|
+        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+            _type: 'Identification',
+            category: identification.category,
+            value: identification.get_normalized_value
+        }})
       end
 
       if self.id.present?
