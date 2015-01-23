@@ -15,11 +15,11 @@ es:
       address: direccion
     coefficient:
       coefficient: Coeficiente
-
   errors:
     messages:
       invalid_format: "Formato invalido"
       could_have_duplicates: "Puede tener duplicados"
+      is_not_unique: "ya pertenece a otro contacto"
     merge:
       existence_of_contacts: "Al menos uno de los contactos no existe"
       similarity_of_contacts: "Los contactos deben ser similares"

@@ -7,6 +7,7 @@ en:
     messages:
       invalid_format: "Invalid format"
       could_have_duplicates: "Could have duplicates"
+      is_not_unique: "already belongs to another contact"
     merge:
       existence_of_contacts: "At least one of the contacts doesn't exist"
       similarity_of_contacts: "Contacts must be similar"
