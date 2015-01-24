@@ -217,14 +217,14 @@ class Import
   end
 
   def create_address(value)
-    category = "personal"
+    category = "home"
     postal_code = get_value_for('codigo_postal', @current_row)
     city = get_value_for('city', @current_row)
     state = get_value_for('state', @current_row)
     country = get_value_for('country_id', @current_row)
     neighborhood = get_value_for('locality', @current_row)
 
-    address_values = {value: value, category: category, postal_code: postal_code, city: city, state: state, country: country}
+    address_values = {value: value, category: category, postal_code: postal_code, city: city, state: state, country: country, neighborhood: neighborhood}
     @contact.contact_attributes << Address.new(address_values)
   end
 
