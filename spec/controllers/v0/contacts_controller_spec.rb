@@ -426,6 +426,16 @@ describe V0::ContactsController do
               app_key: V0::ApplicationController::APP_KEY
           should respond_with 200
         end
+        describe "level" do
+          before do
+            put :update, id: @invalid_contact.id, contact: { level: :aspirante },
+                ignore_validation: true, account_name: account.name,
+                app_key: V0::ApplicationController::APP_KEY
+          end
+          it "is white listed" do
+            @invalid_contact.reload.level.to_sym.should == :aspirante
+          end
+        end
         describe "local_status" do
           before do
             put :update, id: @invalid_contact.id, contact: { local_status: :student },
