@@ -340,15 +340,19 @@ class V0::ContactsController < V0::ApplicationController
   #
   # @example_response "OK"
   def destroy_multiple
-    @contacts = @scope.any_in('_id' => params[:ids])
-    @contacts.each do |c|
-      if @account
-        c.unlink(@account)
-      else
-        c.destroy if can?(:destroy, c)
+    if params[:ids].blank?
+      render json: 'specify :ids', status: 400
+    else
+      @contacts = @scope.any_in('_id' => params[:ids])
+      @contacts.each do |c|
+        if @account
+          c.unlink(@account)
+        else
+          c.destroy if can?(:destroy, c)
+        end
       end
+      render json: 'OK'
     end
-    render json: 'OK'
   end
 
   private
