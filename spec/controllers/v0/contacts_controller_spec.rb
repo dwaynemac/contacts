@@ -819,6 +819,18 @@ describe V0::ContactsController do
       @contacts = []
       3.times { @contacts << Contact.make(owner: @account) }
     end
+    context "without :ids" do
+      let(:params){{:method => :delete,
+                    :account_name => @account.name,
+                    :app_key => V0::ApplicationController::APP_KEY}}
+      it "should fail safely" do
+        expect{post :destroy_multiple, params}.not_to raise_exception
+      end
+      it "should return status 400" do
+        post :destroy_multiple, params
+        expect(response.code).to eq '400'
+      end
+    end
     context "as the owner" do
       let(:params){{:method => :delete,
                     :ids => @contacts.map(&:_id),
