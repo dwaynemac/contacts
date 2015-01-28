@@ -146,8 +146,9 @@ class V0::ContactsController < V0::ApplicationController
     as_json_params = {
       select: params[:select],
       account: @account,
-      include_masked: true
     }
+
+    as_json_params[:include_masked] = params[:include_masked].nil?? true : params[:include_masked]
 
     if params[:select].nil? || params[:select] == 'all'
       as_json_params[:mode] = 'all'

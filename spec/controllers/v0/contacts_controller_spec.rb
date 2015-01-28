@@ -286,6 +286,7 @@ describe V0::ContactsController do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:local_status].should == @local_status.status.to_s
       end
+
       it "should include masked phones" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:contact_attributes].map{|ca|ca['value']}.should include("9999####")
@@ -293,6 +294,17 @@ describe V0::ContactsController do
       it "should include all local_statuses" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:local_statuses].count.should == 3
+      end
+    end
+
+    describe "when scoped to an account but specifing include_masked: false" do
+      before(:each) do
+        @contact.contact_attributes << Telephone.make(account: Account.make, public: false, value: "99999999")
+        get :show, :id => @contact.id, :account_name => @contact.owner.name, :app_key => V0::ApplicationController::APP_KEY, :include_masked => false
+      end
+      it "should not include masked phones" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:contact_attributes].map{|ca|ca['value']}.should_not include("9999####")
       end
     end
 
