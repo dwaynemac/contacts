@@ -148,7 +148,7 @@ class V0::ContactsController < V0::ApplicationController
       account: @account,
     }
 
-    as_json_params[:include_masked] = params[:include_masked].nil?? true : params[:include_masked]
+    as_json_params[:include_masked] = params[:include_masked].nil?? default_masked : params[:include_masked]
 
     if params[:select].nil? || params[:select] == 'all'
       as_json_params[:mode] = 'all'
@@ -357,6 +357,20 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   private
+
+  
+  # if request is for account
+  # where contact is student
+  #               or former_student
+  # dont include masked attributes
+  def default_masked
+    if @account.present?
+      local_status = @contact.local_value_for_account('local_status',@account.id).try(:to_sym)
+      !local_status.in?([:student, :former_student])
+    else
+      true
+    end
+  end
 
   # Converts
   #   local_status -> local_status_for_CurrentAccountName
