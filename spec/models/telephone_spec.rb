@@ -32,7 +32,7 @@ describe Telephone do
   specify "#masked_value" do
     @contact = Contact.make
     @contact.contact_attributes << Telephone.new(category: :mobile, value: "1540995071")
-    @contact.contact_attributes.last.masked_value.should == "1540######"
+    @contact.contact_attributes.last.masked_value.should == "######5071"
   end
 
   describe "of 'mobile' category" do

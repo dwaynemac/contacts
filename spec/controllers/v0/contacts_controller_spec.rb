@@ -289,7 +289,7 @@ describe V0::ContactsController do
 
       it "should include masked phones" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
-        result[:contact_attributes].map{|ca|ca['value']}.should include("9999####")
+        result[:contact_attributes].map{|ca|ca['value']}.should include("####9999")
       end
       it "should include all local_statuses" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
@@ -304,7 +304,7 @@ describe V0::ContactsController do
       end
       it "should not include masked phones" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
-        result[:contact_attributes].map{|ca|ca['value']}.should_not include("9999####")
+        result[:contact_attributes].map{|ca|ca['value']}.should_not include("####9999")
       end
     end
 
@@ -332,7 +332,7 @@ describe V0::ContactsController do
                 include_masked: false
           end
           it "should not include masked phones" do
-            result[:contact_attributes].map{|ca|ca['value']}.should_not include("9999####")
+            result[:contact_attributes].map{|ca|ca['value']}.should_not include("####9999")
           end
         end
         describe "if contact is student in account" do
@@ -345,7 +345,7 @@ describe V0::ContactsController do
                 app_key: V0::ApplicationController::APP_KEY
           end
           it "should not include masked phones" do
-            result[:contact_attributes].map{|ca|ca['value']}.should_not include("9999####")
+            result[:contact_attributes].map{|ca|ca['value']}.should_not include("####9999")
           end
         end
         describe "if contact is former_student in account" do
@@ -358,7 +358,7 @@ describe V0::ContactsController do
                 app_key: V0::ApplicationController::APP_KEY
           end
           it "should not include masked phones" do
-            result[:contact_attributes].map{|ca|ca['value']}.should_not include("9999####")
+            result[:contact_attributes].map{|ca|ca['value']}.should_not include("####9999")
           end
         end
         describe "if contact has other status in account" do
@@ -371,7 +371,7 @@ describe V0::ContactsController do
                 app_key: V0::ApplicationController::APP_KEY
           end
           it "should not include masked phones" do
-            result[:contact_attributes].map{|ca|ca['value']}.should include("9999####")
+            result[:contact_attributes].map{|ca|ca['value']}.should include("####9999")
           end
         end
       end

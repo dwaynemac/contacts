@@ -15,7 +15,7 @@ class Telephone < ContactAttribute
 
   def masked_value
     string = self.value
-    string.gsub(/[^\d]/,"").gsub(/^(\d{4}).*/,'\1')+string.gsub(/[^\d]/,"").gsub(/^\d{4}/,"").gsub(/\d/,"#")
+    string.gsub(/[^\d]/,"").gsub(/^\d{4}/,"").gsub(/\d/,"#")+string.gsub(/[^\d]/,"").gsub(/^.*(\d{4})/,'\1')
   end
 
   scope :mobiles, where( category: 'mobile' )
