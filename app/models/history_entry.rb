@@ -116,13 +116,18 @@ class HistoryEntry
   def self.elements_without_history(ids_array,options)
     return [] unless options[:class]
 
+    appsignal_key = ".add_entries_wout_history.attribute_at_given_time.refine_scope.contacts_search"
+
     ref_attribute = options.keys.first
     ref_value     = options[options.keys.first]
 
-    if options[:account]
-      elems_wout_hist = options[:account].send(options[:class].underscore.pluralize)
-    else
-      elems_wout_hist = options[:class].constantize
+    elems_wout_hist  = nil
+    ActiveSupport::Notifications.instrument("account_scope.#{appsignal_key}") do
+      if options[:account]
+        elems_wout_hist = options[:account].send(options[:class].underscore.pluralize)
+      else
+        elems_wout_hist = options[:class].constantize
+      end
     end
 
     attribute_filter = {}
@@ -146,7 +151,11 @@ class HistoryEntry
 
 
     # DB hit
-    elems_wout_hist.where(attribute_filter).not_in(_id: ids_array).only('_id').map { |doc| doc._id }
+    ret = nil
+    ActiveSupport::Notifications.instrument("query_mongo.#{appsignal_key}") do
+      ret = elems_wout_hist.where(attribute_filter).not_in(_id: ids_array).only('_id').map { |doc| doc._id }
+    end
+    ret
   end
 
   # Filteres mapreduce result according to expected value and scoping to account
