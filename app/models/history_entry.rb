@@ -158,7 +158,7 @@ class HistoryEntry
         docs = elems_wout_hist.where(attribute_filter).not_in(_id: ids_array).only('_id') 
       end
       ActiveSupport::Notifications.instrument("map.query_mongo.#{appsignal_key}") do
-        ret = docs.map { |doc| doc._id }
+        ret = docs.map(&:_id)
       end
     end
     ret
