@@ -504,7 +504,7 @@ class Contact
     ids = HistoryEntry.element_ids_with(
         attribute => value,
         at: ref_date,
-        class: 'Contact'
+        class: 'Contact',
         account_name: account_name
     )
     self.any_in(_id: ids)
