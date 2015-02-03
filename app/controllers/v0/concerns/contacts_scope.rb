@@ -29,7 +29,7 @@ module V0
         ActiveSupport::Notifications.instrument('attribute_at_given_time.refine_scope.contacts_search') do
           params[:attribute_values_at].each do |ava|
             ava['value'] = ava['value'] == 'true' if ava['attribute'] == 'in_professional_training'
-            @scope = @scope.with_attribute_value_at(ava['attribute'],ava['value'],ava['ref_date'])
+            @scope = @scope.with_attribute_value_at(ava['attribute'],ava['value'],ava['ref_date'],params[:account_name])
           end if params[:attribute_values_at]
         end
       end

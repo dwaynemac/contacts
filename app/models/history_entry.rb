@@ -121,12 +121,10 @@ class HistoryEntry
     ref_attribute = options.keys.first
     ref_value     = options[options.keys.first]
 
-    elems_wout_hist  = nil
+    elems_wout_hist = options[:class].constantize
     ActiveSupport::Notifications.instrument("account_scope.#{appsignal_key}") do
       if options[:account]
         elems_wout_hist = options[:account].send(options[:class].underscore.pluralize)
-      else
-        elems_wout_hist = options[:class].constantize
       end
     end
 
