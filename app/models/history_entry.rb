@@ -116,7 +116,7 @@ class HistoryEntry
   def self.elements_without_history(ids_array,options)
     return [] unless options[:class]
 
-    appsignal_key = ".add_entries_wout_history.attribute_at_given_time.refine_scope.contacts_search"
+    appsignal_key = "add_entries_wout_history.attribute_at_given_time.refine_scope.contacts_search"
 
     ref_attribute = options.keys.first
     ref_value     = options[options.keys.first]
@@ -153,7 +153,13 @@ class HistoryEntry
     # DB hit
     ret = nil
     ActiveSupport::Notifications.instrument("query_mongo.#{appsignal_key}") do
-      ret = elems_wout_hist.where(attribute_filter).not_in(_id: ids_array).only('_id').map { |doc| doc._id }
+      docs = nil
+      ActiveSupport::Notifications.instrument("query.query_mongo.#{appsignal_key}") do
+        docs = elems_wout_hist.where(attribute_filter).not_in(_id: ids_array).only('_id') 
+      end
+      ActiveSupport::Notifications.instrument("map.query_mongo.#{appsignal_key}") do
+        ret = docs.map { |doc| doc._id }
+      end
     end
     ret
   end
