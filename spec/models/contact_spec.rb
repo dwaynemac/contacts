@@ -60,6 +60,16 @@ describe Contact do
     end
   end
 
+  describe "#derose_id" do
+    it { should have_field :derose_id }
+    it { should validate_uniqueness_of :derose_id }
+    it "allows blank" do
+      Contact.make(derose_id: nil)
+      c = Contact.make_unsaved(derose_id: nil)
+      c.should be_valid
+    end
+  end
+
   describe "#kshema_id" do
     it { should have_field :kshema_id }
     it { should validate_uniqueness_of :kshema_id }

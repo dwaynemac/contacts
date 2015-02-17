@@ -18,6 +18,10 @@ class Merge
     'contacts' => false,
     'crm' => false,
     'activity_stream' => false
+    # TODO fnz
+    # TODO attendance
+    # TODO planning
+    # TODO mailing
   }
 
   field :services, :type => Hash, :default => SERVICES

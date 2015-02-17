@@ -56,6 +56,11 @@ class Contact
   before_save :set_estimated_age_on
   field :estimated_age_on, type: Date
 
+  # DeRose ID is a uniq identified for students of DeRose Method Network
+  # eg: "AR BEL 2015 0 123-3"
+  field :derose_id
+  validates_uniqueness_of :derose_id, allow_blank: true
+
   field :kshema_id
   validates_uniqueness_of :kshema_id, allow_blank: true
 
