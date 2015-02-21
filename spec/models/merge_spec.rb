@@ -245,14 +245,14 @@ describe Merge do
           before { ActivityStream::Merge.any_instance.should_receive(:create).and_return(true) }
           it "sets services['activity_stream'] to true" do
             merge.start
-            merge.services['activity_stream'].should be_true
+            merge.services['activity_stream'].should be_truthy
           end
         end
         context "and merge fails" do
           before { ActivityStream::Merge.any_instance.should_receive(:create).and_return(false) }
           it "leaves services['activity_stream'] in false" do
             merge.start
-            merge.services['activity_stream'].should be_false
+            merge.services['activity_stream'].should be_falsy
           end
           it "stores message 'errors.merge.services.merge_failed' in :crm_service" do
             merge.start
@@ -266,7 +266,7 @@ describe Merge do
         it "leaves services['activity_stream'] in false" do
           merge.start
           merge.reload
-          merge.services['activity_stream'].should be_false
+          merge.services['activity_stream'].should be_falsy
         end
         it "stores message 'errors.merge.services.connection_failed' in :crm_service" do
           merge.start
@@ -288,14 +288,14 @@ describe Merge do
           before { CrmMerge.any_instance.should_receive(:create).and_return(true) }
           it "sets services['crm'] to true" do
             merge.start
-            merge.services['crm'].should be_true
+            merge.services['crm'].should be_truthy
           end
         end
         context "and merge fails" do
           before { CrmMerge.any_instance.should_receive(:create).and_return(false) }
           it "leaves services['crm'] in false" do
             merge.start
-            merge.services['crm'].should be_false
+            merge.services['crm'].should be_falsy
           end
           it "stores message 'errors.merge.services.merge_failed' in :crm_service" do
             merge.start
@@ -308,7 +308,7 @@ describe Merge do
         before { CrmMerge.any_instance.should_receive(:create).and_return(nil) }
         it "leaves services['crm'] in false" do
           merge.start
-          merge.services['crm'].should be_false
+          merge.services['crm'].should be_falsy
         end
         it "stores message 'errors.merge.services.connection_failed' in :crm_service" do
           merge.start
@@ -469,11 +469,11 @@ describe Merge do
     end
 
     it "should keep record of migrated services" do
-      @m.services['activity_stream'].should be_true
+      @m.services['activity_stream'].should be_truthy
     end
 
     it "should keep record of not-migrated services" do
-      @m.services['crm'].should be_false
+      @m.services['crm'].should be_falsy
       @m.should be_pending
     end
   end
@@ -511,9 +511,9 @@ describe Merge do
 
     it "should keep record of migrated services" do
       @m.reload
-      @m.services['activity_stream'].should be_true
-      @m.services['crm'].should be_true
-      @m.services['contacts'].should be_true
+      @m.services['activity_stream'].should be_truthy
+      @m.services['crm'].should be_truthy
+      @m.services['contacts'].should be_truthy
       @m.should be_finished
     end
 

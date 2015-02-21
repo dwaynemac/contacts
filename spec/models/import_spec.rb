@@ -90,7 +90,7 @@ describe Import do
         end
         it "should set in_professional_training correctly" do
           alex = Contact.where(first_name: "Alex").first
-          alex.in_professional_training.should be_true
+          alex.in_professional_training.should be_truthy
         end
       end
       context "with a contact that is already in the database" do

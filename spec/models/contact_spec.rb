@@ -631,7 +631,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.in?(@contact.similar).should_not be_true }
+        it { @contact.in?(@contact.similar).should_not be_truthy }
       end
 
       describe "an existing contact with same last name and first name" do
@@ -641,7 +641,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contacts.in?(@contact.similar).should_not be_true }
+        it { @contacts.in?(@contact.similar).should_not be_truthy }
       end
     end
 
@@ -665,7 +665,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.in?(@contact.similar).should_not be_true }
+        it { @contact.in?(@contact.similar).should_not be_truthy }
       end
 
       describe "a new contact with same last name and first name" do
@@ -675,7 +675,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.in?(@contact.similar).should_not be_true }
+        it { @contact.in?(@contact.similar).should_not be_truthy }
       end
     end
 
@@ -688,7 +688,7 @@ describe Contact do
       it "new contact should match it by mail" do
         c = Contact.new(first_name: 'Santiago', last_name: 'Santo')
         c.contact_attributes << Email.make(value: 'homer@simpson.com')
-        @homer.in?(c.similar).should be_true
+        @homer.in?(c.similar).should be_truthy
       end
     end
 
@@ -701,12 +701,12 @@ describe Contact do
       it "new contact should match it by mobile" do
         c = Contact.new(first_name: 'Juan', last_name: 'Perez')
         c.contact_attributes << Telephone.make(value: '1540995071', category: 'mobile')
-        @homer.in?(c.similar).should be_true
+        @homer.in?(c.similar).should be_truthy
       end
       it "new contact should not match if mobile differs" do
         c = Contact.new(first_name: 'Bob', last_name: 'Doe')
         c.contact_attributes << Telephone.make(value: '15443340995071', category: 'mobile')
-        @homer.in?(c.similar).should_not be_true
+        @homer.in?(c.similar).should_not be_truthy
       end
     end
 
@@ -725,7 +725,7 @@ describe Contact do
             @new_contact.contact_attributes << Identification.make_unsaved(value: '30366832', category: 'DNI')
           end
           it "should have possible duplicates" do
-            @similar.in?(@new_contact.similar).should be_true
+            @similar.in?(@new_contact.similar).should be_truthy
           end
         end
         describe "with DNI 3/0.3_6 6.83-2" do
@@ -733,7 +733,7 @@ describe Contact do
             @new_contact.contact_attributes << Identification.make_unsaved(value: '3/0.3_6 6.83-2', category: 'DNI')
           end
           it "should have possible duplicates" do
-            @similar.in?(@new_contact.similar).should be_true
+            @similar.in?(@new_contact.similar).should be_truthy
           end
         end
         describe "with CPF 30366832" do

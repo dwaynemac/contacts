@@ -191,7 +191,7 @@ describe V0::ImportsController do
       end
       it { should respond_with 200 }
       it "destroys specified import" do
-        Import.exists?(conditions: { id: import.id }).should be_false
+        Import.exists?(conditions: { id: import.id }).should be_falsy
       end
     end
     describe "for import that is still working" do
@@ -202,7 +202,7 @@ describe V0::ImportsController do
       # status codes definitions: http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
       it { should respond_with 409 }
       it "wont destroy specified import" do
-        Import.exists?(conditions: { id: import.id }).should be_true
+        Import.exists?(conditions: { id: import.id }).should be_truthy
       end
     end
     describe "for import that finished proccessing" do
@@ -215,7 +215,7 @@ describe V0::ImportsController do
       end
       it "destroys specified import" do
         do_request
-        Import.exists?(conditions: { id: import.id }).should be_false
+        Import.exists?(conditions: { id: import.id }).should be_falsy
       end
       it "destroys imported contacts" do
         c = import.imported_ids.count
