@@ -463,8 +463,11 @@ describe V0::ContactsController do
         end
         describe "update after a get" do
           before do
-            get :show, id: @contact.id, account_name: @account_a.name
-            put :update, :id => @contact.id, :contact => {:coefficient => "pmenos"},
+            get :show, id: @contact.id, account_name: @account_a.name,
+                :app_key => V0::ApplicationController::APP_KEY
+            put :update,
+                :id => @contact.id,
+                :contact => {:coefficient => "pmenos"},
                 :app_key => V0::ApplicationController::APP_KEY
           end
           it "should save contact correctly" do

@@ -1,6 +1,8 @@
 # @restful_api v0
 class V0::ContactAttributesController < V0::ApplicationController
 
+  authorize_resource
+
   before_filter :get_contact, except: [:custom_keys, :create_from_kshema, :update_neighborhood_from_kshema]
   before_filter :set_scope, except: [:custom_keys, :create_from_kshema, :update_neighborhood_from_kshema]
 

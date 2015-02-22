@@ -1,5 +1,6 @@
 # @restful_api v0
 class V0::MergesController < V0::ApplicationController
+
   load_and_authorize_resource except: [:create]
 
   ##

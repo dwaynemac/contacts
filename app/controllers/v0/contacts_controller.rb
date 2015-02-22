@@ -1,9 +1,9 @@
 require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
 require 'oj'
-
-##
 # @restful_api v0
 class V0::ContactsController < V0::ApplicationController
+
+  authorize_resource
 
   include V0::Concerns::ContactsScope
 
@@ -217,8 +217,6 @@ class V0::ContactsController < V0::ApplicationController
   # @response_code failure 400
   #
   def create
-
-    authorize! :create, Contact
 
     @contact = Contact.new(params[:contact])
     @contact.owner = @account if @account

@@ -6,11 +6,12 @@ class V0::ApplicationController < ApplicationController
 
   APP_KEY = ENV['app_key']
 
-  before_filter :check_app_key
   before_filter :get_account
 
+  check_authorization # requires CanCan authorization on all actions
+
   def current_ability
-    @current_ability ||= V0::Ability.new(@account)
+    @current_ability ||= V0::Ability.new(@account,params[:app_key])
   end
 
   rescue_from CanCan::AccessDenied do |exception|
@@ -22,13 +23,6 @@ class V0::ApplicationController < ApplicationController
   end
 
   private
-
-  # verifies that app_key was given
-  def check_app_key
-    unless params[:app_key] == APP_KEY
-      render :text => "wrong app key", :status => 401
-    end
-  end
 
   def valid_timezone?(zone_name)
     zone_name && !ActiveSupport::TimeZone.new(zone_name).nil?
