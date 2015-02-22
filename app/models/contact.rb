@@ -253,7 +253,7 @@ class Contact
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
       attr_name = $1
       account_name = $2
-      sanitized_account_name = account_name.gsub('.', '_')
+      sanitized_account_name = account_name.gsub(/\.|-/, '_')
       a = nil
 
       #cache account to avoid multiple calls to accounts service
