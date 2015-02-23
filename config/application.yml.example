@@ -24,4 +24,4 @@ aws_secret_access_key: "asdfdf"
 aws_bucket: "bucket-name"
 aws_region: "eu-west-1"
 aws_host:   "http://bucket-name.s3.amazonaws.com"
-
+office_key: office-secret

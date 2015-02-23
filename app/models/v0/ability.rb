@@ -7,6 +7,7 @@ class V0::Ability
       case app_key
       when ENV['office_key']
         # office permitions
+        can [:read,:update], Contact
       when V0::ApplicationController::APP_KEY
         if account.nil?
           # Account not specified for this request
