@@ -14,7 +14,7 @@ gem 'cancan', '~> 1.6.7'
 gem "logical_model", '~> 0.5.8'
 gem 'activity_stream_client', '~> 0.0.14'
 gem 'overmind_client', '~> 0.0.1'
-gem 'accounts_client'
+gem 'accounts_client', '>= 0.2.8'
 gem 'messaging_client'
 
 gem 'gibbon'
