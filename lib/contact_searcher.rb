@@ -52,6 +52,7 @@ class ContactSearcher
                 account_ids: local_account.id
               })
             else
+              # Mongo Queries can get slow. If account doesnt exist avoid querying.
               raise Exceptions::ForceEmptyQuery
             end
           when 'telephone', 'email', 'address', 'custom_attribute'
