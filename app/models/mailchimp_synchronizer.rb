@@ -19,8 +19,10 @@ class MailchimpSynchronizer
 
   CONTACTS_BATCH_SIZE = 1000
 
+  RETRIES = 3
   def subscribe_contacts
     return unless status == :ready
+    retries = RETRIES
 
     update_attribute(:status, :working)
     set_api
@@ -34,6 +36,16 @@ class MailchimpSynchronizer
           double_optin: false,
           update_existing: true
         })
+      rescue Gibbon::MailChimpError => e
+        Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
+        retries -= 1
+        if retries >= 0
+          retry
+        else
+          Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
+          update_attribute(:status, :failed)
+          raise e
+        end
       rescue Timeout::Error 
         Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp, retrying"
         retry
@@ -43,7 +55,7 @@ class MailchimpSynchronizer
     update_attribute(:status, :ready)
     return true
   rescue => e
-    Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed"
+    Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
     update_attribute(:status, :failed)
     raise e
   end
@@ -194,7 +206,11 @@ class MailchimpSynchronizer
   
   def get_scope
     return account.contacts if self.filter_method == 'all'
-    Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
+    if mailchimp_segments.empty?
+      Contact.any_in( account_ids: [self.account.id] )
+    else
+      Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
+    end
   end
   
   def get_primary_attribute_value (contact, type)

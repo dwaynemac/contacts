@@ -5,6 +5,38 @@ describe MailchimpSynchronizer do
   let(:sync){MailchimpSynchronizer.new(account: account)}
   let(:contact){Contact.make}
 
+
+  describe "#subscribe_contacts" do
+    before do
+      contact.accounts << account
+      sync.save
+    end
+    context "if mailchimp fails concistenly" do
+      before do
+        Gibbon::API.any_instance.stub(:lists).and_raise(Gibbon::MailChimpError)
+      end
+      it "re-raises Gibbon::MailChimpError" do
+        expect{sync.subscribe_contacts_without_delay}.to raise_exception
+      end
+    end
+    context "if mailchimp fails erratically" do
+      before do
+        @exception_counts = 2
+        Gibbon::API.any_instance.stub(:lists) do
+          @exception_counts -= 1
+          if @exception_counts <= 0
+            raise Gibbon::MailchimpError
+          else
+            Gibbon::API.new
+          end
+        end
+      end
+      it "catches Gibbon::MailChimpError and retries" do
+        expect{sync.subscribe_contacts_without_delay}.not_to raise_exception
+      end
+    end
+  end
+
   describe "#get_scope" do
     subject { sync.get_scope }
     describe "when no segments" do
