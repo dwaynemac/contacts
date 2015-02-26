@@ -15,6 +15,14 @@ describe Contact do
   it { should have_field(:in_professional_training).of_type(Boolean)}
   it { should have_field(:first_enrolled_on).of_type(Date)}
 
+  describe "#first_enrolled_on" do
+    it "is casted from String to Date" do
+      c = Contact.new first_enrolled_on: "2014-12-31"
+      c.valid?
+      expect(c.first_enrolled_on).to eq Date.civil(2014,12,31)
+    end
+  end
+
   describe "#updated_at" do
     let(:contact){Contact.make}
     it "changes when a root attribute changes" do
