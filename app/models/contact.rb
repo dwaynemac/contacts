@@ -61,6 +61,8 @@ class Contact
   field :derose_id
   validates_uniqueness_of :derose_id, allow_blank: true
 
+  field :first_enrolled_on, type: Date
+
   field :kshema_id
   validates_uniqueness_of :kshema_id, allow_blank: true
 
