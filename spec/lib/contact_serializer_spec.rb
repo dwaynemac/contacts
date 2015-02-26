@@ -15,6 +15,9 @@ describe ContactSerializer do
         serializer.account = account
       end
       describe "#serialize" do
+        before do
+          contact.first_enrolled_on = Date.today
+        end
         it "includes all contact_attributes" do
           contact.contact_attributes << Telephone.new( value: '12341234' , account: account)
           contact.save!
@@ -24,6 +27,9 @@ describe ContactSerializer do
         it "render :id as a String" do
           expect(serializer.serialize['id']).to be_a String
           expect(serializer.serialize['id']).not_to be_a BSON::ObjectId
+        end
+        it "renders :first_enrolled_on as String" do
+          expect(serializer.serialize['first_enrolled_on']).to be_a String
         end
       end
     end
