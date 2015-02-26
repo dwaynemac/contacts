@@ -61,10 +61,6 @@ end
 gem 'appsignal', '>= 0.9.4', group: [:production, :development, :deploying]
 gem 'appsignal-mongo', group: [:production, :development]
 
-group :staging do
-  gem 'rails_12factor'
-end
-
 group :development do
   gem 'git-pivotal-tracker-integration'
 
@@ -93,10 +89,11 @@ group :development, :test do
   gem 'libnotify', :require => false if RUBY_PLATFORM =~ /linux/i
 end
 
+# needed for rake ¿?
+gem "rspec-rails", "~> 2.14"
   
 group :test do
-  gem "cucumber-rails", '1.2.0'
-  gem "shoulda-matchers"
+  gem "shoulda-matchers", :require => false
   gem "machinist", '1.0.6'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
   gem 'mongoid-rspec', '1.4.4'
@@ -104,4 +101,3 @@ group :test do
   gem "database_cleaner", ">= 0.6.7"
   gem 'coveralls', require: false
 end
-gem "rspec-rails", "~> 2.14", group: [:test, :staging]
