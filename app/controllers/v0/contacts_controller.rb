@@ -432,7 +432,7 @@ class V0::ContactsController < V0::ApplicationController
       @contact.send("#{k}=",v)
       @contact.set_global_teacher
     end
-    params[:contact].select{|k,v| k =~ /last_seen_at|level/}.each do |k,v|
+    params[:contact].select{|k,v| k =~ /last_seen_at|level|first_enrolled_on/}.each do |k,v|
       @contact.send("#{k}=",v)
     end
   end
