@@ -13,6 +13,7 @@ describe Contact do
   it { should have_field(:status).of_type(Symbol)}
   it { should have_field(:level).of_type(Integer)}
   it { should have_field(:in_professional_training).of_type(Boolean)}
+  it { should have_field(:first_enrolled_on).of_type(Date)}
 
   describe "#updated_at" do
     let(:contact){Contact.make}
