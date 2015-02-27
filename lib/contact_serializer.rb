@@ -115,6 +115,9 @@ class ContactSerializer
         @json['in_active_merge'] = @contact.in_active_merge if serialize?(:in_active_merge)
         @json['in_professional_training'] = @contact.in_professional_training if serialize?(:in_professional_training)
         @json['avatar'] = @contact.avatar.as_json if serialize?(:avatar)
+
+        @json['created_at'] = @contact.created_at.to_s if serialize?(:created_at) 
+        @json['updated_at'] = @contact.updated_at.to_s if serialize?(:updated_at) 
       end
 
       ActiveSupport::Notifications.instrument('account_attributes.build_hash.as_json.contact') do
