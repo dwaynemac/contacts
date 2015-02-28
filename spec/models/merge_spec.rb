@@ -505,7 +505,7 @@ describe Merge do
       
       # it should call Planning API
       mock = PlanningMerge.new
-      PlanningMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
+      PlanningMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
       PlanningMerge.any_instance.should_receive(:create).and_return(true)
 
       @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
