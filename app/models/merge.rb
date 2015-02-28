@@ -191,7 +191,7 @@ class Merge
   end
 
   def planning_service_merge(father,son)
-    planning_merge = PlanningMerge.new(parent_id: father.id, son_id: son.id)
+    planning_merge = PlanningMerge.new(father_id: father.id, son_id: son.id)
     res = planning_merge.create
     case res
       when true
