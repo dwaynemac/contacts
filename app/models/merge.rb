@@ -17,7 +17,7 @@ class Merge
   SERVICES = {
     'contacts' => false,
     'crm' => false,
-    'activity_stream' => false
+    'activity_stream' => false,
     'planning' => false
     # TODO fnz
     # TODO attendance
