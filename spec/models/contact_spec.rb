@@ -1022,6 +1022,24 @@ describe Contact do
 
   # real life example
   describe ".with_attribute_value_at" do
+    context "if ref_date if current month's" do
+      context "uses current values avoing slow query on HistoryEntry" do
+        example do
+          expect(Contact.with_attribute_value_at('level','sádhaka',Date.today.end_of_month).selector)
+            .to eq Contact.api_where(level: 'sádhaka').selector
+        end
+
+        example do
+          expect(Contact.with_attribute_value_at('local_status_for_martinez','student',Date.today).selector)
+            .to eq Contact.api_where(local_status_for_martinez: 'student').selector
+        end
+
+        example do
+          expect(Contact.with_attribute_value_at('local_teacher_for_altoda_xv','evelyne.baldan',Date.today.end_of_month).selector)
+            .to eq Contact.api_where(local_teacher_for_altoda_xv: 'evelyne.baldan').selector
+        end
+      end
+    end
     describe "with local_unique_attributes" do
       before do
         a = Account.make(name: 'martinez')

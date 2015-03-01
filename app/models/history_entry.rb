@@ -55,8 +55,6 @@ class HistoryEntry
 
   # Returns all element ids for elements with given value in given attribute at a given date
   #
-  # TODO benchmark
-  #
   # @param [Hash] options
   #
   # @option options [Hash] :attribute_name - required - first key-value will be used as attribute(key) and value(value)

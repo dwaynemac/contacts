@@ -500,21 +500,25 @@ class Contact
       ref_date = ref_date.to_datetime.end_of_day
     end
 
-    # cast value
-    value = case attribute
-      when 'level'
-        VALID_LEVELS[value]
-      else
-        value
-    end
+    if current_month?(ref_date)
+      self.api_where(attribute => value)
+    else
+      # cast value
+      value = case attribute
+        when 'level'
+          VALID_LEVELS[value]
+        else
+          value
+      end
 
-    ids = HistoryEntry.element_ids_with(
-        attribute => value,
-        at: ref_date,
-        class: 'Contact',
-        account_name: account_name
-    )
-    self.any_in(_id: ids)
+      ids = HistoryEntry.element_ids_with(
+          attribute => value,
+          at: ref_date,
+          class: 'Contact',
+          account_name: account_name
+      )
+      self.any_in(_id: ids)
+    end
   end
 
   def self.api_where(selector = nil, account_id = nil)
@@ -676,4 +680,14 @@ class Contact
     end
     @cached_request_account  
   end
+
+  private
+
+  def self.current_month?(ref_date)
+    if ref_date.is_a?(String)
+      ref_date = DateTime.parse(ref_date)
+    end
+    (ref_date.year == Date.today.year && ref_date.month == Date.today.month)
+  end
+
 end
