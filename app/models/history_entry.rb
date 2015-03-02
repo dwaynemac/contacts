@@ -96,8 +96,12 @@ class HistoryEntry
     reduced_entries_with_desired_value = nil
     ids_with_desired_value = nil
     ActiveSupport::Notifications.instrument('reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
-      reduced_entries_with_desired_value = filter_post_map_reduce(all_reduced_entries_for_date,options) # TODO refactor to a finalize function in the mapreduce?
-      ids_with_desired_value = reduced_entries_with_desired_value.to_a.map{|rdoc| rdoc['_id']['historiable_id'] }
+      ActiveSupport::Notifications.instrument('filter.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
+        reduced_entries_with_desired_value = filter_post_map_reduce(all_reduced_entries_for_date,options) # TODO refactor to a finalize function in the mapreduce?
+      end
+      ActiveSupport::Notifications.instrument('map.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
+        ids_with_desired_value = reduced_entries_with_desired_value.to_a.map{|rdoc| rdoc['_id']['historiable_id'] }
+      end
     end
 
     ret = nil
