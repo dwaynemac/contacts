@@ -52,6 +52,9 @@ describe HistoryEntry do
 
 
   describe "#element_ids_with" do
+    before do
+      Rails.cache.clear
+    end
 
     context "when option class" do
       let(:contact_without_history){Contact.make(level: 'aspirante')}

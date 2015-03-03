@@ -74,50 +74,54 @@ class HistoryEntry
 
     raise ArgumentError if options.keys.size < 2
     raise ArgumentError unless options[:at]
+  
+    ret = Rails.cache.read(cache_key_for_element_ids_with(options))
+    if ret.nil?
 
-    # use first key of options as attribute
-    ref_attribute = options.keys.first
-    ref_date      = options[:at].to_time
-    if options[:account_name] && !options[:account]
-      options[:account] = Account.where(name: options.delete(:account_name)).first
-    end
+      # use first key of options as attribute
+      ref_attribute = options.keys.first
+      ref_date      = options[:at].to_time
+      if options[:account_name] && !options[:account]
+        options[:account] = Account.where(name: options.delete(:account_name)).first
+      end
 
-    conds = {attribute: ref_attribute, changed_at: {'$gte' => ref_date}}
-    conds = conds.merge({historiable_type: options[:class]}) if options[:class]
+      conds = {attribute: ref_attribute, changed_at: {'$gte' => ref_date}}
+      conds = conds.merge({historiable_type: options[:class]}) if options[:class]
 
-    if options[:account].present? && options[:class].present?
-      ActiveSupport::Notifications.instrument('get_object_ids.attribute_at_given_time.refine_scope.contacts_search') do
-        # if Account and Object class where given we can find Objects linked to Account
-        accessor = options[:class].underscore.pluralize
-        @object_ids = Rails.cache.fetch("#{options[:account].name}#{accessor}ids", expires_in: 10.minutes) do 
-          options[:account].send(accessor).map(&:_id)
+      if options[:account].present? && options[:class].present?
+        ActiveSupport::Notifications.instrument('get_object_ids.attribute_at_given_time.refine_scope.contacts_search') do
+          # if Account and Object class where given we can find Objects linked to Account
+          accessor = options[:class].underscore.pluralize
+          @object_ids = Rails.cache.fetch("#{options[:account].name}#{accessor}ids", expires_in: 10.minutes) do 
+            options[:account].send(accessor).map(&:_id)
+          end
+          conds = conds.merge('historiable_id' => { '$in' => @object_ids})
         end
-        conds = conds.merge('historiable_id' => { '$in' => @object_ids})
       end
-    end
 
-    # DB hit
-    all_reduced_entries_for_date = nil
-    unfiltered_ids = nil
-    ActiveSupport::Notifications.instrument('get_entries_for_date.attribute_at_given_time.refine_scope.contacts_search') do
-      all_reduced_entries_for_date = self.collection.map_reduce(map_js,reduce_js,query: conds,out: 'oldest_date')
-      unfiltered_ids = all_reduced_entries_for_date.find().to_a.map{|rdoc|rdoc['_id']['historiable_id']}
-    end
-
-    reduced_entries_with_desired_value = nil
-    ids_with_desired_value = nil
-    ActiveSupport::Notifications.instrument('reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
-      ActiveSupport::Notifications.instrument('filter.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
-        reduced_entries_with_desired_value = filter_post_map_reduce(all_reduced_entries_for_date,options)
+      # DB hit
+      all_reduced_entries_for_date = nil
+      unfiltered_ids = nil
+      ActiveSupport::Notifications.instrument('get_entries_for_date.attribute_at_given_time.refine_scope.contacts_search') do
+        all_reduced_entries_for_date = self.collection.map_reduce(map_js,reduce_js,query: conds,out: 'oldest_date')
+        unfiltered_ids = all_reduced_entries_for_date.find().to_a.map{|rdoc|rdoc['_id']['historiable_id']}
       end
-      ActiveSupport::Notifications.instrument('map.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
-        ids_with_desired_value = reduced_entries_with_desired_value.to_a.map{|rdoc| rdoc['_id']['historiable_id'] }
-      end
-    end
 
-    ret = nil
-    ActiveSupport::Notifications.instrument('add_entries_wout_history.attribute_at_given_time.refine_scope.contacts_search') do
-      ret = ids_with_desired_value + elements_without_history(unfiltered_ids,options)
+      reduced_entries_with_desired_value = nil
+      ids_with_desired_value = nil
+      ActiveSupport::Notifications.instrument('reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
+        ActiveSupport::Notifications.instrument('filter.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
+          reduced_entries_with_desired_value = filter_post_map_reduce(all_reduced_entries_for_date,options)
+        end
+        ActiveSupport::Notifications.instrument('map.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
+          ids_with_desired_value = reduced_entries_with_desired_value.to_a.map{|rdoc| rdoc['_id']['historiable_id'] }
+        end
+      end
+
+      ActiveSupport::Notifications.instrument('add_entries_wout_history.attribute_at_given_time.refine_scope.contacts_search') do
+        ret = ids_with_desired_value + elements_without_history(unfiltered_ids,options)
+      end
+      Rails.cache.write(cache_key_for_element_ids_with(options),ret,{expires_in: 5.minutes})
     end
 
     ret
@@ -215,5 +219,9 @@ class HistoryEntry
       });
       return {changed_at: oldest, old_value: value};
     }"
+  end
+
+  def self.cache_key_for_element_ids_with(options={})
+    "history_entries-element_ids_with-#{options.to_a.join('')}"
   end
 end
