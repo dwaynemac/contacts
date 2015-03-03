@@ -85,12 +85,18 @@ class HistoryEntry
     conds = {attribute: ref_attribute, changed_at: {'$gte' => ref_date}}
     conds = conds.merge({historiable_type: options[:class]}) if options[:class]
 
+    if options[:account].present? && options[:class].present?
+      ActiveSupport::Notifications.instrument('get_object_ids.attribute_at_given_time.refine_scope.contacts_search') do
+        # if Account and Object class where given we can find Objects linked to Account
+        @object_ids = options[:account].send(options[:class].underscore.pluralize).map(&:_id)
+        conds = conds.merge('historiable_id' => { '$in' => @object_ids})
+      end
+    end
+
     # DB hit
     all_reduced_entries_for_date = nil
     unfiltered_ids = nil
     ActiveSupport::Notifications.instrument('get_entries_for_date.attribute_at_given_time.refine_scope.contacts_search') do
-      # Collection 'oldest_date' can be indexed in mongodb console for better performance:
-      # db.oldest_date.ensureIndex({ 'value.old_value': 1, '_id.historiable_id': 1})
       all_reduced_entries_for_date = self.collection.map_reduce(map_js,reduce_js,query: conds,out: 'oldest_date')
       unfiltered_ids = all_reduced_entries_for_date.find().to_a.map{|rdoc|rdoc['_id']['historiable_id']}
     end
@@ -99,7 +105,7 @@ class HistoryEntry
     ids_with_desired_value = nil
     ActiveSupport::Notifications.instrument('reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
       ActiveSupport::Notifications.instrument('filter.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
-        reduced_entries_with_desired_value = filter_post_map_reduce(all_reduced_entries_for_date,options) # TODO refactor to a finalize function in the mapreduce?
+        reduced_entries_with_desired_value = filter_post_map_reduce(all_reduced_entries_for_date,options)
       end
       ActiveSupport::Notifications.instrument('map.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
         ids_with_desired_value = reduced_entries_with_desired_value.to_a.map{|rdoc| rdoc['_id']['historiable_id'] }
@@ -172,7 +178,7 @@ class HistoryEntry
     ActiveSupport::Notifications.instrument('map_accounts_objects.filter.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
       if options[:account].present? && options[:class].present?
         # if Account and Object class where given we can find Objects linked to Account
-        cond = cond.merge('_id.historiable_id' => { '$in' => options[:account].send(options[:class].underscore.pluralize).map(&:_id)})
+        cond = cond.merge('_id.historiable_id' => { '$in' => @object_ids})
       end
     end
     ret = nil
