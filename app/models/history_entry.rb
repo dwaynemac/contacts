@@ -222,6 +222,9 @@ class HistoryEntry
   end
 
   def self.cache_key_for_element_ids_with(options={})
-    "history_entries-element_ids_with-#{options.to_a.join('')}"
+    options_string = options.reject{|k,v| k.to_sym == :account }.to_a.join('')
+    options_string << options[:account].name if options[:account]
+
+    "history_entries-element_ids_with-#{options_string}"
   end
 end
