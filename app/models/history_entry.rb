@@ -88,7 +88,10 @@ class HistoryEntry
     if options[:account].present? && options[:class].present?
       ActiveSupport::Notifications.instrument('get_object_ids.attribute_at_given_time.refine_scope.contacts_search') do
         # if Account and Object class where given we can find Objects linked to Account
-        @object_ids = options[:account].send(options[:class].underscore.pluralize).map(&:_id)
+        accessor = options[:class].underscore.pluralize
+        @object_ids = Rails.cache.fetch("#{options[:account].name}#{accessor}ids", expires_in: 10.minutes) do 
+          options[:account].send(accessor).map(&:_id)
+        end
         conds = conds.merge('historiable_id' => { '$in' => @object_ids})
       end
     end
