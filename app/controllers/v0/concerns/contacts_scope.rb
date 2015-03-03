@@ -26,12 +26,12 @@ module V0
 
       # @optional [Array<Hash>] attributes_value_at Array of hashes with keys: :attribute, :value, :ref_date. This will be ANDed, not ORed.
       def refine_by_attributes_at_given_time
-        ActiveSupport::Notifications.instrument('attribute_at_given_time.refine_scope.contacts_search') do
-          params[:attribute_values_at].each do |ava|
+        params[:attribute_values_at].each do |ava|
+          ActiveSupport::Notifications.instrument('attribute_at_given_time.refine_scope.contacts_search') do
             ava['value'] = ava['value'] == 'true' if ava['attribute'] == 'in_professional_training'
             @scope = @scope.with_attribute_value_at(ava['attribute'],ava['value'],ava['ref_date'],params[:account_name])
-          end if params[:attribute_values_at]
-        end
+          end
+        end if params[:attribute_values_at]
       end
 
       # @optional [Array] nids return contacts without id in this array
