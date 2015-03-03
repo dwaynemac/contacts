@@ -89,6 +89,8 @@ class HistoryEntry
     all_reduced_entries_for_date = nil
     unfiltered_ids = nil
     ActiveSupport::Notifications.instrument('get_entries_for_date.attribute_at_given_time.refine_scope.contacts_search') do
+      # Collection 'oldest_date' can be indexed in mongodb console for better performance:
+      # db.oldest_date.ensureIndex({ 'value.old_value': 1, '_id.historiable_id': 1})
       all_reduced_entries_for_date = self.collection.map_reduce(map_js,reduce_js,query: conds,out: 'oldest_date')
       unfiltered_ids = all_reduced_entries_for_date.find().to_a.map{|rdoc|rdoc['_id']['historiable_id']}
     end
@@ -167,11 +169,17 @@ class HistoryEntry
   # Filteres mapreduce result according to expected value and scoping to account
   def self.filter_post_map_reduce(mr_result, options)
     cond = {'value.old_value' => options[options.keys.first]}
-    if options[:account].present? && options[:class].present?
-      # if Account and Object class where given we can find Objects linked to Account
-      cond = cond.merge('_id.historiable_id' => { '$in' => options[:account].send(options[:class].underscore.pluralize).map(&:_id)})
+    ActiveSupport::Notifications.instrument('map_accounts_objects.filter.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
+      if options[:account].present? && options[:class].present?
+        # if Account and Object class where given we can find Objects linked to Account
+        cond = cond.merge('_id.historiable_id' => { '$in' => options[:account].send(options[:class].underscore.pluralize).map(&:_id)})
+      end
     end
-    mr_result.find(cond)
+    ret = nil
+    ActiveSupport::Notifications.instrument('query_mongo.filter.reduce_entries.attribute_at_given_time.refine_scope.contacts_search') do
+      ret = mr_result.find(cond)
+    end
+    ret
   end
 
   # Groups by Historiable(h_id)#attribute
