@@ -75,15 +75,15 @@ class HistoryEntry
     raise ArgumentError if options.keys.size < 2
     raise ArgumentError unless options[:at]
   
+    # use first key of options as attribute
+    ref_attribute = options.keys.first
+    ref_date      = options[:at].to_time
+    if options[:account_name] && !options[:account]
+      options[:account] = Account.where(name: options.delete(:account_name)).first
+    end
+
     ret = Rails.cache.read(cache_key_for_element_ids_with(options))
     if ret.nil?
-
-      # use first key of options as attribute
-      ref_attribute = options.keys.first
-      ref_date      = options[:at].to_time
-      if options[:account_name] && !options[:account]
-        options[:account] = Account.where(name: options.delete(:account_name)).first
-      end
 
       conds = {attribute: ref_attribute, changed_at: {'$gte' => ref_date}}
       conds = conds.merge({historiable_type: options[:class]}) if options[:class]
