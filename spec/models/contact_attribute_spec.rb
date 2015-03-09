@@ -81,11 +81,11 @@ describe ContactAttribute do
         it "should return an array" do
           @contact.contact_attributes.for_account(@empty_account, :include_masked => true).should be_a(Array)
         end
-        it "should return 1234#### for non-owner accounts" do
+        it "should return ####5678 for non-owner accounts" do
           attrs = @contact.contact_attributes.for_account(@empty_account, :include_masked => true)
           attrs.should_not be_empty
           attrs.last.should be_a(ContactAttribute)
-          attrs.last.value.should == "1234####"
+          attrs.last.value.should == "####5678"
         end
         it "should return 12345678 for owner account" do
           attrs = @contact.contact_attributes.for_account(@ok_account, :include_masked => true)

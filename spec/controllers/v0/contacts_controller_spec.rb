@@ -213,7 +213,7 @@ describe V0::ContactsController do
             do_request(:where => { :address => "salti" })
           end
           it "should match street" do
-            @addressed.in?(assigns(:contacts).to_a).should be_true
+            @addressed.in?(assigns(:contacts).to_a).should be_truthy
           end
           it "should match city"
         end
@@ -286,13 +286,94 @@ describe V0::ContactsController do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:local_status].should == @local_status.status.to_s
       end
+
       it "should include masked phones" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
-        result[:contact_attributes].map{|ca|ca['value']}.should include("9999####")
+        result[:contact_attributes].map{|ca|ca['value']}.should include("####9999")
       end
       it "should include all local_statuses" do
         result = ActiveSupport::JSON.decode(response.body).symbolize_keys
         result[:local_statuses].count.should == 3
+      end
+    end
+
+    describe "when scoped to an account but specifing include_masked: false" do
+      before(:each) do
+        @contact.contact_attributes << Telephone.make(account: Account.make, public: false, value: "99999999")
+        get :show, :id => @contact.id, :account_name => @contact.owner.name, :app_key => V0::ApplicationController::APP_KEY, :include_masked => false
+      end
+      it "should not include masked phones" do
+        result = ActiveSupport::JSON.decode(response.body).symbolize_keys
+        result[:contact_attributes].map{|ca|ca['value']}.should_not include("####9999")
+      end
+    end
+
+    describe "include_masked option ->" do
+      let(:contact){Contact.make}
+
+      def set_status(contact,status)
+        local_status = LocalStatus.make(account: contact.owner, value: status)
+        contact.local_unique_attributes <<  local_status
+        
+        contact.save!
+      end
+
+      before do
+        contact.contact_attributes << Telephone.make(account: Account.make, public: false, value: "99999999")
+      end
+      let(:result){ActiveSupport::JSON.decode(response.body).symbolize_keys}
+      describe "when scoped to an account" do
+        describe "but specifing include_masked: false" do
+          before do
+            get :show,
+                id: contact.id,
+                account_name: contact.owner.name,
+                app_key: V0::ApplicationController::APP_KEY,
+                include_masked: false
+          end
+          it "should not include masked phones" do
+            result[:contact_attributes].map{|ca|ca['value']}.should_not include("####9999")
+          end
+        end
+        describe "if contact is student in account" do
+          let(:status){:student}
+          before do
+            set_status(contact,status)
+            get :show,
+                id: contact.id,
+                account_name: contact.owner.name,
+                app_key: V0::ApplicationController::APP_KEY
+          end
+          it "should not include masked phones" do
+            result[:contact_attributes].map{|ca|ca['value']}.should_not include("####9999")
+          end
+        end
+        describe "if contact is former_student in account" do
+          let(:status){:former_student}
+          before do
+            set_status(contact,status)
+            get :show,
+                id: contact.id,
+                account_name: contact.owner.name,
+                app_key: V0::ApplicationController::APP_KEY
+          end
+          it "should not include masked phones" do
+            result[:contact_attributes].map{|ca|ca['value']}.should_not include("####9999")
+          end
+        end
+        describe "if contact has other status in account" do
+          let(:status){nil}
+          before do
+            set_status(contact,status)
+            get :show,
+                id: contact.id,
+                account_name: contact.owner.name,
+                app_key: V0::ApplicationController::APP_KEY
+          end
+          it "should not include masked phones" do
+            result[:contact_attributes].map{|ca|ca['value']}.should include("####9999")
+          end
+        end
       end
     end
 
@@ -382,8 +463,11 @@ describe V0::ContactsController do
         end
         describe "update after a get" do
           before do
-            get :show, id: @contact.id, account_name: @account_a.name
-            put :update, :id => @contact.id, :contact => {:coefficient => "pmenos"},
+            get :show, id: @contact.id, account_name: @account_a.name,
+                :app_key => V0::ApplicationController::APP_KEY
+            put :update,
+                :id => @contact.id,
+                :contact => {:coefficient => "pmenos"},
                 :app_key => V0::ApplicationController::APP_KEY
           end
           it "should save contact correctly" do
@@ -818,6 +902,18 @@ describe V0::ContactsController do
       @account = Account.make
       @contacts = []
       3.times { @contacts << Contact.make(owner: @account) }
+    end
+    context "without :ids" do
+      let(:params){{:method => :delete,
+                    :account_name => @account.name,
+                    :app_key => V0::ApplicationController::APP_KEY}}
+      it "should fail safely" do
+        expect{post :destroy_multiple, params}.not_to raise_exception
+      end
+      it "should return status 400" do
+        post :destroy_multiple, params
+        expect(response.code).to eq '400'
+      end
     end
     context "as the owner" do
       let(:params){{:method => :delete,

@@ -102,6 +102,9 @@ class ContactSerializer
         @json['last_name'] = @contact.last_name if serialize?(:last_name) 
         @json['id'] = @contact.id.to_s if serialize?(:id) 
         @json['_id'] = @contact.id.to_s if serialize?(:_id) 
+        @json['kshema_id'] = @contact.kshema_id if serialize?(:kshema_id) 
+        @json['derose_id'] = @contact.derose_id if serialize?(:derose_id) 
+        @json['first_enrolled_on'] = @contact.first_enrolled_on.to_s if serialize?(:first_enrolled_on) 
         @json['gender'] = @contact.gender if serialize?(:gender) 
         @json['estimated_age'] = @contact.estimated_age if serialize?(:estimated_age) 
         @json['status'] = @contact.status if serialize?(:status) 
@@ -112,6 +115,9 @@ class ContactSerializer
         @json['in_active_merge'] = @contact.in_active_merge if serialize?(:in_active_merge)
         @json['in_professional_training'] = @contact.in_professional_training if serialize?(:in_professional_training)
         @json['avatar'] = @contact.avatar.as_json if serialize?(:avatar)
+
+        @json['created_at'] = @contact.created_at.to_s if serialize?(:created_at) 
+        @json['updated_at'] = @contact.updated_at.to_s if serialize?(:updated_at) 
       end
 
       ActiveSupport::Notifications.instrument('account_attributes.build_hash.as_json.contact') do

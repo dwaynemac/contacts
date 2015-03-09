@@ -1,6 +1,8 @@
 # @restful_api v0
 class V0::AttachmentsController < V0::ApplicationController
 
+  authorize_resource
+
   before_filter :get_contact
   before_filter :set_scope
 

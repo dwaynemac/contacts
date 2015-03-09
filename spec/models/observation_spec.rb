@@ -6,7 +6,7 @@ describe Observation do
   describe "When saving a contact" do
     it "observation value should not be blank" do
       contact.local_unique_attributes << Observation.new(value: nil)
-      contact.valid?.should be_false
+      contact.valid?.should be_falsy
     end
     it "should save if value is not blank" do
       contact.local_unique_attributes << Observation.new(value: "an observation", account_id: account.id)

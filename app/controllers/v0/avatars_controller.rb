@@ -16,6 +16,7 @@ class V0::AvatarsController < V0::ApplicationController
   # @example_response == Code: 400
   #   {message: 'Sorry', errors: [...]}
   def create
+    authorize! :create, :avatar
     if params.has_key?(:kshema_id)
       contact = Contact.where(kshema_id: params[:kshema_id]).first
     else
@@ -38,6 +39,7 @@ class V0::AvatarsController < V0::ApplicationController
   # @required [String] contact_id
   # @example_response "OK"
   def destroy
+    authorize! :destroy, :avatar
     contact = Contact.find(params[:contact_id])
 
     # contact.remove_avatar! not working

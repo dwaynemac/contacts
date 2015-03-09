@@ -36,6 +36,7 @@ class V0::CalculatesController < V0::ApplicationController
   #
   # @response_field [Float] result
   def average_age
+    authorize! :average_age, :calculations
     ref_date = params[:ref_date].to_date if params[:ref_date]
       
     ca = Calculate::Age.new contacts: @scope, ref_date: ref_date

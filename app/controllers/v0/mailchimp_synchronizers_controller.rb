@@ -1,6 +1,8 @@
 # @restful_api v0
 class V0::MailchimpSynchronizersController < V0::ApplicationController
 
+  authorize_resource
+
   before_filter :get_account
 
   ##

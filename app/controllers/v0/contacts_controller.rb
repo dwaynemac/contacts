@@ -1,9 +1,9 @@
 require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
 require 'oj'
-
-##
 # @restful_api v0
 class V0::ContactsController < V0::ApplicationController
+
+  authorize_resource
 
   include V0::Concerns::ContactsScope
 
@@ -146,8 +146,9 @@ class V0::ContactsController < V0::ApplicationController
     as_json_params = {
       select: params[:select],
       account: @account,
-      include_masked: true
     }
+
+    as_json_params[:include_masked] = params[:include_masked].nil?? default_masked : params[:include_masked]
 
     if params[:select].nil? || params[:select] == 'all'
       as_json_params[:mode] = 'all'
@@ -216,8 +217,6 @@ class V0::ContactsController < V0::ApplicationController
   # @response_code failure 400
   #
   def create
-
-    authorize! :create, Contact
 
     @contact = Contact.new(params[:contact])
     @contact.owner = @account if @account
@@ -340,18 +339,36 @@ class V0::ContactsController < V0::ApplicationController
   #
   # @example_response "OK"
   def destroy_multiple
-    @contacts = @scope.any_in('_id' => params[:ids])
-    @contacts.each do |c|
-      if @account
-        c.unlink(@account)
-      else
-        c.destroy if can?(:destroy, c)
+    if params[:ids].blank?
+      render json: 'specify :ids', status: 400
+    else
+      @contacts = @scope.any_in('_id' => params[:ids])
+      @contacts.each do |c|
+        if @account
+          c.unlink(@account)
+        else
+          c.destroy if can?(:destroy, c)
+        end
       end
+      render json: 'OK'
     end
-    render json: 'OK'
   end
 
   private
+
+  
+  # if request is for account
+  # where contact is student
+  #               or former_student
+  # dont include masked attributes
+  def default_masked
+    if @account.present?
+      local_status = @contact.local_value_for_account('local_status',@account.id).try(:to_sym)
+      !local_status.in?([:student, :former_student])
+    else
+      true
+    end
+  end
 
   # Converts
   #   local_status -> local_status_for_CurrentAccountName
@@ -415,7 +432,7 @@ class V0::ContactsController < V0::ApplicationController
       @contact.send("#{k}=",v)
       @contact.set_global_teacher
     end
-    params[:contact].select{|k,v| k =~ /last_seen_at|level/}.each do |k,v|
+    params[:contact].select{|k,v| k =~ /last_seen_at|level|first_enrolled_on|derose_id/}.each do |k,v|
       @contact.send("#{k}=",v)
     end
   end

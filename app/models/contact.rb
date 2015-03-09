@@ -56,6 +56,13 @@ class Contact
   before_save :set_estimated_age_on
   field :estimated_age_on, type: Date
 
+  # DeRose ID is a uniq identified for students of DeRose Method Network
+  # eg: "AR BEL 2015 0 123-3"
+  field :derose_id
+  validates_uniqueness_of :derose_id, allow_blank: true
+
+  field :first_enrolled_on, type: Date
+
   field :kshema_id
   validates_uniqueness_of :kshema_id, allow_blank: true
 
@@ -248,7 +255,7 @@ class Contact
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
       attr_name = $1
       account_name = $2
-      sanitized_account_name = account_name.gsub('.', '_')
+      sanitized_account_name = account_name.gsub(/\.|-/, '_')
       a = nil
 
       #cache account to avoid multiple calls to accounts service
@@ -486,26 +493,32 @@ class Contact
   # @param attribute [String]
   # @param value. Will be casted according to attribute. Level must be given as a string. eg: 'aspirante'
   # @param ref_date [Date]
+  # @param account_name [String]
   # @return [Mongoid::Criteria]
-  def self.with_attribute_value_at(attribute, value, ref_date)
+  def self.with_attribute_value_at(attribute, value, ref_date, account_name = nil)
     if ref_date.is_a?(Date) && !ref_date.is_a?(DateTime)
       ref_date = ref_date.to_datetime.end_of_day
     end
 
-    # cast value
-    value = case attribute
-      when 'level'
-        VALID_LEVELS[value]
-      else
-        value
-    end
+    if current_month?(ref_date)
+      self.api_where(attribute => value)
+    else
+      # cast value
+      value = case attribute
+        when 'level'
+          VALID_LEVELS[value]
+        else
+          value
+      end
 
-    ids = HistoryEntry.element_ids_with(
-        attribute => value,
-        at: ref_date,
-        class: 'Contact'
-    )
-    self.any_in(_id: ids)
+      ids = HistoryEntry.element_ids_with(
+          attribute => value,
+          at: ref_date,
+          class: 'Contact',
+          account_name: account_name
+      )
+      self.any_in(_id: ids)
+    end
   end
 
   def self.api_where(selector = nil, account_id = nil)
@@ -667,4 +680,14 @@ class Contact
     end
     @cached_request_account  
   end
+
+  private
+
+  def self.current_month?(ref_date)
+    if ref_date.is_a?(String)
+      ref_date = DateTime.parse(ref_date)
+    end
+    (ref_date.year == Date.today.year && ref_date.month == Date.today.month)
+  end
+
 end

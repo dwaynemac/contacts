@@ -5,6 +5,29 @@ describe ContactSearcher do
   let(:searcher){ContactSearcher.new()}
 
   describe "#api_where" do
+
+    context "{ nucleo_unit_id: X }" do
+      let!(:account){Account.make(name: 'acc-name', nucleo_id: 10)}
+      let(:selector){{nucleo_unit_id: 10}}
+      context "if account with nucleo_unit_id exists" do
+        before do
+          PadmaAccount.stub(:find_by_nucleo_id).and_return(PadmaAccount.new(name: 'acc-name'))
+        end
+        it "filter by account's contacts" do
+          expect(searcher.api_where(selector)).to eq Contact.where(account_ids: account.id)
+        end
+      end
+      context "if account with nucleo_unit_id does not exist" do
+        before do
+          Contact.make
+          PadmaAccount.stub(:find_by_nucleo_id).and_return(nil)
+        end
+        it "returns empty array" do
+          expect(searcher.api_where(selector).to_a).to be_empty
+        end
+      end
+    end
+
     context "if all levels are selected" do
       context "including a blank" do
         let(:selector){{level: ['',

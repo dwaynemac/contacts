@@ -6,7 +6,7 @@ describe LastSeenAt do
   describe "When saving a contact" do
     it "last_seen_at value should not be in the future" do
       contact.local_unique_attributes << LastSeenAt.new(value: 1.hour.from_now.utc)
-      contact.valid?.should be_false
+      contact.valid?.should be_falsy
     end
     it "should save if value is not blank" do
       contact.local_unique_attributes << LastSeenAt.new(value: 1.hour.ago.utc, account_id: account.id)

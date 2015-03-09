@@ -13,6 +13,15 @@ describe Contact do
   it { should have_field(:status).of_type(Symbol)}
   it { should have_field(:level).of_type(Integer)}
   it { should have_field(:in_professional_training).of_type(Boolean)}
+  it { should have_field(:first_enrolled_on).of_type(Date)}
+
+  describe "#first_enrolled_on" do
+    it "is casted from String to Date" do
+      c = Contact.new first_enrolled_on: "2014-12-31"
+      c.valid?
+      expect(c.first_enrolled_on).to eq Date.civil(2014,12,31)
+    end
+  end
 
   describe "#updated_at" do
     let(:contact){Contact.make}
@@ -57,6 +66,16 @@ describe Contact do
       contact.contact_attributes.last.destroy
       post = contact.reload.updated_at
       post.should == pre
+    end
+  end
+
+  describe "#derose_id" do
+    it { should have_field :derose_id }
+    it { should validate_uniqueness_of :derose_id }
+    it "allows blank" do
+      Contact.make(derose_id: nil)
+      c = Contact.make_unsaved(derose_id: nil)
+      c.should be_valid
     end
   end
 
@@ -621,7 +640,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.in?(@contact.similar).should_not be_true }
+        it { @contact.in?(@contact.similar).should_not be_truthy }
       end
 
       describe "an existing contact with same last name and first name" do
@@ -631,7 +650,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contacts.in?(@contact.similar).should_not be_true }
+        it { @contacts.in?(@contact.similar).should_not be_truthy }
       end
     end
 
@@ -655,7 +674,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.in?(@contact.similar).should_not be_true }
+        it { @contact.in?(@contact.similar).should_not be_truthy }
       end
 
       describe "a new contact with same last name and first name" do
@@ -665,7 +684,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contact.in?(@contact.similar).should_not be_true }
+        it { @contact.in?(@contact.similar).should_not be_truthy }
       end
     end
 
@@ -678,7 +697,7 @@ describe Contact do
       it "new contact should match it by mail" do
         c = Contact.new(first_name: 'Santiago', last_name: 'Santo')
         c.contact_attributes << Email.make(value: 'homer@simpson.com')
-        @homer.in?(c.similar).should be_true
+        @homer.in?(c.similar).should be_truthy
       end
     end
 
@@ -691,12 +710,12 @@ describe Contact do
       it "new contact should match it by mobile" do
         c = Contact.new(first_name: 'Juan', last_name: 'Perez')
         c.contact_attributes << Telephone.make(value: '1540995071', category: 'mobile')
-        @homer.in?(c.similar).should be_true
+        @homer.in?(c.similar).should be_truthy
       end
       it "new contact should not match if mobile differs" do
         c = Contact.new(first_name: 'Bob', last_name: 'Doe')
         c.contact_attributes << Telephone.make(value: '15443340995071', category: 'mobile')
-        @homer.in?(c.similar).should_not be_true
+        @homer.in?(c.similar).should_not be_truthy
       end
     end
 
@@ -715,7 +734,7 @@ describe Contact do
             @new_contact.contact_attributes << Identification.make_unsaved(value: '30366832', category: 'DNI')
           end
           it "should have possible duplicates" do
-            @similar.in?(@new_contact.similar).should be_true
+            @similar.in?(@new_contact.similar).should be_truthy
           end
         end
         describe "with DNI 3/0.3_6 6.83-2" do
@@ -723,7 +742,7 @@ describe Contact do
             @new_contact.contact_attributes << Identification.make_unsaved(value: '3/0.3_6 6.83-2', category: 'DNI')
           end
           it "should have possible duplicates" do
-            @similar.in?(@new_contact.similar).should be_true
+            @similar.in?(@new_contact.similar).should be_truthy
           end
         end
         describe "with CPF 30366832" do
@@ -1003,6 +1022,24 @@ describe Contact do
 
   # real life example
   describe ".with_attribute_value_at" do
+    context "if ref_date if current month's" do
+      context "uses current values avoing slow query on HistoryEntry" do
+        example do
+          expect(Contact.with_attribute_value_at('level','sádhaka',Date.today.end_of_month).selector)
+            .to eq Contact.api_where(level: 'sádhaka').selector
+        end
+
+        example do
+          expect(Contact.with_attribute_value_at('local_status_for_martinez','student',Date.today).selector)
+            .to eq Contact.api_where(local_status_for_martinez: 'student').selector
+        end
+
+        example do
+          expect(Contact.with_attribute_value_at('local_teacher_for_altoda_xv','evelyne.baldan',Date.today.end_of_month).selector)
+            .to eq Contact.api_where(local_teacher_for_altoda_xv: 'evelyne.baldan').selector
+        end
+      end
+    end
     describe "with local_unique_attributes" do
       before do
         a = Account.make(name: 'martinez')

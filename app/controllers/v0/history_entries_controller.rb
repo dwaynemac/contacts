@@ -1,6 +1,8 @@
 # @restful_api v0
 class V0::HistoryEntriesController < V0::ApplicationController
 
+  authorize_resource
+
   before_filter :get_contact
 
   # @url /v0/history_entries

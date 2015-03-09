@@ -23,6 +23,7 @@ class ContactSearcher
   #
   # @param selector   [ Hash ]      query
   #
+  # @option selector :nucleo_unit_id, scopes to accounts with given nucleo_id
   # @option selector :telephone, searches within all telephones
   # @option selector :email, searches within all emails
   # @option selector :address
@@ -43,6 +44,17 @@ class ContactSearcher
         k = k.to_s
 
         case k
+          when 'nucleo_unit_id'
+            account = PadmaAccount.find_by_nucleo_id(v)
+            if account
+              local_account = get_account(account.name)
+              andit({
+                account_ids: local_account.id
+              })
+            else
+              # Mongo Queries can get slow. If account doesnt exist avoid querying.
+              raise Exceptions::ForceEmptyQuery
+            end
           when 'telephone', 'email', 'address', 'custom_attribute'
             andit({
               :contact_attributes => { '$elemMatch' => { "_type" => k.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
@@ -113,6 +125,8 @@ class ContactSearcher
     clean_selector
 
     self.initial_scope.where(self.new_selector)
+  rescue Exceptions::ForceEmptyQuery
+    Contact.where(id: 'force-empty-query') # force an empty result
   end
 
   private
@@ -134,7 +148,7 @@ class ContactSearcher
   # or read it from cache of sucesive calls
   # @param account_name [String]
   def get_account(account_name)
-    sanitized_account_name = account_name.gsub('.', '_')
+    sanitized_account_name = account_name.gsub(/\.|-/, '_')
 
     if (a = instance_variable_get("@cached_account_#{sanitized_account_name}")).blank?
       a = Account.where(name: account_name).first
