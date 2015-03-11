@@ -508,6 +508,11 @@ describe Merge do
       PlanningMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
       PlanningMerge.any_instance.should_receive(:create).and_return(true)
 
+      # it should call Planning API
+      mock = FnzMerge.new
+      FnzMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
+      FnzMerge.any_instance.should_receive(:create).and_return(true)
+
       @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
       @m.save
 
@@ -519,6 +524,8 @@ describe Merge do
       @m.services['activity_stream'].should be_truthy
       @m.services['crm'].should be_truthy
       @m.services['contacts'].should be_truthy
+      @m.services['planning'].should be_truthy
+      @m.services['fnz'].should be_truthy
       @m.should be_finished
     end
 

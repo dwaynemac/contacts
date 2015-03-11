@@ -206,7 +206,7 @@ class Merge
     res
   end
 
-  def fnz_serive_merge(father,son)
+  def fnz_service_merge(father,son)
     fnz_merge = FnzMerge.new(father_id: father.id, son_id: son.id)
     res = fnz_merge.create
     case res
