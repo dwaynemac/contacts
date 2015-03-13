@@ -306,12 +306,11 @@ class Contact
   #
   #                         eg: select: [:first_name, :last_name, level: '2012-1-1']
   def as_json(options = {})
-
     attributes = {}
 
     attributes[:mode] = options[:mode]
     attributes[:contact] = self
-    attributes[:select] = options[:select]
+    attributes[:select] = options[:select].class == Array ? options[:select].reject{|v| v.nil?} : options[:select]
     attributes[:account] = options[:account]
     attributes[:include_masked] = options[:include_masked]
     attributes[:except] = {

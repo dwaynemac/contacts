@@ -297,6 +297,17 @@ describe V0::ContactsController do
       end
     end
 
+    describe "when requesting a nil value in select params" do
+      it "should reject the nil argument" do
+        @contact.contact_attributes << Telephone.make(account: Account.make, public: false, value: "99999999")
+        expect {get :show, 
+            :id => @contact.id, 
+            :account_name => @contact.owner.name, 
+            :app_key => V0::ApplicationController::APP_KEY,
+            :select => ["first_name", "last_name", nil]}.not_to raise_exception
+      end
+    end
+
     describe "when scoped to an account but specifing include_masked: false" do
       before(:each) do
         @contact.contact_attributes << Telephone.make(account: Account.make, public: false, value: "99999999")
