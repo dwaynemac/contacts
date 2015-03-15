@@ -26,3 +26,4 @@ aws_region: "eu-west-1"
 aws_host:   "http://bucket-name.s3.amazonaws.com"
 office_key: office-secret
 planning_key: secret-key
+readonly_key: secret-key
