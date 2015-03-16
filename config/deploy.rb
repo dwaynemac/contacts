@@ -64,7 +64,7 @@ end
 desc 'show ssh command'
 task :ssh_line do
   puts "web"
-  puts "ssh #{fetch(:user)}@#{fetch(:domain)} -i #{fetch(:key_path)}"
+  puts "ssh #{fetch(:user)}@#{fetch(:web_host)} -i #{fetch(:key_path)}"
   puts "worker"
   puts "ssh #{fetch(:user)}@#{fetch(:worker_host)} -i #{fetch(:key_path)}"
 end
