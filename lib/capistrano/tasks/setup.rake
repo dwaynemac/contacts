@@ -5,16 +5,16 @@ namespace :deploy do
 
   desc 'install needed libraries on amazon ec2 amazon AMI'
   task :setup_system do
-    on roles(:app) do
+    on roles([:web,:app]) do
       # setup for AWS EC2 m1.small with amazon AMI
-      execute :sudo, 'yum install gcc git ruby19 ruby19-devel rubygems19 libffi-devel ImageMagick-devel libstdc++-devel gcc-c++'
+      execute :sudo, 'yum install gcc git ruby19 ruby19-devel rubygems19 libffi-devel ImageMagick-devel libstdc++-devel gcc-c++ patch'
       execute :sudo, 'alternatives --set ruby /usr/bin/ruby1.9'
       execute :sudo, 'gem install bundler'
     end
   end
 
   task :setup_config do
-    on roles(:app) do
+    on roles([:app,:web]) do
       # make the config dir
       execute :mkdir, "-p #{shared_path}/config"
 

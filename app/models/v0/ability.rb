@@ -5,6 +5,8 @@ class V0::Ability
     cannot(:manage, :all)
     unless app_key.nil?
       case app_key
+      when ENV['readonly_key']
+        can :read, Contact
       when ENV['office_key']
         # office permitions
         can [:read,:update], Contact

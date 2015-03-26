@@ -217,7 +217,7 @@ class Import
   end
 
   def create_address(value)
-    category = "personal"
+    category = "home"
     postal_code = get_value_for('codigo_postal', @current_row)
     city = get_value_for('city', @current_row)
     state = get_value_for('state', @current_row)

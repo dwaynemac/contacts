@@ -6,12 +6,12 @@ set :rails_env, 'production'
 
 set :bundle_without, 'development:test:heroku:deploying'
 
-set :domain, 'pending'
+set :web_host, 'contacts.padm.am'
 set :worker_host, '54.211.11.34'
 set :user, 'ec2-user'
 set :key_path, "#{File.dirname(File.realpath(__FILE__))}/production.pem"
 
-server fetch(:domain),
+server fetch(:web_host),
        name: 'contacts-app-capified',
        user: fetch(:user),
        roles: %w(web app),

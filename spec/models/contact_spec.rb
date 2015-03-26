@@ -368,6 +368,12 @@ describe Contact do
           json['level'] == 'sádhaka'
         end
       end
+      describe "with attribute hash where key is attribute and value is reference date" do
+        let(:json){@contact.as_json(select: [:first_name, :last_name, nil])}
+        it "includes attribute from keys" do
+          json.keys.should == %W(first_name last_name _id )
+        end
+      end
     end
   end
 
@@ -422,6 +428,17 @@ describe Contact do
     it "should be :prospect if there is any local_status :prospect and no :student or :former_student" do
       c = Contact.make(local_unique_attributes: [LocalStatus.make(value: :prospect)])
       c.status.should == :prospect
+    end
+    it "should update status correctly if status is nil" do
+      account = Account.make(name: "accname")
+      c = Contact.make(local_unique_attributes: nil, owner: account)
+      c.status = nil
+      c.save!
+      ls = LocalStatus.make(value: :student)
+      c.local_status_for_accname.should be_nil
+      c.local_unique_attributes << ls
+      c.update_status!
+      c.status.should == :student
     end
   end
 

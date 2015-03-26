@@ -236,6 +236,7 @@ class Merge
 
   # Validate existence and similarity of contacts.
   def similarity_of_contacts
+    return if self.finished?
     if !Contact.where(:_id => self.first_contact_id).exists? || !Contact.where(:_id => self.second_contact_id).exists?
       self.errors[:existence_of_contacts] << I18n.t('errors.merge.existence_of_contacts')
     else

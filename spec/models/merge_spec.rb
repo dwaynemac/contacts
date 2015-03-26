@@ -479,69 +479,136 @@ describe Merge do
   end
 
   describe "Merging Complete" do
-    before do
-      @account_1 = Account.make
-      @account_2 = Account.make
+    context "if contacts are similar only by contact attributes" do
+      before do
+        @account_1 = Account.make
+        @account_2 = Account.make
 
-      @father = Contact.make(:first_name => "Son", :last_name => "Goku", :level => "maestro")
-      @father.local_unique_attributes << LocalStatus.make(:value => :student, :account => @account_1)
-      @father.local_unique_attributes << LocalTeacher.make(value: 'teacher_1', account: @account_1)
-      @father.save
+        @father = Contact.make(:first_name => "Son", :last_name => "Goku", :level => "maestro")
+        @father.local_unique_attributes << LocalStatus.make(:value => :student, :account => @account_1)
+        @father.local_unique_attributes << LocalTeacher.make(value: 'teacher_1', account: @account_1)
+        @father.contact_attributes << Email.make(value: 'same@mail.com')
+        @father.save(validate: false)
 
-      @son = Contact.make(:first_name => "Son", :last_name => "Goku2", :level => "aspirante")
-      @son.local_unique_attributes << LocalStatus.make(:value => :prospect, :account => @account_2)
-      @son.local_unique_attributes << LocalTeacher.make(value: 'teacher_2', account: @account_2)
-      @son.save
+        @son = Contact.make(:first_name => "Sonito", :last_name => "Goku2", :level => "aspirante")
+        @son.local_unique_attributes << LocalStatus.make(:value => :prospect, :account => @account_2)
+        @son.local_unique_attributes << LocalTeacher.make(value: 'teacher_2', account: @account_2)
+        @father.contact_attributes << Email.make(value: 'same@mail.com')
+        @son.save(validate: false)
 
-      # it should call ActivityStream API (expectation has to be befare call to @m.start)
-      mock = ActivityStream::Merge.new
-      ActivityStream::Merge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
-      ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
+        # it should call ActivityStream API (expectation has to be befare call to @m.start)
+        mock = ActivityStream::Merge.new
+        ActivityStream::Merge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
+        ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
 
-      # it should call Crm API
-      mock = CrmMerge.new
-      CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
-      CrmMerge.any_instance.should_receive(:create).and_return(true)
-      
-      # it should call Planning API
-      mock = PlanningMerge.new
-      PlanningMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
-      PlanningMerge.any_instance.should_receive(:create).and_return(true)
+        # it should call Crm API
+        mock = CrmMerge.new
+        CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
+        CrmMerge.any_instance.should_receive(:create).and_return(true)
+        
+        # it should call Planning API
+        mock = PlanningMerge.new
+        PlanningMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
+        PlanningMerge.any_instance.should_receive(:create).and_return(true)
+        
+        # it should call Fnz API
+        mock = FnzMerge.new
+        FnzMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
+        FnzMerge.any_instance.should_receive(:create).and_return(true)
 
-      # it should call Planning API
-      mock = FnzMerge.new
-      FnzMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
-      FnzMerge.any_instance.should_receive(:create).and_return(true)
+        @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
+        @m.save
 
-      @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
-      @m.save
+        @m.start
+      end
 
-      @m.start
+      it "should keep record of migrated services" do
+        @m.reload
+        @m.services['activity_stream'].should be_truthy
+        @m.services['crm'].should be_truthy
+        @m.services['contacts'].should be_truthy
+        @m.should be_finished
+      end
+
+      it "should end in state :merged" do
+        @m.reload
+        @m.state.should == 'merged'
+      end
+
+      it "should keep global_teacher" do
+        @father.reload.global_teacher_username.should == 'teacher_1'
+      end
+
+      it "should keep local_Teachers" do
+        @father.reload
+        ['teacher_1', 'teacher_2'].each do |teacher|
+          @father.local_teachers.map(&:value).should include(teacher)
+        end
+      end
     end
+    context "if contacts are similar by name" do
+      before do
+        @account_1 = Account.make
+        @account_2 = Account.make
 
-    it "should keep record of migrated services" do
-      @m.reload
-      @m.services['activity_stream'].should be_truthy
-      @m.services['crm'].should be_truthy
-      @m.services['contacts'].should be_truthy
-      @m.services['planning'].should be_truthy
-      @m.services['fnz'].should be_truthy
-      @m.should be_finished
-    end
+        @father = Contact.make(:first_name => "Son", :last_name => "Goku", :level => "maestro")
+        @father.local_unique_attributes << LocalStatus.make(:value => :student, :account => @account_1)
+        @father.local_unique_attributes << LocalTeacher.make(value: 'teacher_1', account: @account_1)
+        @father.save
 
-    it "should end in state :merged" do
-      @m.reload
-      @m.state.should == 'merged'
-    end
+        @son = Contact.make(:first_name => "Son", :last_name => "Goku2", :level => "aspirante")
+        @son.local_unique_attributes << LocalStatus.make(:value => :prospect, :account => @account_2)
+        @son.local_unique_attributes << LocalTeacher.make(value: 'teacher_2', account: @account_2)
+        @son.save
 
-    it "should keep global_teacher" do
-      @father.reload.global_teacher_username.should == 'teacher_1'
-    end
+        # it should call ActivityStream API (expectation has to be befare call to @m.start)
+        mock = ActivityStream::Merge.new
+        ActivityStream::Merge.should_receive(:new).with(parent_id: @father.id.to_s, son_id: @son.id.to_s).and_return(mock)
+        ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
 
-    it "should keep local_Teachers" do
-      @father.reload
-      ['teacher_1', 'teacher_2'].each do |teacher|
-       @father.local_teachers.map(&:value).should include(teacher)
+        # it should call Crm API
+        mock = CrmMerge.new
+        CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
+        CrmMerge.any_instance.should_receive(:create).and_return(true)
+        
+        # it should call Planning API
+        mock = PlanningMerge.new
+        PlanningMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
+        PlanningMerge.any_instance.should_receive(:create).and_return(true)
+        
+        # it should call Fnz API
+        mock = FnzMerge.new
+        FnzMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
+        FnzMerge.any_instance.should_receive(:create).and_return(true)
+
+        @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
+        @m.save
+
+        @m.start
+      end
+
+      it "should keep record of migrated services" do
+        @m.reload
+        @m.services['activity_stream'].should be_truthy
+        @m.services['crm'].should be_truthy
+        @m.services['contacts'].should be_truthy
+        @m.should be_finished
+      end
+
+      it "should end in state :merged" do
+        @m.reload
+        @m.state.should == 'merged'
+      end
+
+      it "should keep global_teacher" do
+        @father.reload.global_teacher_username.should == 'teacher_1'
+      end
+
+      it "should keep local_Teachers" do
+        @father.reload
+        ['teacher_1', 'teacher_2'].each do |teacher|
+         @father.local_teachers.map(&:value).should include(teacher)
+        end
       end
     end
 
