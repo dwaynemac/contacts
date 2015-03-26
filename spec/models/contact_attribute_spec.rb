@@ -9,26 +9,35 @@ describe ContactAttribute do
   it { should belong_to_related :account }
 
   describe "as_json" do
+    let(:jsonh){@c.contact_attributes.last.as_json}
     before do
       @c = Contact.make
       @c.contact_attributes << Telephone.make
     end
     it "should include _type if no options are given" do
-      @c.contact_attributes.last.as_json["_type"].should_not be_nil
+      jsonh["_type"].should_not be_nil
     end
     it "should consider options" do
       @c.contact_attributes.last.as_json(exclude: [:value])[:value].should be_nil
     end
     it "should show account_name" do
-      @c.contact_attributes.last.as_json.should have_key 'account_name'
+      jsonh.should have_key 'account_name'
     end
 
     it "should show public boolean" do
-      @c.contact_attributes.last.as_json.should have_key 'public'
+      jsonh.should have_key 'public'
     end
 
     it "should show primary boolean" do
-      @c.contact_attributes.last.as_json.should have_key 'primary'
+      jsonh.should have_key 'primary'
+    end
+
+    it "includes _id as a string" do
+      expect(jsonh['_id']).to be_a String
+    end
+
+    it "includes contact_id as string" do
+      expect(jsonh['contact_id']).to be_a String
     end
   end
 
