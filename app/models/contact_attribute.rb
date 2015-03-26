@@ -42,8 +42,8 @@ class ContactAttribute
 
     json = super(options)
 
-    json['contact_id'] = @contact_id.to_s
-    json['_id'] = @_id.to_s
+    json['contact_id'] = self.contact_id.to_s
+    json['_id'] = self._id.to_s
 
     json
   end
