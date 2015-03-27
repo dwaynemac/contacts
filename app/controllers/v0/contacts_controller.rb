@@ -74,8 +74,7 @@ class V0::ContactsController < V0::ApplicationController
         else
           as_json_params[:mode] = 'select'
         end
-
-        @collection_hash = @contacts.as_json(as_json_params)
+        @collection_hash =  @contacts.only(select_columns(params[:select])).as_json(as_json_params)
       end
       measure('serializing.render_json.index.contacts_controller') do
         @json = Oj.dump({ 'collection' => @collection_hash, 'total' => total})
@@ -390,6 +389,25 @@ class V0::ContactsController < V0::ApplicationController
     if params[:contact]["last_seen_at"]
       params[:contact]["last_seen_at"] = Time.parse(params[:contact]["last_seen_at"])
     end
+  end
+
+  def select_columns(select_params)
+    return nil if select_params.nil?
+    r = [:_id]
+    select_params.each do |param|
+      case 
+        when %w(local_status coefficient local_teacher observation last_seen_at local_unique_attributes local_statuses).include?(param)
+          r << :local_unique_attributes
+        when %w(email telephone birthday address contact_attributes).include?(param)
+          r << :contact_attributes
+        when %w(full_name).include?(param)
+          r << :first_name
+          r << :last_name
+        else
+          r << param.to_sym
+      end
+    end
+    r.uniq
   end
 
   def set_scope
