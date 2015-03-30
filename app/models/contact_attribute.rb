@@ -37,10 +37,15 @@ class ContactAttribute
   # @param options [Hash]
   def as_json(options={})
     options = {} if options.nil?
-    options[:methods] = [:_type, :contact_id, :account_name] + ( options[:methods].try(:to_a) || [])
-    options[:except]  = [:account_id] + ( options[:except].try(:to_a) || [])
+    options[:methods] = [:_type, :account_name] + ( options[:methods].try(:to_a) || [])
+    options[:except]  = [:contact_id, :_id, :account_id] + ( options[:except].try(:to_a) || [])
 
-    super(options)
+    json = super(options)
+
+    json['contact_id'] = self.contact_id.to_s
+    json['_id'] = self._id.to_s
+
+    json
   end
 
   %W(email telephone address custom_attribute date_attribute identification attachment social_network_id).each do |k|

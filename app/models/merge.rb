@@ -18,7 +18,8 @@ class Merge
     'contacts' => false,
     'crm' => false,
     'activity_stream' => false,
-    'planning' => false
+    'planning' => false,
+    'fnz' => false
     # TODO fnz
     # TODO attendance
     # TODO mailing
@@ -125,6 +126,7 @@ class Merge
       crm_service_merge(father, son) unless self.services['crm']
       activity_stream_service_merge(father,son) unless self.services['activity_stream']
       planning_service_merge(father,son) unless self.services['planning']
+      fnz_service_merge(father,son) unless self.services['fnz']
     ensure
       self.stop
     end
@@ -200,6 +202,20 @@ class Merge
         self.update_message :planning_service, I18n.t('errors.merge.services.merge_failed')
       when nil
         self.update_message :planning_service, I18n.t('errors.merge.services.connection_failed')
+    end
+    res
+  end
+
+  def fnz_service_merge(father,son)
+    fnz_merge = FnzMerge.new(father_id: father.id, son_id: son.id)
+    res = fnz_merge.create
+    case res
+      when true
+        self.update_service('fnz', true)
+      when false
+        self.update_message :fnz_service, I18n.t('errors.merge.services.merge_failed')
+      when nil
+        self.update_message :fnz_service, I18n.t('errors.merge.services.connection_failed')
     end
     res
   end

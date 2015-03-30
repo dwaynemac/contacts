@@ -510,6 +510,11 @@ describe Merge do
         mock = PlanningMerge.new
         PlanningMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
         PlanningMerge.any_instance.should_receive(:create).and_return(true)
+        
+        # it should call Fnz API
+        mock = FnzMerge.new
+        FnzMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
+        FnzMerge.any_instance.should_receive(:create).and_return(true)
 
         @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
         @m.save
@@ -570,6 +575,11 @@ describe Merge do
         mock = PlanningMerge.new
         PlanningMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
         PlanningMerge.any_instance.should_receive(:create).and_return(true)
+        
+        # it should call Fnz API
+        mock = FnzMerge.new
+        FnzMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(mock)
+        FnzMerge.any_instance.should_receive(:create).and_return(true)
 
         @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
         @m.save

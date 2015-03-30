@@ -66,7 +66,9 @@ group :development do
 
   gem 'debugger'
   gem 'ruby-mass'
+end
 
+group :deployment do
   gem 'capistrano', '~> 3.1'
   gem 'capistrano-ext'
   gem 'capistrano-rails', '~> 1.1'
