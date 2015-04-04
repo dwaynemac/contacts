@@ -126,7 +126,7 @@ class V0::ContactsController < V0::ApplicationController
   #
   # @required [String] id contact_id
   # @optional [String] account_name scope search to this account. Fields will be added to response when this is sent.
-  # @optional [Array] select return only selected contact attributes. :full_name is an alias for :first_name AND :last_name other: :first_name, :last_name, :telephone, :email, etc. if you specify an attribute as a key value pair. key will be interpreted as attribute name and value as reference date to get value from.
+  # @optional [Array] select return only selected contact attributes. :full_name is an alias for :first_name AND :last_name other: :first_name, :last_name, :telephone, :email, :occupation etc. if you specify an attribute as a key value pair. key will be interpreted as attribute name and value as reference date to get value from.
   #
   # @example_response
   #   if account_name is provided

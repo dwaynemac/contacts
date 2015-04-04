@@ -164,6 +164,13 @@ class ContactSerializer
           @json['telephone'] = telephone.value unless telephone.nil?
         end
 
+        if serialize?(:occupation)
+          occupation = @contact.occupations.first
+          if occupation
+            @json['occupation'] = occupation.value
+          end
+        end
+
         if serialize?(:birthday)
           birthday = @contact.date_attributes.where(category: 'birthday').first
           @json['birthday'] = birthday.value unless birthday.nil?

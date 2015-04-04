@@ -77,6 +77,19 @@ describe ContactSearcher do
         }
       end
     end
+
+    context "occupation: 'lawyear'" do
+      let(:sel){{occupation: 'lawyer'}}
+      it "returns contacts with lawyer occupation" do
+        %W(judge lawyer).each do |occ|
+          c = Contact.make
+          c.contact_attributes << Occupation.new(value: occ)
+          c.save
+        end
+        expect(searcher.api_where(sel).count).to eq 1
+        expect(searcher.api_where(sel).first.occupations.first.value).to eq 'lawyer'
+      end
+    end
     
     context "email: 'dwa', telephone: '1234'" do
       let(:sel){{email: 'dwa', telephone: '1234'}}

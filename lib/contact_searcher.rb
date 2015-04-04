@@ -55,7 +55,7 @@ class ContactSearcher
               # Mongo Queries can get slow. If account doesnt exist avoid querying.
               raise Exceptions::ForceEmptyQuery
             end
-          when 'telephone', 'email', 'address', 'custom_attribute'
+          when 'telephone', 'email', 'address', 'custom_attribute', 'occupation'
             andit({
               :contact_attributes => { '$elemMatch' => { "_type" => k.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
             })
