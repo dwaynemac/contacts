@@ -59,6 +59,7 @@ describe HistoryEntry do
     context "when option class" do
       let(:contact_without_history){Contact.make(level: 'aspirante')}
       let(:contact_with_history){Contact.make(level: 'aspirante')}
+      let(:february_contact){Contact.make(level: 'aspirante')}
 
       before do
         contact_without_history.history_entries.delete_all
@@ -80,6 +81,46 @@ describe HistoryEntry do
                                         class: 'Contact')
           contact_with_history.id.in?(eids).should be_falsy
         end
+        context "considering timezones" do
+          it "should not include elements that were saved different days due to different TimeZone" do
+            Account.make(name: 'account')
+            padma_account = PadmaAccount.new(:name => "account", :timezone => 'Lisbon' )
+            PadmaAccount.stub(:find).and_return(padma_account)
+            Time.zone = 'Brasilia'
+            february_contact.history_entries.delete_all
+            february_contact.history_entries.create(
+                                          attribute: 'level', 
+                                          old_value: Contact::VALID_LEVELS['sádhaka'], 
+                                          changed_at: (Date.civil(2015,02,28).end_of_day - 10.minutes).to_time.in_time_zone('Brasilia').to_s)
+
+            Time.zone = 'Lisbon'
+            due_at = Date.civil(2015,02,28).end_of_month.to_time.end_of_month
+            eids = HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'],
+                                          at: due_at,
+                                          account_name: "account",
+                                          timezone: 'Lisbon',
+                                          class: 'Contact')
+            february_contact.id.in?(eids).should be_falsy
+          end
+          it "should correctly include dates from the same TimeZone" do
+            Account.make(name: 'account')
+            padma_account = PadmaAccount.new(:name => "account", :timezone => 'Brasilia' )
+            PadmaAccount.stub(:find).and_return(padma_account)
+            february_contact.history_entries.delete_all
+            february_contact.history_entries.create(
+                                          attribute: 'level', 
+                                          old_value: Contact::VALID_LEVELS['sádhaka'], 
+                                          changed_at: (Date.civil(2015,02,28).end_of_day - 10.minutes).to_time.in_time_zone('Brasilia').to_s)
+
+            Time.zone = 'Brasilia'
+            due_at = Date.civil(2015,02,28).end_of_month.to_time.end_of_month
+            eids = HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'],
+                                          at: due_at,
+                                          account_name: "account",
+                                          class: 'Contact')
+            february_contact.id.in?(eids).should be_truthy
+          end
+        end
       end
       context "is NOT given" do
         it "should not include elements without history" do
@@ -99,7 +140,6 @@ describe HistoryEntry do
       c = Contact.make(level: 'sádhaka')
       # this one should be ignored for its attribute
       c.history_entries.create(attribute: :level,  old_value: 'student', changed_at: 1.month.ago.to_time)
-
       eids = HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'Contact')
       c._id.in?(eids).should be_falsy
     end
@@ -110,7 +150,6 @@ describe HistoryEntry do
                           attribute: :status,
                           old_value: 'student',
                           changed_at: 1.month.ago.to_time)
-
       eids = HistoryEntry.element_ids_with(status: 'student', at: 2.months.ago)
       'ingore-me'.in?(eids).should be_falsy
     end
