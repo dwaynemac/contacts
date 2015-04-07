@@ -135,6 +135,23 @@ describe ContactSearcher do
         }
       end
     end
+
+    context "Custom attributes, account" do
+      it "should return local_unique_attribute criteria" do
+        account = Account.make
+        c = Contact.make
+        c.link(account)
+        c.contact_attributes << CustomAttribute.new(value: 'as',
+                                                    name: 'first-custom-key',
+                                                    account: account)
+        searcher.account_id = account.id
+        searcher.api_where({'first-custom-key' => 'as'}).selector.should == {
+          contact_attributes: {
+            '$elemMatch' => {_type: 'CustomAttribute', name: 'first-custom-key', value: /as/i, account_id: account.id}
+          }
+        }
+      end
+    end
     
     context " - coefficient - " do
       let!(:account){Account.make(name: 'belgrano')}

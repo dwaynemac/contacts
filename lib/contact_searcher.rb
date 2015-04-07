@@ -116,6 +116,17 @@ class ContactSearcher
                                                                 account_id: account_id}}
               })
             end
+          when *CustomAttribute.custom_keys_by_id(account_id)
+            if account_id.present?
+              andit({
+                :contact_attributes => { '$elemMatch' => { 
+                                            _type: "CustomAttribute", 
+                                            name: k,
+                                            value: Regexp.new(v.to_s,Regexp::IGNORECASE),
+                                            account_id: account_id
+                                      }}
+              })
+            end
           else
             self.new_selector[k] = v
         end
