@@ -82,16 +82,17 @@ class HistoryEntry
       options[:account] = Account.where(name: options.delete(:account_name)).first
     end
 
-    # if an account is present, its timezone should be used
-    pa = PadmaAccount.find(options[:account])
-    ref_date = if options[:account].present? && pa = PadmaAccount.find(options[:account])
-                options[:at].to_time.in_time_zone(pa.timezone).to_s
-              else
-                options[:at].to_time
-              end
-
     ret = Rails.cache.read(cache_key_for_element_ids_with(options))
     if ret.nil?
+
+      # if an account is present, its timezone should be used
+      if options[:account].present?
+        account_name = options[:account].name
+        pa = Rails.cache.fetch("account:#{account_name}"){ PadmaAccount.find(account_name) }
+        @backuped_timezone = Time.zone
+        Time.zone = pa.timezone if pa
+      end
+      ref_date = options[:at].to_time
 
       conds = {attribute: ref_attribute, changed_at: {'$gte' => ref_date}}
       conds = conds.merge({historiable_type: options[:class]}) if options[:class]
@@ -131,6 +132,8 @@ class HistoryEntry
       end
       Rails.cache.write(cache_key_for_element_ids_with(options),ret,{expires_in: 5.minutes})
     end
+
+    Time.zone = @backuped_timezone
 
     ret
   end

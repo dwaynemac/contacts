@@ -82,43 +82,48 @@ describe HistoryEntry do
           contact_with_history.id.in?(eids).should be_falsy
         end
         context "considering timezones" do
-          it "should not include elements that were saved different days due to different TimeZone" do
-            Account.make(name: 'account')
-            padma_account = PadmaAccount.new(:name => "account", :timezone => 'Lisbon' )
+          let!(:account){ Account.make(name: 'account') }
+          let(:padma_account){PadmaAccount.new(name: "account", timezone: 'Lisbon' )} 
+          before do
             PadmaAccount.stub(:find).and_return(padma_account)
+          end
+          it "wont include elements that were saved different days due to different TimeZone" do
             Time.zone = 'Brasilia'
-            february_contact.history_entries.delete_all
-            february_contact.history_entries.create(
-                                          attribute: 'level', 
-                                          old_value: Contact::VALID_LEVELS['sádhaka'], 
-                                          changed_at: (Date.civil(2015,02,28).end_of_day - 10.minutes).to_time.in_time_zone('Brasilia').to_s)
+            entry_on(february_contact,"2015-02-28 23:50")
 
             Time.zone = 'Lisbon'
-            due_at = Date.civil(2015,02,28).end_of_month.to_time.end_of_month
+            due_at = Date.civil(2015,02,28).to_time.end_of_month
+            # aspirantes at due_date
             eids = HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'],
                                           at: due_at,
                                           account_name: "account",
-                                          timezone: 'Lisbon',
                                           class: 'Contact')
             february_contact.id.in?(eids).should be_falsy
           end
-          it "should correctly include dates from the same TimeZone" do
-            Account.make(name: 'account')
-            padma_account = PadmaAccount.new(:name => "account", :timezone => 'Brasilia' )
-            PadmaAccount.stub(:find).and_return(padma_account)
-            february_contact.history_entries.delete_all
-            february_contact.history_entries.create(
-                                          attribute: 'level', 
-                                          old_value: Contact::VALID_LEVELS['sádhaka'], 
-                                          changed_at: (Date.civil(2015,02,28).end_of_day - 10.minutes).to_time.in_time_zone('Brasilia').to_s)
+          it "includes dates from the same TimeZone" do
+            Time.zone = 'Brasilia' # UTC-3
+            entry_on(february_contact,"2015-02-22 23:50")
 
-            Time.zone = 'Brasilia'
-            due_at = Date.civil(2015,02,28).end_of_month.to_time.end_of_month
-            eids = HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'],
+            Time.zone = 'Lisbon' # UTC
+            due_at = Date.civil(2015,02,28).to_time.end_of_month
+            # aspirantes at due_date
+            eids = HistoryEntry.element_ids_with(
+                                          level: Contact::VALID_LEVELS['aspirante'],
                                           at: due_at,
                                           account_name: "account",
-                                          class: 'Contact')
+                                          class: 'Contact'
+            )
             february_contact.id.in?(eids).should be_truthy
+          end
+
+          # changed from aspirante to new value on given time
+          def entry_on(contact, time_string)
+            contact.history_entries.delete_all
+            contact.history_entries.create(
+                                    attribute: 'level', 
+                                    old_value: Contact::VALID_LEVELS['aspirante'], 
+                                    changed_at: Time.zone.parse(time_string).to_s
+            )
           end
         end
       end
