@@ -145,7 +145,7 @@ describe ContactSearcher do
                                                     name: 'first-custom-key',
                                                     account: account)
         searcher.account_id = account.id
-        searcher.api_where({'first-custom-key' => 'as'}).selector.should == {
+        searcher.api_where({'custom_first-custom-key' => 'as'}).selector.should == {
           contact_attributes: {
             '$elemMatch' => {_type: 'CustomAttribute', name: 'first-custom-key', value: /as/i, account_id: account.id}
           }

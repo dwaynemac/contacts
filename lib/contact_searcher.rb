@@ -16,6 +16,7 @@ class ContactSearcher
   end
 
   LOCAL_ATTRIBUTE_META_ACCESSOR_REGEX = /^(.+)_for_([^=]+)$/
+  CUSTOM_ATTRIBUTE_META_ACCESSOR_REGEX = /^custom_(.+)$/
 
   # This is same as #where but will make some transformations on selector.
   #
@@ -116,12 +117,13 @@ class ContactSearcher
                                                                 account_id: account_id}}
               })
             end
-          when *CustomAttribute.custom_keys_by_id(account_id)
+          when CUSTOM_ATTRIBUTE_META_ACCESSOR_REGEX
+            custom_attribute = $1
             if account_id.present?
               andit({
                 :contact_attributes => { '$elemMatch' => { 
                                             _type: "CustomAttribute", 
-                                            name: k,
+                                            name: custom_attribute,
                                             value: Regexp.new(v.to_s,Regexp::IGNORECASE),
                                             account_id: account_id
                                       }}
