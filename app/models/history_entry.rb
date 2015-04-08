@@ -135,7 +135,7 @@ class HistoryEntry
       Rails.cache.write(cache_key_for_element_ids_with(options),ret,{expires_in: 5.minutes})
     end
 
-    Time.zone = @backuped_timezone
+    # Time.zone = @backuped_timezone
 
     ret
   end

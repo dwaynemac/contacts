@@ -61,7 +61,7 @@ describe HistoryEntry do
       let(:contact_without_history){Contact.make(level: 'aspirante')}
       let(:contact_with_history){Contact.make(level: 'aspirante')}
       let(:february_contact){Contact.make(level: 'aspirante', owner: account)}
-      let(:padma_account){PadmaAccount.new(name: "account", timezone: 'Tijuana' )} 
+      let(:padma_account){PadmaAccount.new(name: "account", timezone: 'Fiji' )} 
       before do
         contact_without_history.history_entries.delete_all
 
@@ -87,13 +87,13 @@ describe HistoryEntry do
             PadmaAccount.stub(:find).and_return(padma_account)
           end
           it "includes in the edge" do
-            Time.zone = 'Tijuana' # UTC-8
+            debugger
+            Time.zone = 'Fiji' # UTC+12
             entry_on(february_contact,"2015-02-28 23:50")
 
             Time.zone = 'Lisbon' # UTC
             due_at = Time.zone.parse("2015-02-28 23:59")
             # aspirantes at due_date
-            debugger
             eids = HistoryEntry.element_ids_with(
                                           level: Contact::VALID_LEVELS['aspirante'],
                                           at: due_at,
@@ -110,6 +110,7 @@ describe HistoryEntry do
             contact.history_entries.create(
                                     attribute: 'level', 
                                     old_value: Contact::VALID_LEVELS['aspirante'], 
+                                    # TODO FIXME esto es lo que no funciona. castea a UTC pero sin modificar la hora. simplemente saca el timezone
                                     changed_at: chngd_at.utc
             )
           end
