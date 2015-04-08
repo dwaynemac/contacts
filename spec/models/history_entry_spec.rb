@@ -57,10 +57,11 @@ describe HistoryEntry do
     end
 
     context "when option class" do
+      let(:account){ Account.make(name: 'account') }
       let(:contact_without_history){Contact.make(level: 'aspirante')}
       let(:contact_with_history){Contact.make(level: 'aspirante')}
-      let(:february_contact){Contact.make(level: 'aspirante')}
-
+      let(:february_contact){Contact.make(level: 'aspirante', owner: account)}
+      let(:padma_account){PadmaAccount.new(name: "account", timezone: 'Tijuana' )} 
       before do
         contact_without_history.history_entries.delete_all
 
@@ -82,31 +83,17 @@ describe HistoryEntry do
           contact_with_history.id.in?(eids).should be_falsy
         end
         context "considering timezones" do
-          let!(:account){ Account.make(name: 'account') }
-          let(:padma_account){PadmaAccount.new(name: "account", timezone: 'Lisbon' )} 
           before do
             PadmaAccount.stub(:find).and_return(padma_account)
           end
-          it "wont include elements that were saved different days due to different TimeZone" do
-            Time.zone = 'Brasilia'
+          it "includes in the edge" do
+            Time.zone = 'Tijuana' # UTC-8
             entry_on(february_contact,"2015-02-28 23:50")
 
-            Time.zone = 'Lisbon'
-            due_at = Date.civil(2015,02,28).to_time.end_of_month
-            # aspirantes at due_date
-            eids = HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'],
-                                          at: due_at,
-                                          account_name: "account",
-                                          class: 'Contact')
-            february_contact.id.in?(eids).should be_falsy
-          end
-          it "includes dates from the same TimeZone" do
-            Time.zone = 'Brasilia' # UTC-3
-            entry_on(february_contact,"2015-02-22 23:50")
-
             Time.zone = 'Lisbon' # UTC
-            due_at = Date.civil(2015,02,28).to_time.end_of_month
+            due_at = Time.zone.parse("2015-02-28 23:59")
             # aspirantes at due_date
+            debugger
             eids = HistoryEntry.element_ids_with(
                                           level: Contact::VALID_LEVELS['aspirante'],
                                           at: due_at,
@@ -119,10 +106,11 @@ describe HistoryEntry do
           # changed from aspirante to new value on given time
           def entry_on(contact, time_string)
             contact.history_entries.delete_all
+            chngd_at = Time.zone.parse(time_string)
             contact.history_entries.create(
                                     attribute: 'level', 
                                     old_value: Contact::VALID_LEVELS['aspirante'], 
-                                    changed_at: Time.zone.parse(time_string).to_s
+                                    changed_at: chngd_at.utc
             )
           end
         end

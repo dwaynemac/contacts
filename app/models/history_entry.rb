@@ -78,13 +78,14 @@ class HistoryEntry
     # use first key of options as attribute
     ref_attribute = options.keys.first
     
-    if options[:account_name] && !options[:account]
-      options[:account] = Account.where(name: options.delete(:account_name)).first
-    end
 
     ret = Rails.cache.read(cache_key_for_element_ids_with(options))
     if ret.nil?
+      if options[:account_name] && !options[:account]
+        options[:account] = Account.where(name: options.delete(:account_name)).first
+      end
 
+=begin
       # if an account is present, its timezone should be used
       if options[:account].present?
         account_name = options[:account].name
@@ -92,6 +93,7 @@ class HistoryEntry
         @backuped_timezone = Time.zone
         Time.zone = pa.timezone if pa
       end
+=end
       ref_date = options[:at].to_time
 
       conds = {attribute: ref_attribute, changed_at: {'$gte' => ref_date}}
