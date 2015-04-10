@@ -118,12 +118,12 @@ class ContactSearcher
               })
             end
           when CUSTOM_ATTRIBUTE_META_ACCESSOR_REGEX
-            custom_attribute = $1
+            custom_attribute_key = $1
             if account_id.present?
               andit({
                 :contact_attributes => { '$elemMatch' => { 
                                             _type: "CustomAttribute", 
-                                            name: custom_attribute,
+                                            key: custom_attribute_key,
                                             value: Regexp.new(v.to_s,Regexp::IGNORECASE),
                                             account_id: account_id
                                       }}
