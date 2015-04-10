@@ -1,7 +1,12 @@
 class CustomAttribute < ContactAttribute
   field :name
-
+  field :key
   validate :name, :presence => true
+  before_save :set_key
+
+  def set_key
+    self.key = self.name.parameterize('_')
+  end
 
   # @return [Array] custom keys that account uses
 
