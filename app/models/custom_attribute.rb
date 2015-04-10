@@ -5,7 +5,7 @@ class CustomAttribute < ContactAttribute
   before_save :set_key
 
   def set_key
-    self.key = self.name.parameterize('_')
+    self.key = self.name.gsub('-','_').parameterize('_')
   end
 
   # @return [Array] custom keys that account uses
