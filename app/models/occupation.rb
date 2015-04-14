@@ -1,0 +1,2 @@
+class Occupation < ContactAttribute
+end

@@ -16,6 +16,7 @@ class ContactSearcher
   end
 
   LOCAL_ATTRIBUTE_META_ACCESSOR_REGEX = /^(.+)_for_([^=]+)$/
+  CUSTOM_ATTRIBUTE_META_ACCESSOR_REGEX = /^custom_(.+)$/
 
   # This is same as #where but will make some transformations on selector.
   #
@@ -55,7 +56,7 @@ class ContactSearcher
               # Mongo Queries can get slow. If account doesnt exist avoid querying.
               raise Exceptions::ForceEmptyQuery
             end
-          when 'telephone', 'email', 'address', 'custom_attribute'
+          when 'telephone', 'email', 'address', 'custom_attribute', 'occupation'
             andit({
               :contact_attributes => { '$elemMatch' => { "_type" => k.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
             })
@@ -114,6 +115,18 @@ class ContactSearcher
               andit({:local_unique_attributes => {'$elemMatch' => {_type: "LastSeenAt",
                                                                 value: {'$lt' => DateTime.parse(v).to_time_in_current_zone.utc},
                                                                 account_id: account_id}}
+              })
+            end
+          when CUSTOM_ATTRIBUTE_META_ACCESSOR_REGEX
+            custom_attribute_key = $1
+            if account_id.present?
+              andit({
+                :contact_attributes => { '$elemMatch' => { 
+                                            _type: "CustomAttribute", 
+                                            key: custom_attribute_key,
+                                            value: Regexp.new(v.to_s,Regexp::IGNORECASE),
+                                            account_id: account_id
+                                      }}
               })
             end
           else

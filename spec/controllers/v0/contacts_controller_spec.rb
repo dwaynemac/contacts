@@ -560,7 +560,7 @@ describe V0::ContactsController do
           end
         end
         describe "last_seen_at" do
-          let(:now){Time.zone.now}
+          let(:now){Time.zone.parse('2015-2-1 12:32')}
           before do
             @invalid_contact.status = :student
             @invalid_contact.save validate: false

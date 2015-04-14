@@ -15,6 +15,8 @@ describe Contact do
   it { should have_field(:in_professional_training).of_type(Boolean)}
   it { should have_field(:first_enrolled_on).of_type(Date)}
 
+  it { should respond_to :occupations }
+
   describe "#first_enrolled_on" do
     it "is casted from String to Date" do
       c = Contact.new first_enrolled_on: "2014-12-31"
