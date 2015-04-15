@@ -111,7 +111,7 @@ class Contact
 
   validates :first_name, :presence => true
 
-  attr_accessor :check_duplicates # default: true
+  attr_accessor :check_duplicates # default: false
   validate :validate_duplicates, :if => :check_duplicates, on: :create
 
   attr_accessor :request_username
@@ -451,10 +451,6 @@ class Contact
     else
       @check_duplicates = value
     end
-  end
-
-  def check_duplicates
-    @check_duplicates.nil? ? true : @check_duplicates
   end
 
   # @return [Hash] Returns the minimal representation of this contact
