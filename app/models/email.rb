@@ -5,9 +5,7 @@ class Email < ContactAttribute
 
   field :category
 
-  attr_accessor :allow_duplicate
-
-  validates :value, :email_format => {:message => "bad email format"}, :email_uniqueness => true
+  validates :value, :email_format => {:message => "bad email format"}
 
   private
   def normalize_email

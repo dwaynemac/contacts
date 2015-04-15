@@ -7,6 +7,7 @@ tmp/
 .rvmrc
 .project
 *.swp
+*.swo
 doc/
 .yardoc/
 .env

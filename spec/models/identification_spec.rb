@@ -11,22 +11,14 @@ describe Identification do
     @bart.contact_attributes.last.should be_public
   end
 
-  describe "should be unique" do
-    before do
-      @bart = Contact.make(:first_name => "Bart", :last_name => "Simpson")
-      @bart.contact_attributes << Identification.new(:category => :dni, :value => "30366832")
-      @bart.save
-    end
-    specify " so two contacts cant have same identity" do
-      c = Contact.new(:first_name => "El", :last_name => "Barto")
-      c.contact_attributes << Identification.new(:category => :dni, :value => "30366832")
-      c.should_not be_valid
-    end
-    specify " scoping to name (type of id)" do
-      c = Contact.new(:first_name => "Bartman")
-      c.contact_attributes << Identification.new(:category => :cpf, :value => "30366832")
-      c.should be_valid
-    end
+  it "allows two contacts to have same [category, value]" do
+    @bart = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+    @bart.contact_attributes << Identification.new(:category => :dni, :value => "30366832")
+    @bart.save
+
+    c = Contact.new(:first_name => "El", :last_name => "Barto")
+    c.contact_attributes << Identification.new(:category => :dni, :value => "30366832")
+    c.should be_valid
   end
 
   describe "should validate that contacts have only one Identification of each name (type of id)" do
