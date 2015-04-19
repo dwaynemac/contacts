@@ -20,7 +20,6 @@ class Merge
     'activity_stream' => false,
     'planning' => false,
     'fnz' => false
-    # TODO fnz
     # TODO attendance
     # TODO mailing
   }

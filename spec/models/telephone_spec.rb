@@ -35,71 +35,7 @@ describe Telephone do
     @contact.contact_attributes.last.masked_value.should == "######5071"
   end
 
-  describe "of 'mobile' category" do
-    specify "ensure contact is valid" do
-      @bart.reload
-      @bart.save!
-    end
-
-
-    describe "when Contact#check_duplicates is true (default)" do
-      specify "two contacts can't have same mobile" do
-        c = Contact.new(:first_name => "El", :last_name => "Barto")
-        c.contact_attributes << Telephone.new(:category => :mobile, :value => "1540995071")
-        c.should_not be_valid
-      end
-      specify "same contact can have duplicated mobile (they may be visible to different accounts)" do
-        @bart.contact_attributes << Telephone.new(:category => :mobile, :value => "1540995071")
-        @bart.should be_valid
-      end
-      specify "different mobile phones should be fine" do
-        c = Contact.new(:first_name => "El", :last_name => "Barto")
-        c.contact_attributes << Telephone.new(:category => :mobile, :value => "1540993333")
-        c.should be_valid
-      end
-    end
-    describe "when Contact#check_duplicates is false" do
-      specify "two contacts can't have same mobile" do
-        c = Contact.new(:first_name => "El", :last_name => "Barto")
-        c.contact_attributes << Telephone.new(:category => :mobile, :value => "1540995071")
-        c.check_duplicates = false
-        c.should_not be_valid
-      end
-      specify "same contact can have duplicated mobile (they may be visible to different accounts)" do
-        @bart.contact_attributes << Telephone.new(:category => :mobile, :value => "1540995071")
-        @bart.check_duplicates = false
-        @bart.should be_valid
-      end
-      specify "different mobile phones should be fine" do
-        c = Contact.new(:first_name => "El", :last_name => "Barto")
-        c.contact_attributes << Telephone.new(:category => :mobile, :value => "1540993333")
-        c.check_duplicates = false
-        c.should be_valid
-      end
-      describe "and Telephone#allow_duplicate is true" do
-        it "allows mobile to be duplicate" do
-          c = Contact.new(:first_name => "El", :last_name => "Barto")
-          c.contact_attributes << Telephone.new(category: :mobile, value: "1540995071", allow_duplicate: true)
-          c.check_duplicates = false
-          c.should be_valid
-        end
-        specify "same contact can have duplicated mobile (they may be visible to different accounts)" do
-          @bart.contact_attributes << Telephone.new(:category => :mobile, :value => "1540995071", allow_duplicate: true)
-          @bart.check_duplicates = false
-          @bart.should be_valid
-        end
-        specify "different mobile phones should be fine" do
-          c = Contact.new(:first_name => "El", :last_name => "Barto")
-          c.contact_attributes << Telephone.new(:category => :mobile, :value => "1540993333", allow_duplicate: true)
-          c.check_duplicates = false
-          c.should be_valid
-        end
-      end
-    end
-
-  end
-
-  specify "categories other than 'mobile' shouldn't be unique'" do
+  specify "allow duplicates" do
     c = Contact.new(:first_name => "Bartman")
     c.contact_attributes << Telephone.new(:category => :home, :value => "1540995071")
     c.should be_valid

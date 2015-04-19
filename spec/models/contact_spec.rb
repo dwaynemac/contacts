@@ -859,18 +859,6 @@ describe Contact do
         @contact.deep_error_messages.should include(contact_attributes: [["invalid-mail bad email format"]])
       end
     end
-    context "if an email is not unique" do
-      before do
-        c = Contact.make
-        c.contact_attributes << Email.make(value: 'this@mail.com')
-        c.save!
-        @contact.contact_attributes << Email.make(value: 'this@mail.com')
-      end
-      it "it should show 'Email xxx is not unique'" do
-        @contact.should_not be_valid
-        @contact.deep_error_messages.should include(:contact_attributes => [["this@mail.com already belongs to another contact"]])
-      end
-    end
   end
 
   it "creates an activity when level changes" do
