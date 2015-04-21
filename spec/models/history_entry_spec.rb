@@ -9,44 +9,44 @@ describe HistoryEntry do
   it { should have_field(:old_value) }
 
   describe "#value_at" do
-    let(:contact){Contact.make(level: Contact::VALID_LEVELS[3])}
+    let(:contact){Contact.make(level: Contact::VALID_LEVELS['chêla'])}
     it "should return nil if there is no record in history" do
       contact.history_entries.value_at(:level, 1.month.ago.to_time).should be_nil
     end
     it "should return value at given date if found" do
       contact.history_entries.create(attribute: :level,
-                                     old_value: Contact::VALID_LEVELS[0],
+                                     old_value: Contact::VALID_LEVELS['aspirante'],
                                      changed_at: 3.weeks.ago.to_time)
       contact.history_entries.create(attribute: :level,
-                                     old_value: Contact::VALID_LEVELS[1],
+                                     old_value: Contact::VALID_LEVELS['sádhaka'],
                                      changed_at: 2.weeks.ago.to_time)
       contact.history_entries.create(attribute: :level,
-                                     old_value: Contact::VALID_LEVELS[2],
+                                     old_value: Contact::VALID_LEVELS['yôgin'],
                                      changed_at: 1.week.ago.to_time)
-      contact.history_entries.value_at(:level, 10.days.ago).should  == Contact::VALID_LEVELS[2]
-      contact.history_entries.value_at(:level, 15.days.ago).should  == Contact::VALID_LEVELS[1]
+      contact.history_entries.value_at(:level, 10.days.ago).should  == Contact::VALID_LEVELS['yôgin']
+      contact.history_entries.value_at(:level, 15.days.ago).should  == Contact::VALID_LEVELS['sádhaka']
       contact.history_entries.value_at(:level, 2.days.ago).should   be_nil
-      contact.history_entries.value_at(:level, 1.month.ago).should  == Contact::VALID_LEVELS[0]
+      contact.history_entries.value_at(:level, 1.month.ago).should  == Contact::VALID_LEVELS['aspirante']
       contact.history_entries.value_at(:other_attribute, 1.day.ago).should be_nil
     end
   end
 
   describe "#last_value" do
-    let(:contact){Contact.make(level: Contact::VALID_LEVELS[3])}
+    let(:contact){Contact.make(level: Contact::VALID_LEVELS['chêla'])}
     it "should return nil if there is no record in history" do
       contact.history_entries.last_value(:level).should be_nil
     end
     it "should return last value if found" do
       contact.history_entries.create(attribute: :level,
-                                     old_value: Contact::VALID_LEVELS[0],
+                                     old_value: Contact::VALID_LEVELS['aspirante'],
                                      changed_at: 3.weeks.ago.to_time)
       contact.history_entries.create(attribute: :level,
-                                     old_value: Contact::VALID_LEVELS[1],
+                                     old_value: Contact::VALID_LEVELS['sádhaka'],
                                      changed_at: 2.weeks.ago.to_time)
       contact.history_entries.create(attribute: :level,
-                                     old_value: Contact::VALID_LEVELS[2],
+                                     old_value: Contact::VALID_LEVELS['yôgin'],
                                      changed_at: 1.week.ago.to_time)
-      contact.history_entries.last_value(:level).should  == Contact::VALID_LEVELS[2]
+      contact.history_entries.last_value(:level).should  == Contact::VALID_LEVELS['yôgin']
     end
   end
 
@@ -61,7 +61,8 @@ describe HistoryEntry do
       let(:contact_without_history){Contact.make(level: 'aspirante')}
       let(:contact_with_history){Contact.make(level: 'aspirante')}
       let(:february_contact){Contact.make(level: 'aspirante', owner: account)}
-      let(:padma_account){PadmaAccount.new(name: "account", timezone: 'Fiji' )} 
+      let(:february_sadhaka){Contact.make(level: 'sadhaka', owner: account)}
+      let(:padma_account){PadmaAccount.new(name: "account", timezone: 'Hawaii' )} 
       before do
         contact_without_history.history_entries.delete_all
 
@@ -87,8 +88,7 @@ describe HistoryEntry do
             PadmaAccount.stub(:find).and_return(padma_account)
           end
           it "includes in the edge" do
-            debugger
-            Time.zone = 'Fiji' # UTC+12
+            Time.zone = 'Hawaii' # UTC-10
             entry_on(february_contact,"2015-02-28 23:50")
 
             Time.zone = 'Lisbon' # UTC
@@ -103,6 +103,34 @@ describe HistoryEntry do
             february_contact.id.in?(eids).should be_truthy
           end
 
+          it "includes the right level" do
+            Time.zone = 'Hawaii' # UTC-10
+            february_sadhaka.history_entries.delete_all
+            #paso a aspirante en enero
+            february_sadhaka.history_entries.create(
+                                    attribute: 'level', 
+                                    old_value: nil, 
+                                    changed_at: Time.zone.parse("2015-01-31 23:49").utc
+            )
+            #pasó a sádhaka en febrero
+            february_sadhaka.history_entries.create(
+                                    attribute: 'level', 
+                                    old_value: Contact::VALID_LEVELS['aspirante'], 
+                                    changed_at: Time.zone.parse("2015-02-28 23:49").utc
+            )
+
+            Time.zone = 'Lisbon' # UTC
+            due_at = Time.zone.parse("2015-01-31 23:59")
+            # en enero fue aspirante
+            eids = HistoryEntry.element_ids_with(
+                                          level: Contact::VALID_LEVELS['aspirante'],
+                                          at: due_at,
+                                          account_name: "account",
+                                          class: 'Contact'
+            )
+            february_sadhaka.id.in?(eids).should be_truthy
+          end
+
           # changed from aspirante to new value on given time
           def entry_on(contact, time_string)
             contact.history_entries.delete_all
@@ -110,7 +138,6 @@ describe HistoryEntry do
             contact.history_entries.create(
                                     attribute: 'level', 
                                     old_value: Contact::VALID_LEVELS['aspirante'], 
-                                    # TODO FIXME esto es lo que no funciona. castea a UTC pero sin modificar la hora. simplemente saca el timezone
                                     changed_at: chngd_at.utc
             )
           end
