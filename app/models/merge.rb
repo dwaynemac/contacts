@@ -171,6 +171,11 @@ class Merge
     father.contact_attributes << CustomAttribute.new(:name => "old_first_name", :value => son.first_name, :account => father.owner, :public => true )
     father.contact_attributes << CustomAttribute.new(:name => "old_last_name", :value => son.last_name, :account => father.owner, :public => true )
 
+    #Avatar
+    if father.avatar_url.nil?
+      father.avatar = son.avatar
+    end
+
     son.contact_attributes.delete_all
     father.save
 
