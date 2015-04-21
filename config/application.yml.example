@@ -16,15 +16,17 @@
 # This variables will be available as ENV['APP_KEY'] or Figaro.env.app_key
 # For setting heroku's configuration yout can use `rake figaro:heroku[app-name]`
 RACK_ENV: development
-messaging_key: crm-secret
-crm_key: 12341234124
-app_key: 12341234124
+messaging_key: secret
+crm_key: secret
+app_key: secret
+accounts_key: secret
+activity_key: secret
+office_key: secret
+planning_key: secret
+fnz_key: secret
+readonly_key: secret
 aws_access_key_id: "acsdfasf"
 aws_secret_access_key: "asdfdf"
 aws_bucket: "bucket-name"
 aws_region: "eu-west-1"
 aws_host:   "http://bucket-name.s3.amazonaws.com"
-office_key: office-secret
-planning_key: secret-key
-fnz_key: secret-key
-readonly_key: secret-key
