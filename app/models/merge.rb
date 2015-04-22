@@ -174,6 +174,9 @@ class Merge
     #Avatar
     if father.avatar_url.nil?
       father.avatar = son.avatar
+    else
+      son_avatar_file = open(son.avatar.url)
+      father.attachments << Attachment.new(file: son_avatar_file, name: son[:avatar])
     end
 
     son.contact_attributes.delete_all
