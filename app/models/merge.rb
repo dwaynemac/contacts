@@ -174,8 +174,12 @@ class Merge
     #Avatar
     if father.avatar_url.nil?
       father.avatar = son.avatar
-    else
-      son_avatar_file = open(son.avatar.url)
+    elsif !son.avatar_url.nil?
+      if Rails.env == 'development' || Rails.env == 'test'
+        son_avatar_file = open(son.avatar.path)
+      else
+        son_avatar_file = open(son.avatar.url) 
+      end
       father.attachments << Attachment.new(file: son_avatar_file, name: son[:avatar])
     end
 
