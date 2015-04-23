@@ -4,7 +4,7 @@ development:
 
 test:
   host: localhost
-  port: 27018
+  port: 27017
   database: contacts_test
 
 # set these environment variables on your prod server
