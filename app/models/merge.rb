@@ -175,7 +175,7 @@ class Merge
     if father.avatar_url.nil?
       father.avatar = son.avatar
     elsif !son.avatar_url.nil?
-      if Rails.env == 'development' || Rails.env == 'test'
+      if Rails.env == 'test'
         son_avatar_file = open(son.avatar.path)
       else
         son_avatar_file = open(son.avatar.url) 
