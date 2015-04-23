@@ -6,7 +6,7 @@ describe List do
 
   it { should belong_to_related :account }
 
-  it { should reference_and_be_referenced_in_many :contacts }
+  it { should have_and_belong_to_many :contacts }
 
   it { should have_field :name }
 

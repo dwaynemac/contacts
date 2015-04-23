@@ -5,7 +5,7 @@ class Tag
 
   field :name
   belongs_to :account
-  references_and_referenced_in_many :contacts
+  has_and_belongs_to_many :contacts
 
   validates :name, :presence => true
   validates :account, :presence => true

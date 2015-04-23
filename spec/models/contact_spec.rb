@@ -6,7 +6,7 @@ describe Contact do
   it { should have_and_belong_to_many :accounts }
   it { should belong_to_related :owner }
 
-  it { should reference_and_be_referenced_in_many :lists }
+  it { should have_and_belong_to_many :lists }
 
   it { should have_fields :first_name, :last_name, :gender }
   it { should have_fields :normalized_first_name, :normalized_last_name }
@@ -862,6 +862,7 @@ describe Contact do
   end
 
   it "creates an activity when level changes" do
+    debugger
     c = Contact.make(status: 'student')
     c.level = 'sádhaka'
     ActivityStream::Activity.any_instance.should_receive(:create)

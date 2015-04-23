@@ -105,9 +105,8 @@ class Contact
   field :global_teacher_username, type: String
   before_validation :set_global_teacher
 
-  references_and_referenced_in_many :lists
-
-  references_and_referenced_in_many :tags
+  has_and_belongs_to_many :lists
+  has_and_belongs_to_many :tags
 
   validates :first_name, :presence => true
 

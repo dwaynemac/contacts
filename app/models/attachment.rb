@@ -20,7 +20,7 @@ class Attachment
   field :file
   mount_uploader :file, AttachmentUploader
 
-  referenced_in :account
+  belongs_to :account
   validates :name, :presence => true
 
   before_save :assign_owner

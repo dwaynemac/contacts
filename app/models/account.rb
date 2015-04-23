@@ -5,7 +5,10 @@ class Account
 
   field :name
 
-  has_many :owned_contacts, :foreign_key => :owner_id, :class_name => "Contact"
+  has_many :owned_contacts,
+           inverse_of: :owner,
+           foreign_key: :owner_id,
+           class_name: "Contact"
 
   has_many :lists, :autosave => true
 

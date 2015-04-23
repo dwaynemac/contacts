@@ -1,13 +1,14 @@
 source 'http://rubygems.org'
 ruby '1.9.3'
 
-gem 'rails', '~> 3.1.0'
+gem 'rails', '3.2.21'
 
 gem 'unicorn'
-gem "mongoid", "2.3.3"
-gem 'bson', '= 1.4.0'
-gem "bson_ext", "= 1.4.0"
-gem 'mongoid_search'
+gem "mongoid", '3.1.6'
+gem 'moped', '1.4.5'
+#gem 'bson', '2.2'
+#gem "bson_ext", "= 1.4.0"
+gem 'mongoid_search', '0.3.2'
 
 gem 'cancan', '~> 1.6.7'
 
@@ -24,8 +25,8 @@ gem 'kaminari', '~> 0.13'
 gem 'oj'
 
 gem 'rmagick'
-gem 'carrierwave'
-gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
+gem 'carrierwave', '0.10.0'
+gem 'carrierwave-mongoid', '0.7.1', :require => 'carrierwave/mongoid'
 gem 'fog'
 gem 'unf'
 gem 'state_machine', '~> 1.1.2'
@@ -79,9 +80,6 @@ end
 group :development, :test do
   gem "timecop", '0.3.5'
 
-  # Guard
-  gem 'guard-rspec'
-
   # guard notifications on MAC OS X
   gem 'rb-fsevent', :require => false if RUBY_PLATFORM =~ /darwin/i
   gem 'growl', :require => false if RUBY_PLATFORM =~ /darwin/i
@@ -92,13 +90,13 @@ group :development, :test do
 end
 
 # needed for rake ¿?
-gem "rspec-rails", "~> 2.14"
+gem "rspec-rails", "~> 3.1"
   
 group :test do
   gem "shoulda-matchers", :require => false
   gem "machinist", '1.0.6'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
-  gem 'mongoid-rspec', '1.4.4'
+  gem 'mongoid-rspec', '1.13'
   gem 'faker', '0.9.4'
   gem "database_cleaner", ">= 0.6.7"
   gem 'coveralls', require: false

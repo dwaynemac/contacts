@@ -2,7 +2,7 @@
 # TODO : get ideas from https://github.com/TalkingQuickly/capistrano-3-rails-template
 
 # config valid only for Capistrano 3.2.1
-lock '3.2.1'
+lock '3.4.0'
 
 set :application, 'contacts'
 set :repo_url, 'git@github.com:dwaynemac/contacts.git'

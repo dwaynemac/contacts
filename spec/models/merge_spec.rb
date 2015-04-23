@@ -455,16 +455,24 @@ describe Merge do
     describe "keeps son's first_name as a custom_attributes" do
       let(:old_first_name){ @father.contact_attributes.where(:name => "old_first_name").first }
       subject{old_first_name}
-      its(:value) { should == 'Son' }
-      its(:account) { should == @father.owner }
+      it "value = son" do
+        expect(subject.value).to eq 'Son'
+      end
+      it "account = @father.owner" do
+        expect(subject.account).to eq @father.owner
+      end
       it { should be_public }
     end
 
     describe "keeps son's last_name as a custom attribute" do
       let(:old_last_name){ @father.contact_attributes.where(:name => "old_last_name").first }
       subject{old_last_name}
-      its(:value){ should == 'Goku2' }
-      its(:account){ should == @father.owner }
+      it do
+        expect(subject.value).to eq 'Goku2'
+      end
+      it do
+        expect(subject.account).to eq @father.owner
+      end
       it { should be_public }
     end
 

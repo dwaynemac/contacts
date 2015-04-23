@@ -6,7 +6,7 @@ class LocalUniqueAttribute
   field :value
 
   embedded_in :contact
-  referenced_in :account
+  belongs_to :account
 
   validates_presence_of :account
   validates_uniqueness_of :account_id, scope: [:contact_id, '_type']  # scope: :contact_id might not be needed since it's embedded

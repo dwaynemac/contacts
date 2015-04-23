@@ -23,7 +23,7 @@ class ContactAttribute
 
   embedded_in :contact
 
-  referenced_in :account
+  belongs_to :account
 
   before_save :assign_owner
 
