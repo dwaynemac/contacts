@@ -171,6 +171,18 @@ class Merge
     father.contact_attributes << CustomAttribute.new(:name => "old_first_name", :value => son.first_name, :account => father.owner, :public => true )
     father.contact_attributes << CustomAttribute.new(:name => "old_last_name", :value => son.last_name, :account => father.owner, :public => true )
 
+    #Avatar
+    if father.avatar_url.nil?
+      father.avatar = son.avatar
+    elsif !son.avatar_url.nil?
+      if Rails.env == 'test'
+        son_avatar_file = open(son.avatar.path)
+      else
+        son_avatar_file = open(son.avatar.url) 
+      end
+      father.attachments << Attachment.new(file: son_avatar_file, name: son[:avatar])
+    end
+
     son.contact_attributes.delete_all
     father.save
 
