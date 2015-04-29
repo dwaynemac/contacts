@@ -78,7 +78,6 @@ class HistoryEntry
     # use first key of options as attribute
     ref_attribute = options.keys.first
     
-
     ret = Rails.cache.read(cache_key_for_element_ids_with(options))
     if ret.nil?
       if options[:account_name] && !options[:account]
