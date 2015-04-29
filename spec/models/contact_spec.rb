@@ -1110,7 +1110,7 @@ describe Contact do
       example { contacts_with_value_at('sádhaka', 1.year.ago).should_not include @contact }
       example { contacts_with_value_at('sádhaka', DateTime.civil(2012,11,26,18,57,0,0)).should include @contact }
       example { contacts_with_value_at(nil,1.year.ago).should include @contact }
-      example { contacts_with_value_at('aspirante','2012-11-26 23:00:00 UTC').should include @contact }
+      example { contacts_with_value_at('aspirante',Time.parse('2012-11-26 23:00:00 UTC')).should include @contact }
 
       # helper
       def contacts_with_value_at(value,at)
