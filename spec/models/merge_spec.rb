@@ -233,6 +233,58 @@ describe Merge do
     let(:father){Contact.make(first_name: 'dwayne 2', last_name: 'macgowan', status: :student)}
     let(:son){Contact.make(first_name: 'dwayne', last_name: 'macgowan')}
 
+    describe "contacts service" do
+      context "when the avatar is being merged" do
+        it "keeps sons avatar if the father has not an avatar" do
+          extend ActionDispatch::TestProcess
+          image = fixture_file_upload('spec/support/ghibli_main_logo.gif', 
+                                      'image/gif')
+          @fc = Contact.make( first_name: 'foo',
+                              last_name: 'bar',
+                              status: :student)
+          @sc = Contact.make( first_name: 'foo',
+                              last_name: 'bar',
+                              avatar: image)
+
+          @m = Merge.new( first_contact_id: @fc.id,
+                          second_contact_id: @sc.id)
+          @m.save
+
+          @m.start
+          @fc.reload
+          @fc.avatar.should_not be_nil
+        end
+
+        it "keeps sons avatar as an attachment if the father already has one" do
+          extend ActionDispatch::TestProcess
+          s_image = fixture_file_upload(
+            'spec/support/ghibli_main_logo.gif',
+            'image/gif'
+          ) 
+          f_image = fixture_file_upload(
+            'spec/support/facebook.png',
+            'image/png'
+          )
+          @fc = Contact.make( first_name: 'foo',
+                              last_name: 'bar',
+                              avatar: f_image,
+                              status: :student)
+          @sc = Contact.make( first_name: 'foo',
+                              last_name: 'bar',
+                              avatar: s_image)
+          sc_avatar_name = @sc[:avatar]
+
+          @m = Merge.new( first_contact_id: @fc.id,
+                          second_contact_id: @sc.id)
+          @m.save
+          @m.start
+
+          @fc.reload
+          @fc.attachments.first.name.should == sc_avatar_name
+        end
+      end
+    end
+    
     describe "delegates to ActivityStream service" do
       let(:merge){Merge.new(first_contact_id: father.id, second_contact_id: son.id)}
       before do
