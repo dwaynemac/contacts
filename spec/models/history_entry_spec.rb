@@ -88,47 +88,51 @@ describe HistoryEntry do
             PadmaAccount.stub(:find).and_return(padma_account)
           end
           it "includes in the edge" do
-            Time.zone = 'Hawaii' # UTC-10
-            entry_on(february_contact,"2015-02-28 23:50")
+            Time.use_zone('Hawaii') do # UTC-10
+              entry_on(february_contact,"2015-02-28 23:50")
+            end
 
-            Time.zone = 'Lisbon' # UTC
-            due_at = Time.zone.parse("2015-02-28 23:59")
-            # aspirantes at due_date
-            eids = HistoryEntry.element_ids_with(
-                                          level: Contact::VALID_LEVELS['aspirante'],
-                                          at: due_at,
-                                          account_name: "account",
-                                          class: 'Contact'
-            )
-            february_contact.id.in?(eids).should be_truthy
+            Time.use_zone('Lisbon') do # UTC
+              due_at = Time.zone.parse("2015-02-28 23:59")
+              # aspirantes at due_date
+              eids = HistoryEntry.element_ids_with(
+                                            level: Contact::VALID_LEVELS['aspirante'],
+                                            at: due_at,
+                                            account_name: "account",
+                                            class: 'Contact'
+              )
+              february_contact.id.in?(eids).should be_truthy
+            end
           end
 
           it "includes the right level" do
-            Time.zone = 'Hawaii' # UTC-10
-            february_sadhaka.history_entries.delete_all
-            #paso a aspirante en enero
-            february_sadhaka.history_entries.create(
-                                    attribute: 'level', 
-                                    old_value: nil, 
-                                    changed_at: Time.zone.parse("2015-01-31 23:49").utc
-            )
-            #pasó a sádhaka en febrero
-            february_sadhaka.history_entries.create(
-                                    attribute: 'level', 
-                                    old_value: Contact::VALID_LEVELS['aspirante'], 
-                                    changed_at: Time.zone.parse("2015-02-28 23:49").utc
-            )
+            Time.use_zone('Hawaii') do # UTC-10
+              february_sadhaka.history_entries.delete_all
+              #paso a aspirante en enero
+              february_sadhaka.history_entries.create(
+                                      attribute: 'level', 
+                                      old_value: nil, 
+                                      changed_at: Time.zone.parse("2015-01-31 23:49").utc
+              )
+              #pasó a sádhaka en febrero
+              february_sadhaka.history_entries.create(
+                                      attribute: 'level', 
+                                      old_value: Contact::VALID_LEVELS['aspirante'], 
+                                      changed_at: Time.zone.parse("2015-02-28 23:49").utc
+              )
+            end
 
-            Time.zone = 'Lisbon' # UTC
-            due_at = Time.zone.parse("2015-01-31 23:59")
-            # en enero fue aspirante
-            eids = HistoryEntry.element_ids_with(
-                                          level: Contact::VALID_LEVELS['aspirante'],
-                                          at: due_at,
-                                          account_name: "account",
-                                          class: 'Contact'
-            )
-            february_sadhaka.id.in?(eids).should be_truthy
+            Time.use_zone('Lisbon') do # UTC
+              due_at = Time.zone.parse("2015-01-31 23:59")
+              # en enero fue aspirante
+              eids = HistoryEntry.element_ids_with(
+                                            level: Contact::VALID_LEVELS['aspirante'],
+                                            at: due_at,
+                                            account_name: "account",
+                                            class: 'Contact'
+              )
+              february_sadhaka.id.in?(eids).should be_truthy
+            end
           end
 
           # changed from aspirante to new value on given time
