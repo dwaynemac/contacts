@@ -5,11 +5,6 @@ class V0::Ability
     cannot(:manage, :all)
     unless app_key.nil?
       case app_key
-      when ENV['readonly_key']
-        can :read, Contact
-      when ENV['office_key']
-        # office permitions
-        can [:read,:update], Contact
       when V0::ApplicationController::APP_KEY
         if account.nil?
           # Account not specified for this request
@@ -60,6 +55,11 @@ class V0::Ability
           can :manage, Tag, account_id: account.id
 
         end
+      when ENV['readonly_key']
+        can :read, Contact
+      when ENV['office_key']
+        # office permitions
+        can [:read,:update], Contact
       end
     end
   end
