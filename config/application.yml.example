@@ -19,6 +19,7 @@ RACK_ENV: development
 messaging_key: secret
 crm_key: secret
 app_key: secret
+overmind_key: secret
 accounts_key: secret
 activity_key: secret
 office_key: secret
