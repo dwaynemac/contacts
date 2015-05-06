@@ -2,6 +2,11 @@
 require 'spec_helper'
 
 describe Contact do
+  before do
+    Rails.cache.clear
+    Time.zone = 'UTC'
+    HistoryEntry.delete_all
+  end  
 
   it { should have_and_belong_to_many :accounts }
   it { should belong_to_related :owner }
