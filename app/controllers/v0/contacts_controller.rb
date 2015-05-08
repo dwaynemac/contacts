@@ -113,6 +113,36 @@ class V0::ContactsController < V0::ApplicationController
   end  
 
   ##
+  # Returns JSON list of contacts
+  # similar to contact of given id
+  # @url /v0/contacts/:id/similar
+  # @action GET
+  #
+  # @required [String] id contact_id
+  # @optional [String] account_name
+  def similar
+    @contact = @scope.find(params[:id])
+    @similar = @contact.similar
+
+    as_json_params = {
+      account: @account,
+      select: [
+        :full_name,
+        :email,
+        :telephone,
+        :status,
+        :local_status,
+        :identification
+      ]
+    }
+
+    render json: {
+      collection: @similar.as_json(as_json_params),
+      total: @similar.count
+    }
+  end
+
+  ##
   # Returns JSON for a contact
   # if account is provided following attributes will be inclueded:
   #   * owned by account

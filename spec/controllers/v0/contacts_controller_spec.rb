@@ -11,6 +11,29 @@ describe V0::ContactsController do
     end
   end
 
+  describe "#similar" do
+    def do_request(params)
+      get :similar, params.merge(app_key: V0::ApplicationController::APP_KEY)
+    end
+    
+    let!(:original){Contact.make first_name: 'Dwayne', last_name: 'Macgowan'}
+    let!(:similar_contact){Contact.make first_name: 'Dwayne', last_name: 'Macgowan'}
+
+    it "returns array of similar contacts" do
+      do_request(id: original.id)
+      res = ActiveSupport::JSON.decode(response.body)
+      expect(res["total"]).to eq 1
+      
+      expect(res["collection"]).to eq([
+        similar_contact.as_json(select: [
+          :first_name,
+          :last_name,
+          :status
+        ])
+      ])
+    end
+  end
+
   describe "#index" do
     def do_request(params)
       get :index, params.merge(app_key: V0::ApplicationController::APP_KEY)
@@ -895,7 +918,7 @@ describe V0::ContactsController do
       end
       it "should not destroy the contact" do
         owner = @contact.owner
-        expect{delete :destroy, params}.not_to change{Contact.count}.by(-1)
+        expect{delete :destroy, params}.not_to change{Contact.count}
       end
     end
     describe "as a viewer/editor" do
