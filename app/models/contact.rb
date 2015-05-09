@@ -13,12 +13,17 @@ class Contact
   include Mongoid::Timestamps
 
   include Mongoid::Search
+
+  
   search_in :first_name, :last_name, {:contact_attributes => :value }, {:tags => :name} , {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
   embeds_many :attachments, cascade_callbacks: true
   accepts_nested_attributes_for :attachments, allow_destroy: true
 
   embeds_many :contact_attributes, :validate => true, :cascade_callbacks => true
+
+  before_validation :manually_set_date_attribute_values
+  
   validates_associated :contact_attributes
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
 
@@ -692,6 +697,15 @@ class Contact
       ref_date = DateTime.parse(ref_date)
     end
     (ref_date.year == Date.today.year && ref_date.month == Date.today.month)
+  end
+
+  # Mongoid doesnt trigger before_validation on embedded documents so we trigger it manually
+  def manually_set_date_attribute_values
+    date_attributes.each do |da|
+      if da.new_record?
+        da.value = DateAttribute.new(da.attributes).set_value
+      end
+    end
   end
 
 end

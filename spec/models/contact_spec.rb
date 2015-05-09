@@ -17,6 +17,17 @@ describe Contact do
 
   it { should respond_to :occupations }
 
+  it "saves mass-assigned dates if subtype manually set" do
+    c = Contact.new(
+            first_name: "alex", 
+            contact_attributes_attributes: [
+              {"_type" => "DateAttribute", "day" => "1", "month" => "1", "category" => "birthday"}]
+            )
+    c.contact_attributes.first._type = "DateAttribute"
+    
+    expect(c).to be_valid
+  end
+
   describe "#first_enrolled_on" do
     it "is casted from String to Date" do
       c = Contact.new first_enrolled_on: "2014-12-31"

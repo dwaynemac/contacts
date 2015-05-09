@@ -53,6 +53,11 @@ class DateAttribute < ContactAttribute
     end
   end
 
+  def set_value
+    y = year.blank?? 0 : year.to_i
+    self.value = Date.civil(y.to_i,month.to_i,day.to_i).to_s if Date.valid_civil?(y.to_i,month.to_i,day.to_i)
+  end
+  
   private
 
   def to_integer
@@ -61,10 +66,6 @@ class DateAttribute < ContactAttribute
     day   = day.try :to_i
   end
 
-  def set_value
-    y = year.blank?? 0 : year.to_i
-    self.value = Date.civil(y.to_i,month.to_i,day.to_i).to_s if Date.valid_civil?(y.to_i,month.to_i,day.to_i)
-  end
 
   def valid_date
     y = year.blank?? 2011 : year # 2011 is a leap year
