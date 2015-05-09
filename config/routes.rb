@@ -3,6 +3,8 @@ Contacts::Application.routes.draw do
   namespace 'v0' do
     resources :contacts do
       member do
+        get  :similar
+        post  :similar
         post :link
       end
       collection do

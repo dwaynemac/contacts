@@ -10,7 +10,6 @@ describe ContactSerializer do
   describe "with mode: 'all'" do
     let(:mode){ 'all' }
     describe "with account" do
-      let(:account){Account.make}
       before do
         serializer.account = account
       end
@@ -59,6 +58,27 @@ describe ContactSerializer do
       it "returns :id, :name" do
         serialized_keys.should == %W(id name)
       end
+    end
+  end
+
+  describe "selecting local_statuses" do
+    let(:other_account){ Account.make }
+    let(:mode){ 'select' }
+    let(:select){ ['local_statuses'] }
+    before do
+      contact.local_unique_attributes << LocalStatus.new(
+                                                    value: 'student',
+                                                    account: account)
+      contact.local_unique_attributes << LocalStatus.new(
+                                                    value: 'former-student',
+                                                    account: other_account)
+      serializer.select = select
+    end 
+    it "serializes an array of hashes with keys :account, :local_status" do
+      expect(serializer.serialize['local_statuses']).to eq [
+        { 'account_name' => account.name, 'local_status' => 'student' },
+        { 'account_name' => other_account.name, 'local_status' => 'former-student' }
+      ]
     end
   end
 
