@@ -14,7 +14,6 @@ class Contact
 
   include Mongoid::Search
 
-  
   search_in :first_name, :last_name, {:contact_attributes => :value }, {:tags => :name} , {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
   embeds_many :attachments, cascade_callbacks: true
@@ -42,6 +41,8 @@ class Contact
 
   field :first_name
   field :last_name
+
+  before_save :capitalize_first_and_last_names
 
   field :normalized_first_name
   field :normalized_last_name
@@ -691,6 +692,11 @@ class Contact
   end
 
   private
+
+  def capitalize_first_and_last_names
+    first_name.capitalize! if first_name
+    last_name.capitalize! if last_name
+  end
 
   def self.current_month?(ref_date)
     if ref_date.is_a?(String)

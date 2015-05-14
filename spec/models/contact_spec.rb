@@ -17,6 +17,13 @@ describe Contact do
 
   it { should respond_to :occupations }
 
+  it "capitalizes first word of first and last name" do
+    c = Contact.new(first_name: 'alejandro diego', last_name: 'mac gowan')
+    c.save
+    expect(c.first_name).to eq 'Alejandro diego'
+    expect(c.last_name).to eq 'Mac gowan'
+  end
+
   it "saves mass-assigned dates if subtype manually set" do
     c = Contact.new(
             first_name: "alex", 
