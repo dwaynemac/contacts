@@ -21,22 +21,29 @@ class BirthdayNotificator
 
   def json_for(contact)
     json = {}
+    
     contact.local_statuses.each do |ls|
       json.merge!({"local_status_for_#{ls.account_name}" => ls.value})
     end
+    
     contact.coefficients.each do |lc|
       json.merge!({"local_coefficient_for_#{lc.account_name}" => lc.value })
     end
+    
     json.merge!({
                     status: contact.status,
                     gender: contact.gender,
                     birthday_at: Date.today,
                     linked_accounts_names: contact.linked_accounts.map(&:name)
     })
+    
+    json.merge!({contact_id: contact.id.to_s})
+
     unless contact.emails.empty?
       gpe = contact.global_primary_attribute('Email')
       json.merge!({recipient_email: gpe.value}) unless gpe.nil?
     end
+    debugger    
     json
   end
 

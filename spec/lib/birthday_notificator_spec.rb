@@ -87,6 +87,9 @@ describe BirthdayNotificator do
       it "includes coefficients" do
         json["local_coefficient_for_#{@ac1.name}"].should == 'perfil'
       end
+      it "includes contact id" do
+        json[:contact_id].should == @first_contact.id.to_s
+      end
     end
     context "for contact without email" do
       let(:json) { bn.json_for(@second_contact) }
