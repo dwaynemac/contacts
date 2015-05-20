@@ -43,7 +43,7 @@ class BirthdayNotificator
       gpe = contact.global_primary_attribute('Email')
       json.merge!({recipient_email: gpe.value}) unless gpe.nil?
     end
-    debugger    
+
     json
   end
 
