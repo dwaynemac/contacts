@@ -24,6 +24,13 @@ describe Contact do
     expect(c.last_name).to eq 'Mac gowan'
   end
 
+  it "wont change caps on second words of name and last name" do
+    c = Contact.new(first_name: 'Alejandro Diego', last_name: 'Mac Gowan')
+    c.save
+    expect(c.first_name).to eq 'Alejandro Diego'
+    expect(c.last_name).to eq 'Mac Gowan'
+  end
+
   it "saves mass-assigned dates if subtype manually set" do
     c = Contact.new(
             first_name: "alex", 
