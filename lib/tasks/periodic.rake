@@ -13,9 +13,16 @@ namespace :periodic do
 
   desc 'synchronize with mailchimp'
   task :synchronize_with_mailchimp => :environment do
-    MailchimpSynchronizer.all.each do |ms|
-      Rails.logger.info "MAILCHIMP - synchronizing #{ms.account.name}"
-      ms.subscribe_contacts # this will queue to background
+    begin
+      Appsignal::Transaction.create(SecureRandom.uuid, ENV.to_hash)
+      ActiveSupport::Notifications.instrument(
+        'perform_job.rake_synchronize_with_mailchimp',
+        class: 'MailchimpSynchronizer',
+        method: 'synchronize_all',
+        queue_time: 0
+      ) do
+        MailchimpSynchronizer.synchronize_all
+      end
     end
   end
 end

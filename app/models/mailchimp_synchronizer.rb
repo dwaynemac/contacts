@@ -237,4 +237,11 @@ class MailchimpSynchronizer
   def destroy_segments
     MailchimpSegment.where(mailchimp_synchronizer_id: self.id).destroy_all
   end
+
+  def self.synchronize_all
+    self.all.each do |ms|
+      Rails.logger.info "MAILCHIMP - synchronizing #{ms.account.name}"
+      ms.subscribe_contacts # this will queue to background
+    end
+  end
 end
