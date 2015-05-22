@@ -694,8 +694,8 @@ class Contact
   private
 
   def capitalize_first_and_last_names
-    self.first_name = self.first_name.slice(0,1).capitalize + self.first_name.slice(1..-1) if self.first_name
-    self.last_name = self.last_name.slice(0,1).capitalize + self.last_name.slice(1..-1) if self.last_name
+    self.first_name = self.first_name.slice(0,1).capitalize + self.first_name.slice(1..-1) unless self.first_name.blank?
+    self.last_name = self.last_name.slice(0,1).capitalize + self.last_name.slice(1..-1) unless self.last_name.blank?
   end
 
   def self.current_month?(ref_date)
