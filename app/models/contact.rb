@@ -13,12 +13,16 @@ class Contact
   include Mongoid::Timestamps
 
   include Mongoid::Search
+
   search_in :first_name, :last_name, {:contact_attributes => :value }, {:tags => :name} , {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
   embeds_many :attachments, cascade_callbacks: true
   accepts_nested_attributes_for :attachments, allow_destroy: true
 
   embeds_many :contact_attributes, :validate => true, :cascade_callbacks => true
+
+  before_validation :manually_set_date_attribute_values
+  
   validates_associated :contact_attributes
   accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
 
@@ -37,6 +41,8 @@ class Contact
 
   field :first_name
   field :last_name
+
+  before_save :capitalize_first_and_last_names
 
   field :normalized_first_name
   field :normalized_last_name
@@ -687,11 +693,25 @@ class Contact
 
   private
 
+  def capitalize_first_and_last_names
+    self.first_name = self.first_name.slice(0,1).capitalize + self.first_name.slice(1..-1) unless self.first_name.blank?
+    self.last_name = self.last_name.slice(0,1).capitalize + self.last_name.slice(1..-1) unless self.last_name.blank?
+  end
+
   def self.current_month?(ref_date)
     if ref_date.is_a?(String)
       ref_date = DateTime.parse(ref_date)
     end
     (ref_date.year == Date.today.year && ref_date.month == Date.today.month)
+  end
+
+  # Mongoid doesnt trigger before_validation on embedded documents so we trigger it manually
+  def manually_set_date_attribute_values
+    date_attributes.each do |da|
+      if da.new_record?
+        da.value = DateAttribute.new(da.attributes).set_value
+      end
+    end
   end
 
 end

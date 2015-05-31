@@ -17,6 +17,39 @@ describe Contact do
 
   it { should respond_to :occupations }
 
+  describe "capitalizes first word of first and last name" do
+    it "only capitalizes first word" do
+      c = Contact.new(first_name: 'alejandro diego', last_name: 'mac gowan')
+      c.save
+      expect(c.first_name).to eq 'Alejandro diego'
+      expect(c.last_name).to eq 'Mac gowan'
+    end
+    it "wont change caps on second words of name and last name" do
+      c = Contact.new(first_name: 'Alejandro Diego', last_name: 'Mac Gowan')
+      c.save
+      expect(c.first_name).to eq 'Alejandro Diego'
+      expect(c.last_name).to eq 'Mac Gowan'
+    end
+    it "wont raise exception with empty strings" do
+      c = Contact.new(first_name: 'Alejandro Diego', last_name: '')
+      expect{c.save}.not_to raise_exception
+      expect(c.first_name).to eq 'Alejandro Diego'
+      expect(c.last_name).to eq ''
+    end
+  end
+
+
+  it "saves mass-assigned dates if subtype manually set" do
+    c = Contact.new(
+            first_name: "alex", 
+            contact_attributes_attributes: [
+              {"_type" => "DateAttribute", "day" => "1", "month" => "1", "category" => "birthday"}]
+            )
+    c.contact_attributes.first._type = "DateAttribute"
+    
+    expect(c).to be_valid
+  end
+
   describe "#first_enrolled_on" do
     it "is casted from String to Date" do
       c = Contact.new first_enrolled_on: "2014-12-31"
