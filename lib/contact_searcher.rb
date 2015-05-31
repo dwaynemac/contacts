@@ -39,11 +39,9 @@ class ContactSearcher
     return self.initial_scope if selector.nil?
 
     self.new_selector = {'$and' => []}
-
     selector.each do |k,v|
       unless v.blank?
         k = k.to_s
-
         case k
           when 'nucleo_unit_id'
             account = PadmaAccount.find_by_nucleo_id(v)
@@ -107,6 +105,10 @@ class ContactSearcher
             end
           when 'first_name', 'last_name'
             self.new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
+          when 'tags'
+            andit({
+              :_id => {'$in' => Tag.where(:_id.in => v).map{|t| t.contact_ids}.flatten.uniq}
+            })
           when 'updated_at'
             andit({:updated_at => { '$gt' => v }})
           when 'last_seen_at'
@@ -134,7 +136,6 @@ class ContactSearcher
         end
       end
     end
-
     clean_selector
 
     self.initial_scope.where(self.new_selector)
