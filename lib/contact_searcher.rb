@@ -106,8 +106,10 @@ class ContactSearcher
           when 'first_name', 'last_name'
             self.new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
           when 'tags'
+            cs = Tag.find(v).map{|t| t.contact_ids}.flatten
+            contacts_with_tags = cs.select{|c| cs.count(c) > 1}.uniq
             andit({
-              :_id => {'$in' => Tag.where(:_id.in => v).map{|t| t.contact_ids}.flatten.uniq}
+              :_id => {'$in' => contacts_with_tags}
             })
           when 'updated_at'
             andit({:updated_at => { '$gt' => v }})
