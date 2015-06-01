@@ -106,7 +106,7 @@ class ContactSearcher
           when 'first_name', 'last_name'
             self.new_selector[k] = v.is_a?(String)? Regexp.new(v,Regexp::IGNORECASE) : v
           when 'tags'
-            cs = Tag.find(v).map{|t| t.contact_ids}.flatten
+            cs = Tag.find(v).map(&:contact_ids).flatten
             contacts_with_tags = cs.select{|c| cs.count(c) > 1}.uniq
             andit({
               :_id => {'$in' => contacts_with_tags}
