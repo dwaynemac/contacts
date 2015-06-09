@@ -46,7 +46,7 @@ class ContactSearcher
         k = k.to_s
         case k
           when 'older_than'
-            bdate = v.years.ago.to_date
+            bdate = v.to_i.years.ago.to_date
             andit(
               "$or" => [
                 {contact_attributes: {
@@ -64,7 +64,7 @@ class ContactSearcher
               ]
               )
           when 'younger_than'
-            bdate = v.years.ago.to_date
+            bdate = v.to_i.years.ago.to_date
             andit(
               "$or" => [
                 {contact_attributes: {
