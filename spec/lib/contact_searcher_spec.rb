@@ -6,6 +6,91 @@ describe ContactSearcher do
 
   describe "#api_where" do
 
+    def contact_w_age(age,estimated=false,estimated_on=nil)
+      c = Contact.make
+      if estimated
+        c.estimated_age = age
+        c.estimated_age_on = estimated_on if estimated_on
+      else
+        bdate = age.years.ago
+        c.contact_attributes << DateAttribute.new(category: 'birthday',
+                                                  year: bdate.year,
+                                                  month: bdate.month,
+                                                  day: bdate.day)
+      end
+      c.save
+      c
+    end
+
+    context "{ younger_than: N }" do
+      let!(:account){Account.make(name: 'acc-name', nucleo_id: 10)}
+      let(:selector){{younger_than: 10}}
+      it "returns contacts with age < 10" do
+        c = contact_w_age 9
+        expect(searcher.api_where(selector).first).to eq c
+      end
+      it "returns contacts with estimated_age < 10" do
+        c = contact_w_age 9, true
+        expect(searcher.api_where(selector).first).to eq c
+      end
+      it "wont return contacts wout age" do
+        c = Contact.make
+        expect(searcher.api_where(selector).first).not_to eq c
+      end
+      it "wont return contacts wi bdate wout year" do
+        c = Contact.make
+        bdate = 9.years.ago
+        c.contact_attributes << DateAttribute.new(category: 'birthday',
+                                                  month: bdate.month,
+                                                  day: bdate.day)
+        c.save
+        expect(searcher.api_where(selector).first).not_to eq c
+      end
+      it "wont return contacts with age > 10" do
+        c = contact_w_age 11
+        expect(searcher.api_where(selector).first).not_to eq c
+      end
+      it "returns contacts with estimated_age > 10" do
+        c = contact_w_age 11, true
+        expect(searcher.api_where(selector).first).not_to eq c
+      end
+      it "considers estimated_age_on to calculate current estimated_age"
+    end
+
+    context "{ older_than: N }" do
+      let(:selector){{older_than: 10}}
+      it "returns contacts with age > 10" do
+        c = contact_w_age 11
+        expect(searcher.api_where(selector).first).to eq c
+      end
+      it "returns contacts with estimated_age > 10" do
+        c = contact_w_age 11, true
+        expect(searcher.api_where(selector).first).to eq c
+      end
+      it "wont return contacts wout age" do
+        c = Contact.make
+        expect(searcher.api_where(selector).first).not_to eq c
+      end
+      it "wont return contacts wi bdate wout year" do
+        c = Contact.make
+        bdate = 11.years.ago
+        c.contact_attributes << DateAttribute.new(category: 'birthday',
+                                                  month: bdate.month,
+                                                  day: bdate.day)
+        c.save
+        expect(searcher.api_where(selector).first).not_to eq c
+      end
+      it "wont return contacts with age < 10" do
+        c = contact_w_age 9
+        expect(searcher.api_where(selector).first).not_to eq c
+      end
+      it "returns contacts with estimated_age < 10" do
+        c = contact_w_age 9, true
+        expect(searcher.api_where(selector).first).not_to eq c
+      end
+      it "considers estimated_age_on to calculate current estimated_age"
+    end
+
     context "{ nucleo_unit_id: X }" do
       let!(:account){Account.make(name: 'acc-name', nucleo_id: 10)}
       let(:selector){{nucleo_unit_id: 10}}

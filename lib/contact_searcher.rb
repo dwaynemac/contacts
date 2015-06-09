@@ -32,6 +32,8 @@ class ContactSearcher
   # @option selector :local_status      only considered if account_id is specified
   # @option selector :local_teacher     only considered if account_id is specified
   # @option selector :last_seen_at      only considered if account_id is specified
+  # @option selector :younger_than
+  # @option selector :older_than
   # @option selector :attribute_value_at [Hash] keys: attribute, value, ref_date
   #
   # @return [Mongoid::Criteria]
@@ -43,6 +45,42 @@ class ContactSearcher
       unless v.blank?
         k = k.to_s
         case k
+          when 'older_than'
+            bdate = v.years.ago.to_date
+            andit(
+              "$or" => [
+                {contact_attributes: {
+                  '$elemMatch' => {
+                    _type: "DateAttribute",
+                    category: 'birthday',
+                    year: { "$lte" => bdate.year },
+                    month: { "$lte" => bdate.month },
+                    day: { "$lte" => bdate.day }}
+                }},
+                {
+                  estimated_age: { "$gt" => v }
+                  # TODO consider estimated_age_on
+                }
+              ]
+              )
+          when 'younger_than'
+            bdate = v.years.ago.to_date
+            andit(
+              "$or" => [
+                {contact_attributes: {
+                  '$elemMatch' => {
+                    _type: "DateAttribute",
+                    category: 'birthday',
+                    year: { "$gte" => bdate.year },
+                    month: { "$gte" => bdate.month },
+                    day: { "$gte" => bdate.day }}
+                }},
+                {
+                  estimated_age: { "$lt" => v }
+                  # TODO consider estimated_age_on
+                }
+              ]
+              )
           when 'nucleo_unit_id'
             account = PadmaAccount.find_by_nucleo_id(v)
             if account
