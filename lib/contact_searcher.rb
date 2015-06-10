@@ -49,14 +49,36 @@ class ContactSearcher
             bdate = v.to_i.years.ago.to_date
             andit(
               "$or" => [
-                {contact_attributes: {
-                  '$elemMatch' => {
-                    _type: "DateAttribute",
-                    category: 'birthday',
-                    year: { "$lte" => bdate.year },
-                    month: { "$lte" => bdate.month },
-                    day: { "$lte" => bdate.day }}
-                }},
+                {
+                  contact_attributes: {
+                    '$elemMatch' => {
+                      _type: "DateAttribute",
+                      category: 'birthday',
+                      year: bdate.year,
+                      month: bdate.month,
+                      day: { "$lte" => bdate.day }
+                    }
+                  }
+                },
+                {
+                  contact_attributes: {
+                    '$elemMatch' => {
+                      _type: "DateAttribute",
+                      category: 'birthday',
+                      year: bdate.year,
+                      month: { "$lt" => bdate.month }
+                    }
+                  }
+                },
+                {
+                  contact_attributes: {
+                    '$elemMatch' => {
+                      _type: "DateAttribute",
+                      category: 'birthday',
+                      year: { "$lt" => bdate. year }
+                    }
+                  }
+                },
                 {
                   estimated_age: { "$gt" => v }
                   # TODO consider estimated_age_on
@@ -67,14 +89,36 @@ class ContactSearcher
             bdate = v.to_i.years.ago.to_date
             andit(
               "$or" => [
-                {contact_attributes: {
-                  '$elemMatch' => {
-                    _type: "DateAttribute",
-                    category: 'birthday',
-                    year: { "$gte" => bdate.year },
-                    month: { "$gte" => bdate.month },
-                    day: { "$gte" => bdate.day }}
-                }},
+                {
+                  contact_attributes: {
+                    '$elemMatch' => {
+                      _type: "DateAttribute",
+                      category: 'birthday',
+                      year: bdate.year,
+                      month: bdate.month,
+                      day: { "$gte" => bdate.day }
+                    }
+                  }
+                },
+                {
+                  contact_attributes: {
+                    '$elemMatch' => {
+                      _type: "DateAttribute",
+                      category: 'birthday',
+                      year: bdate.year,
+                      month: { "$gt" => bdate.month }
+                    }
+                  }
+                },
+                {
+                  contact_attributes: {
+                    '$elemMatch' => {
+                      _type: "DateAttribute",
+                      category: 'birthday',
+                      year: { "$gt" => bdate. year }
+                    }
+                  }
+                },
                 {
                   estimated_age: { "$lt" => v }
                   # TODO consider estimated_age_on
