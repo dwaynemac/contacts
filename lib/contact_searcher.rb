@@ -140,7 +140,7 @@ class ContactSearcher
             andit({
               :contact_attributes => { '$elemMatch' => { "_type" => k.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
             })
-          when 'country', 'state', 'city', 'postal_code'
+          when 'country', 'state', 'city', 'postal_code', 'neighborhood'
             andit({:contact_attributes => { '$elemMatch' => { "_type" => "Address", k => Regexp.new(v.to_s)}}})
           when 'contact_attributes'
             andit({k => v})
