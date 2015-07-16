@@ -69,12 +69,17 @@ class V0::ContactsController < V0::ApplicationController
         
         if params[:only_name].present?
           as_json_params[:mode] = 'only_name'
-        elsif params[:select].nil?
+        elsif params[:select].nil? || params[:global] == "true"
           as_json_params[:mode] = 'all'
-        else
+	else
           as_json_params[:mode] = 'select'
         end
-        @collection_hash =  @contacts.only(select_columns(params[:select])).as_json(as_json_params)
+        if params[:global] = "true"
+	  as_json_params[:include_masked] = true
+	end
+	@collection_hash =  @contacts
+	@collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true"
+	@collection_hash = @collection_hash.as_json(as_json_params)
       end
       measure('serializing.render_json.index.contacts_controller') do
         @json = Oj.dump({ 'collection' => @collection_hash, 'total' => total})
@@ -443,7 +448,7 @@ class V0::ContactsController < V0::ApplicationController
   def set_scope
     @scope = case action_name.to_sym
       when :index, :search, :search_for_select, :update
-        @account.present?? (@list.present?? @list.contacts : @account.contacts ) : Contact
+        (@account.present? && !params[:global]) ? (@list.present?? @list.contacts : @account.contacts ) : Contact
       when :destroy, :destroy_multiple
         @account.present?? @account.contacts : Contact
       else
