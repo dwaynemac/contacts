@@ -78,16 +78,16 @@ class ContactAttribute
     if options[:include_masked]
 
       # get attributes
-      attrs = self.any_of({account_id: account.id},{public: true},{_type: "Telephone"})
+      attrs = self.any_of({account_id: account.id},{public: true},{_type: "Telephone"},{_type: "Email"})
 
       # remove repeated telephones keeping owned version
-      value_counts = self.any_of({account_id: account.id},{public: true},{_type: "Telephone"}).only(:value).aggregate
+      value_counts = self.any_of({account_id: account.id},{public: true},{_type: "Telephone"},{_type: "Email"}).only(:value).aggregate
       repeated_values = value_counts.map{|k,v| k if v>1}
       attrs_without_repetition = attrs.reject{|a| a.is_a?(Telephone) && a.value.in?(repeated_values) && a.account_id!=account.id}
 
       # mask non-public phones not belonging to given account
       attrs_without_repetition.map do |a|
-        if a.is_a?(Telephone) && !a.public? && a.account_id!=account.id
+        if (a.is_a?(Telephone) || a.is_a?(Email)) && !a.public? && a.account_id!=account.id
           a.mask_value!
         else
           a
