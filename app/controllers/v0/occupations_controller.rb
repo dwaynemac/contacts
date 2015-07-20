@@ -15,11 +15,6 @@ class V0::OccupationsController < V0::ApplicationController
  
   def index
     query = {}
-    occupations_query = {
-      :contact_attributes => {
-        '$elemMatch' => {:_type => "Occupation"}
-      }
-    }
 
     if !params[:status].nil?
       query[:status] = params[:status]
@@ -27,29 +22,19 @@ class V0::OccupationsController < V0::ApplicationController
 
     if params[:only_with_address] == "true"
       query['$and'] = [
-        occupations_query,
-        {
-          :contact_attributes => {
-            '$elemMatch' => {:_type => "Address"}
-          } 
-        }
+        {"contact_attributes._type" => "Occupation"},
+        {"contact_attributes._type" => "Address"} 
       ]
     else
-      query[:contact_attributes] = occupations_query[:contact_attributes]
+      query["contact_attributes._type"] = "Occupation"
     end
 
-    contacts = Contact.where(query)
-
     occupations = []
-    contacts.each do |contact|
+    Contact.where(query).each do |contact|
       occupations = occupations | contact.occupations.map {|occ| occ.value}
     end
     
-    respond_to do |format|
-      format.js {
-        render :json => {:occupations => occupations}
-      }
-    end
+    render :json => {:occupations => occupations}.to_json, :status => 200
   end
 
 end
