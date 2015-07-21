@@ -53,7 +53,7 @@ describe V0::OccupationsController do
 
         it {should respond_with (200)}
 
-        it "gets all the occupations (but not repeated)" do
+        it "gets all the occupations of students" do
           json = JSON.parse(response.body)
           json["occupations"].size.should == 2
         end
@@ -68,7 +68,7 @@ describe V0::OccupationsController do
 
         it {should respond_with (200)}
 
-        it "gets all the occupations (but not repeated)" do
+        it "gets all the occupations of students with address" do
           json = JSON.parse(response.body)
           json["occupations"].size.should == 1
         end
