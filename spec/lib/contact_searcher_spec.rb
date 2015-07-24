@@ -192,15 +192,33 @@ describe ContactSearcher do
       end
     end
     
-    context "{local_status: 'student'}, account" do
-      it "should return local_unique_attribute criteria" do
-        account = Account.make
-        searcher.account_id = account.id
-        searcher.api_where({local_status: 'student'}).selector.should == {
-          local_unique_attributes: {
-            '$elemMatch' => {_type: 'LocalStatus', value: {'$in' => ['student']}, account_id: account.id}
+    describe "{local_status: 'student'}" do
+      let(:account){ Account.make }
+      before do
+          PadmaAccount.stub(:find_by_nucleo_id).and_return(PadmaAccount.new(name: account.name))
+      end
+      describe "with searcher.account_id present" do
+        before do
+          searcher.account_id = account.id
+        end
+        it "should return local_unique_attribute criteria" do
+          searcher.api_where({local_status: 'student'}).selector.should == {
+            local_unique_attributes: {
+              '$elemMatch' => {_type: 'LocalStatus', value: {'$in' => ['student']}, account_id: account.id}
+            }
           }
-        }
+        end
+      end
+      describe "wout searcher.account_id" do
+        describe "with nucleo_unit_id in selector" do
+          it "should return local_unique_attribute criteria" do
+            searcher.api_where({local_status: 'student', nucleo_unit_id: 10}).selector['$and'].should include( {
+              local_unique_attributes: {
+                '$elemMatch' => {_type: 'LocalStatus', value: {'$in' => ['student']}, account_id: account.id}
+              }
+            })
+          end
+        end
       end
     end
     

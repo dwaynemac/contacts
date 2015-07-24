@@ -40,6 +40,8 @@ class ContactSearcher
   def api_where(selector=nil)
     return self.initial_scope if selector.nil?
 
+    selector.stringify_keys!
+
     self.new_selector = {'$and' => []}
     selector.each do |k,v|
       unless v.blank?
@@ -146,14 +148,15 @@ class ContactSearcher
             aux = DateAttribute.convert_selector(v)
             andit(aux) unless aux.nil?
           when 'local_status', 'coefficient', 'local_teacher'
-            if account_id.present?
+            ref_id = ref_account_id(selector)
+            if ref_id.present?
               if k == 'coefficient'
-                filter_by_coefficient v, account_id
+                filter_by_coefficient v, ref_id
               else
                 andit({
                     :local_unique_attributes => {'$elemMatch' => {_type: k.camelcase,
                                                                   value: {'$in' => v.to_a},
-                                                                  account_id: account_id}}
+                                                                  account_id: ref_id}}
                 })
               end
             end
@@ -231,6 +234,19 @@ class ContactSearcher
     elsif self.new_selector['$and'].size == 1
       aux = self.new_selector.delete('$and')[0]
       self.new_selector = self.new_selector.merge(aux)
+    end
+  end
+
+  #
+  # Reference account for local_unique_attributes
+  #
+  def ref_account_id(selector=nil)
+    if self.account_id
+      self.account_id
+    elsif selector
+      if selector['nucleo_unit_id'].present?
+        nucleo_id_to_account_id(selector['nucleo_unit_id'])
+      end
     end
   end
 
