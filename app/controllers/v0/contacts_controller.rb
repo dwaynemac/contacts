@@ -66,20 +66,20 @@ class V0::ContactsController < V0::ApplicationController
           except_linked:true,
           except_last_local_status: true,
         }
-        
+
         if params[:only_name].present?
           as_json_params[:mode] = 'only_name'
         elsif params[:select].nil? || params[:global] == "true"
           as_json_params[:mode] = 'all'
-	else
+        else
           as_json_params[:mode] = 'select'
         end
         if params[:global] = "true"
-	  as_json_params[:include_masked] = true
-	end
-	@collection_hash =  @contacts
-	@collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true"
-	@collection_hash = @collection_hash.as_json(as_json_params)
+          as_json_params[:include_masked] = true
+        end
+        @collection_hash =  @contacts
+        @collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true"
+        @collection_hash = @collection_hash.as_json(as_json_params)
       end
       measure('serializing.render_json.index.contacts_controller') do
         @json = Oj.dump({ 'collection' => @collection_hash, 'total' => total})
