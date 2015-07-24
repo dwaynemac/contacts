@@ -126,16 +126,9 @@ class ContactSearcher
               ]
               )
           when 'nucleo_unit_id'
-            account = PadmaAccount.find_by_nucleo_id(v)
-            if account
-              local_account = get_account(account.name)
-              andit({
-                account_ids: local_account.id
-              })
-            else
-              # Mongo Queries can get slow. If account doesnt exist avoid querying.
-              raise Exceptions::ForceEmptyQuery
-            end
+            andit({
+              account_ids: nucleo_id_to_account_id(v)
+            })
           when 'telephone', 'email', 'address', 'custom_attribute', 'occupation'
             andit({
               :contact_attributes => { '$elemMatch' => { "_type" => k.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
@@ -238,6 +231,17 @@ class ContactSearcher
     elsif self.new_selector['$and'].size == 1
       aux = self.new_selector.delete('$and')[0]
       self.new_selector = self.new_selector.merge(aux)
+    end
+  end
+
+  def nucleo_id_to_account_id(nucleo_id)
+    account = PadmaAccount.find_by_nucleo_id(nucleo_id)
+    if account
+      local_account = get_account(account.name)
+      local_account.id
+    else
+      # Mongo Queries can get slow. If account doesnt exist avoid querying.
+      raise Exceptions::ForceEmptyQuery
     end
   end
 
