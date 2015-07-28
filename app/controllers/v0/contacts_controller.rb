@@ -60,8 +60,8 @@ class V0::ContactsController < V0::ApplicationController
 
       current_page_ids = Kaminari::paginate_array(ordered_ids).page(params[:page] || 1).per(params[:per_page] || 10)
 
-      @contacts = Contact.find(current_page_ids) # Mongoid.find preserves order 
-      # @contacts.sort!{|a,b| current_page_ids.index(a._id) <=> current_page_ids.index(b._id) }
+      @contacts = Contact.find(current_page_ids) # We can't be sure that Mongoid.find preserves order (ActiveRecord doesnt)
+      @contacts.sort!{|a,b| current_page_ids.index(a._id) <=> current_page_ids.index(b._id) }
     else
       @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
       @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
