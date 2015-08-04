@@ -107,7 +107,7 @@ class ContactSerializer
         @json['first_enrolled_on'] = @contact.first_enrolled_on.to_s if serialize?(:first_enrolled_on) 
         @json['gender'] = @contact.gender if serialize?(:gender) 
         @json['estimated_age'] = @contact.estimated_age if serialize?(:estimated_age) 
-	@json['status'] = @contact.status.to_s if serialize?(:status) 
+        @json['status'] = @contact.status.to_s if serialize?(:status) 
         @json['global_teacher_username'] = @contact.global_teacher_username if serialize?(:global_teacher_username) 
         @json['level'] = @contact.level if serialize?(:level) 
         @json['coefficients_counts'] = @contact.coefficients_counts if serialize?(:coefficients_counts)

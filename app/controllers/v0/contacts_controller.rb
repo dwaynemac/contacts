@@ -51,10 +51,19 @@ class V0::ContactsController < V0::ApplicationController
       total = @scope.count
     end
 
-    # sort
-    @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
+    if params[:respect_ids_order]
+      ids = stringified_ids
+      contact_ids = @scope.only(:_id).map{|c| c._id.to_s }
+      # contact_ids is a subset of ids
+      # intersecting will return contacts_ids in ids order
+      ordered_ids = ids & contact_ids
 
-    measure('paginate.index.contacts_controller') do
+      current_page_ids = Kaminari::paginate_array(ordered_ids).page(params[:page] || 1).per(params[:per_page] || 10)
+
+      @contacts = Contact.find(current_page_ids) # We can't be sure that Mongoid.find preserves order (ActiveRecord doesnt)
+      @contacts.sort!{|a,b| current_page_ids.index(a._id.to_s) <=> current_page_ids.index(b._id.to_s) }
+    else
+      @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
       @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
     end
 
@@ -77,8 +86,8 @@ class V0::ContactsController < V0::ApplicationController
         if params[:global] = "true"
           as_json_params[:include_masked] = true
         end
-        @collection_hash =  @contacts
-        @collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true"
+        @collection_hash = @contacts
+        @collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true" # TODO compatible with respect_ids_order ?
         @collection_hash = @collection_hash.as_json(as_json_params)
       end
       measure('serializing.render_json.index.contacts_controller') do
@@ -389,6 +398,14 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   private
+
+  def stringified_ids
+    if params[:ids][0].is_a?(BSON::ObjectId)
+      params[:ids].map &:to_s
+    else
+      params[:ids]
+    end
+  end
 
   
   # if request is for account
