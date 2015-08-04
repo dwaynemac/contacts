@@ -7,6 +7,12 @@ class Email < ContactAttribute
 
   validates :value, :email_format => {:message => "bad email format"}
 
+  def masked_value
+    string = self.value
+    string.gsub(/.*(?=@)/).first.gsub(/(\w)/,"#") + string.gsub(/(?=@).*/).first
+  end
+
+
   private
   def normalize_email
     value.downcase!

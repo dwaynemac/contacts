@@ -29,9 +29,9 @@ class ContactSearcher
   # @option selector :email, searches within all emails
   # @option selector :address
   # @option selector :custom_attribute
-  # @option selector :local_status      only considered if account_id is specified
-  # @option selector :local_teacher     only considered if account_id is specified
-  # @option selector :last_seen_at      only considered if account_id is specified
+  # @option selector :local_status      only considered if account_id is specified or nucleo_unit_id
+  # @option selector :local_teacher     only considered if account_id is specified or nucleo_unit_id
+  # @option selector :last_seen_at      only considered if account_id is specified or nucleo_unit_id
   # @option selector :younger_than
   # @option selector :older_than
   # @option selector :attribute_value_at [Hash] keys: attribute, value, ref_date
@@ -39,6 +39,8 @@ class ContactSearcher
   # @return [Mongoid::Criteria]
   def api_where(selector=nil)
     return self.initial_scope if selector.nil?
+
+    selector.stringify_keys!
 
     self.new_selector = {'$and' => []}
     selector.each do |k,v|
@@ -126,16 +128,9 @@ class ContactSearcher
               ]
               )
           when 'nucleo_unit_id'
-            account = PadmaAccount.find_by_nucleo_id(v)
-            if account
-              local_account = get_account(account.name)
-              andit({
-                account_ids: local_account.id
-              })
-            else
-              # Mongo Queries can get slow. If account doesnt exist avoid querying.
-              raise Exceptions::ForceEmptyQuery
-            end
+            andit({
+              account_ids: nucleo_id_to_account_id(v)
+            })
           when 'telephone', 'email', 'address', 'custom_attribute', 'occupation'
             andit({
               :contact_attributes => { '$elemMatch' => { "_type" => k.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
@@ -153,14 +148,15 @@ class ContactSearcher
             aux = DateAttribute.convert_selector(v)
             andit(aux) unless aux.nil?
           when 'local_status', 'coefficient', 'local_teacher'
-            if account_id.present?
+            ref_id = ref_account_id(selector)
+            if ref_id.present?
               if k == 'coefficient'
-                filter_by_coefficient v, account_id
+                filter_by_coefficient v, ref_id
               else
                 andit({
                     :local_unique_attributes => {'$elemMatch' => {_type: k.camelcase,
                                                                   value: {'$in' => v.to_a},
-                                                                  account_id: account_id}}
+                                                                  account_id: ref_id}}
                 })
               end
             end
@@ -238,6 +234,30 @@ class ContactSearcher
     elsif self.new_selector['$and'].size == 1
       aux = self.new_selector.delete('$and')[0]
       self.new_selector = self.new_selector.merge(aux)
+    end
+  end
+
+  #
+  # Reference account for local_unique_attributes
+  #
+  def ref_account_id(selector=nil)
+    if self.account_id
+      self.account_id
+    elsif selector
+      if selector['nucleo_unit_id'].present?
+        nucleo_id_to_account_id(selector['nucleo_unit_id'])
+      end
+    end
+  end
+
+  def nucleo_id_to_account_id(nucleo_id)
+    account = PadmaAccount.find_by_nucleo_id(nucleo_id)
+    if account
+      local_account = get_account(account.name)
+      local_account.id
+    else
+      # Mongo Queries can get slow. If account doesnt exist avoid querying.
+      raise Exceptions::ForceEmptyQuery
     end
   end
 
