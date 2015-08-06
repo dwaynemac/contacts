@@ -66,7 +66,7 @@ describe V0::ContactsController do
           it "returns first page elements respecting params[:ids] order" do
             do_request(respect_ids_order: true,
                        where: { gender: 'male' },
-                       ids: [c2,c4,c3,c1],
+                       ids: [c2,c4,c3,c1].map(&:id),
                        page: 1,
                        per_page: 2)
             assigns(:contacts).to_a.should eq [c2, c3]
@@ -76,7 +76,7 @@ describe V0::ContactsController do
           it "returns second page elements respecting params[:ids] order" do
             do_request(respect_ids_order: true,
                        where: { gender: 'male' },
-                       ids: [c2,c4,c3,c1],
+                       ids: [c2,c4,c3,c1].map(&:id),
                        page: 2,
                        per_page: 2)
             assigns(:contacts).to_a.should eq [c1]
