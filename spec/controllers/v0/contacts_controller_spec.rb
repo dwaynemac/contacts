@@ -82,6 +82,16 @@ describe V0::ContactsController do
             assigns(:contacts).to_a.should eq [c1]
           end
         end
+        describe "when using :order_ids" do
+          it "includes in the end contacts not included in :order_ids" do
+            do_request(respect_ids_order: true,
+                       where: { gender: 'male' },
+                       order_ids: [c2,c4,c3,c1].map(&:id),
+                       page: 1)
+            assigns(:contacts).map(&:id).should eq [c2,c3,c1,c0,c5].map(&:id)
+            #assigns(:contacts).to_a.should eq [c2,c3,c1,c0,c5]
+          end
+        end
       end
     end
     

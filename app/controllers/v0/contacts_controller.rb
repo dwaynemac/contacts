@@ -52,11 +52,11 @@ class V0::ContactsController < V0::ApplicationController
     end
 
     if params[:respect_ids_order]
-      ids = stringified_ids
+      ids = stringified_order_ids
       contact_ids = @scope.only(:_id).map{|c| c._id.to_s }
-      # contact_ids is a subset of ids
-      # intersecting will return contacts_ids in ids order
-      ordered_ids = ids & contact_ids
+      # intersecting will return contacts_ids in ids order ( because we put ids first )
+      # we then concatenate missing ids in the end
+      ordered_ids = (ids & contact_ids) + (contact_ids - ids)
 
       current_page_ids = Kaminari::paginate_array(ordered_ids).page(params[:page] || 1).per(params[:per_page] || 10)
 
@@ -399,11 +399,19 @@ class V0::ContactsController < V0::ApplicationController
 
   private
 
-  def stringified_ids
-    if params[:ids][0].is_a?(BSON::ObjectId)
-      params[:ids].map &:to_s
-    else
+  def stringified_order_ids
+    # use :order_ids or :ids if not available
+    order_ids = if params[:order_ids].present?
+      params[:order_ids]
+    elsif params[:ids].present?
       params[:ids]
+    end
+
+    #stringify
+    if order_ids && order_ids[0].is_a?(BSON::ObjectId)
+      order_ids.map &:to_s
+    else
+      order_ids
     end
   end
 
