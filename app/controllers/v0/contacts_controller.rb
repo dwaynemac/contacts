@@ -22,6 +22,8 @@ class V0::ContactsController < V0::ApplicationController
   #
   # @optional [Array] nids return contacts without id in this array
   # @optional [Array] ids return contacts with id in this array
+  # @optional [Array] order_ids will be used as reference for ordering returned contacts if respect_ids_order given
+  # @optional [Boolean] respect_ids_order. If present then returned contacts will be ordered as order_ids or ids 
   # @optional [String] account_name will scope contacts to this account
   # @optional [String] list_name scope to this list. Will be ignored if no :account_name is given.
   # @optional [Integer] page will return this page (default: 1)
