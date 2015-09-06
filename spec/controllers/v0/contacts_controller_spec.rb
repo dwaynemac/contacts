@@ -54,6 +54,45 @@ describe V0::ContactsController do
         ActiveSupport::JSON.decode(response.body)["total"].should == Contact.count
         assigns(:contacts).should include(@isp)
       end
+
+      describe "if respect_ids_order is given" do
+        let!(:c0){ Contact.make gender: 'male' }
+        let!(:c1){ Contact.make gender: 'male' }
+        let!(:c2){ Contact.make gender: 'male' }
+        let!(:c3){ Contact.make gender: 'male' }
+        let!(:c4){ Contact.make gender: 'female' }
+        let!(:c5){ Contact.make gender: 'male' }
+        describe "with page: 1" do
+          it "returns first page elements respecting params[:ids] order" do
+            do_request(respect_ids_order: true,
+                       where: { gender: 'male' },
+                       ids: [c2,c4,c3,c1].map(&:id),
+                       page: 1,
+                       per_page: 2)
+            assigns(:contacts).to_a.should eq [c2, c3]
+          end
+        end
+        describe "with page: 2" do
+          it "returns second page elements respecting params[:ids] order" do
+            do_request(respect_ids_order: true,
+                       where: { gender: 'male' },
+                       ids: [c2,c4,c3,c1].map(&:id),
+                       page: 2,
+                       per_page: 2)
+            assigns(:contacts).to_a.should eq [c1]
+          end
+        end
+        describe "when using :order_ids" do
+          it "includes in the end contacts not included in :order_ids" do
+            do_request(respect_ids_order: true,
+                       where: { gender: 'male' },
+                       order_ids: [c2,c4,c3,c1].map(&:id),
+                       page: 1)
+            assigns(:contacts).map(&:id).should eq [c2,c3,c1,c0,c5].map(&:id)
+            #assigns(:contacts).to_a.should eq [c2,c3,c1,c0,c5]
+          end
+        end
+      end
     end
     
     context "without params" do

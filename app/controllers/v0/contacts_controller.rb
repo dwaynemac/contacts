@@ -22,6 +22,8 @@ class V0::ContactsController < V0::ApplicationController
   #
   # @optional [Array] nids return contacts without id in this array
   # @optional [Array] ids return contacts with id in this array
+  # @optional [Array] order_ids will be used as reference for ordering returned contacts if respect_ids_order given
+  # @optional [Boolean] respect_ids_order. If present then returned contacts will be ordered as order_ids or ids 
   # @optional [String] account_name will scope contacts to this account
   # @optional [String] list_name scope to this list. Will be ignored if no :account_name is given.
   # @optional [Integer] page will return this page (default: 1)
@@ -57,10 +59,19 @@ class V0::ContactsController < V0::ApplicationController
       total = @scope.count
     end
 
-    # sort
-    @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
+    if params[:respect_ids_order]
+      ids = stringified_order_ids
+      contact_ids = @scope.only(:_id).map{|c| c._id.to_s }
+      # intersecting will return contacts_ids in ids order ( because we put ids first )
+      # we then concatenate missing ids in the end
+      ordered_ids = (ids & contact_ids) + (contact_ids - ids)
 
-    measure('paginate.index.contacts_controller') do
+      current_page_ids = Kaminari::paginate_array(ordered_ids).page(params[:page] || 1).per(params[:per_page] || 10)
+
+      @contacts = Contact.find(current_page_ids) # We can't be sure that Mongoid.find preserves order (ActiveRecord doesnt)
+      @contacts.sort!{|a,b| current_page_ids.index(a._id.to_s) <=> current_page_ids.index(b._id.to_s) }
+    else
+      @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?
       @contacts = @scope.page(params[:page] || 1).per(params[:per_page] || 10)
     end
 
@@ -83,8 +94,8 @@ class V0::ContactsController < V0::ApplicationController
         if params[:global] = "true"
           as_json_params[:include_masked] = true
         end
-        @collection_hash =  @contacts
-        @collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true"
+        @collection_hash = @contacts
+        @collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true" # TODO compatible with respect_ids_order ?
         @collection_hash = @collection_hash.as_json(as_json_params)
       end
       measure('serializing.render_json.index.contacts_controller') do
@@ -395,6 +406,22 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   private
+
+  def stringified_order_ids
+    # use :order_ids or :ids if not available
+    order_ids = if params[:order_ids].present?
+      params[:order_ids]
+    elsif params[:ids].present?
+      params[:ids]
+    end
+
+    #stringify
+    if order_ids && order_ids[0].is_a?(BSON::ObjectId)
+      order_ids.map &:to_s
+    else
+      order_ids
+    end
+  end
 
   
   # if request is for account
