@@ -1,5 +1,5 @@
 worker_processes 7
-timeout 120
+timeout 200
 
 # paths
 app_path = "/home/ec2-user/contacts"
