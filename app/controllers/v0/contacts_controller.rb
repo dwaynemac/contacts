@@ -56,6 +56,9 @@ class V0::ContactsController < V0::ApplicationController
     if params[:respect_ids_order]
       ids = stringified_order_ids
       contact_ids = @scope.only(:_id).map{|c| c._id.to_s }
+      # TODO [ ] si mande solo algunos de los order_ids puede haber muchos contact_ids que
+      # no esten incluidos. por ejemplo si todos los primeros ids del order eran mujeres pero estoy filtrando hombres.
+
       # intersecting will return contacts_ids in ids order ( because we put ids first )
       # we then concatenate missing ids in the end
       ordered_ids = (ids & contact_ids) + (contact_ids - ids)
