@@ -44,6 +44,12 @@ class V0::ContactsController < V0::ApplicationController
   #   POST /v0/contacts/search, { where: { date_attribute: {day: 21, month: 5, category: 'Birthday' } }  }
   # @example_response { collection: [ {_id: 1234,name: ...} ], total: 1}
   #
+  # @example_request
+  #   -- "All contacts from Argentina, Capital Federal" --
+  #
+  #   POST /v0/contacts/search,
+  #     { where: { country: "Argentina", state: "Capital Federal" }}
+  #
   # @response_field [Array <Contact>] collection corresponding to chosen :page
   # @response_field [Integer] total total amount of contacts in query. (includes all pages.)
   #

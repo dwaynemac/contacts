@@ -40,6 +40,8 @@ Contacts::Application.routes.draw do
     end
     resources :attachments
     resources :tags
+    resources :occupations, :only => [:index]
+    resources :addresses, :only => [:index]
     resource :avatar, :only => [:create, :destroy]
     scope "/accounts/:account_name" do
       resources :tags do
