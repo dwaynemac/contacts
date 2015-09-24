@@ -1,4 +1,4 @@
-worker_processes 7
+worker_processes 6
 timeout 200
 
 # paths
