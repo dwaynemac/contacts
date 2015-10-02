@@ -44,6 +44,8 @@ gem 'i18n', '~> 0.6.6'
 
 gem 'minitest'
 
+gem 'rack-cors', :require => 'rack/cors'
+
 group :documentation do
   gem 'yard', '~> 0.8.3'
   gem 'yard-restful'
