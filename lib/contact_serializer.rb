@@ -171,6 +171,11 @@ class ContactSerializer
           @json['telephone'] = telephone.value unless telephone.nil?
         end
 
+        if serialize?(:identification)
+          identification = @contact.global_primary_attribute('Identification') 
+          @json['identification'] = identification.value unless identification.nil?
+        end
+
         if serialize?(:occupation)
           occupation = @contact.occupations.first
           if occupation
