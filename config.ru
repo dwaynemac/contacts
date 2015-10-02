@@ -8,3 +8,11 @@ use Unicorn::WorkerKiller::Oom, (350*(1024**2)), (600*(1024**2))
 require ::File.expand_path('../config/environment',  __FILE__)
 
 run Contacts::Application
+
+require 'rack/cors'
+use Rack::Cors do
+  allow do
+    origins '*'
+    resource '*', :headers => :any, :methods => [:get]
+  end
+end
