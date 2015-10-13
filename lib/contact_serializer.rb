@@ -121,10 +121,12 @@ class ContactSerializer
       end
 
       if serialize?(:local_statuses)
-        @json['local_statuses'] = @contact.local_statuses.map{ |ls| {
-          'account_name' => ls.account.name.to_s,
-          'local_status' => ls.value.to_s
-        } }
+        ActiveSupport::Notifications.instrument('local_statuses.build_hash.as_json.contact') do
+          @json['local_statuses'] = @contact.local_statuses.map{ |ls| {
+            'account_name' => ls.account.name.to_s,
+            'local_status' => ls.value.to_s
+          } }
+        end
       end
 
       ActiveSupport::Notifications.instrument('account_attributes.build_hash.as_json.contact') do
