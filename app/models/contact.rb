@@ -368,7 +368,9 @@ class Contact
   end
 
   def owner_name
-    self.owner.try :name
+    ActiveSupport::Notifications.instrument('owner_name.contact') do
+      self.owner.try :name
+    end
   end
 
   def owner_name=(name)
