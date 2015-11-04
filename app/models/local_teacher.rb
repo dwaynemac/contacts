@@ -1,5 +1,6 @@
 class LocalTeacher < LocalUniqueAttribute
   include AccountNameAccessor
+  include LocaleForAccount
 
   alias_attribute :teacher_username, :value
   after_save :keep_history_of_changes
@@ -23,10 +24,11 @@ class LocalTeacher < LocalUniqueAttribute
     if self.teacher_username_changed? && !self.contact.nil?
       activity_username = self.contact.try(:request_username) || 'system'
       activity_account  = account_name
+
       a = ActivityStream::Activity.new(
           username: activity_username,
           account_name: activity_account,
-          content: "novo instrutor: #{value}",
+          content: I18n.t('local_teacher.new_teacher', teacher_username: value, locale: locale_for(account_name), default: "novo instrutor: #{value}"),
           generator: 'contacts',
           verb: 'updated',
           target_id: self.contact.id, target_type: 'Contact',
