@@ -624,7 +624,7 @@ class Contact
             verb: 'updated',
             target_id: id, target_type: 'Contact',
             object_id: id, object_type: 'Contact',
-            public: true,
+            public: true
         )
         a.create(username: activity_username, account_name: activity_account)
       end
