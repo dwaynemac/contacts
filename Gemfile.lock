@@ -37,7 +37,7 @@ GEM
     activity_stream_client (0.0.15)
       logical_model (>= 0.5.0)
       railties (>= 3.1)
-    appsignal (0.11.9)
+    appsignal (0.11.17)
       rack
       thread_safe
     appsignal-mongo (0.1.10)
@@ -356,7 +356,7 @@ PLATFORMS
 DEPENDENCIES
   accounts_client (>= 0.2.15)
   activity_stream_client (~> 0.0.14)
-  appsignal (= 0.11.9)
+  appsignal (= 0.11.17)
   appsignal-mongo
   bson (= 1.4.0)
   bson_ext (= 1.4.0)
