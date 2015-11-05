@@ -9,6 +9,7 @@ require ::File.expand_path('../config/environment',  __FILE__)
 
 run Contacts::Application
 
+=begin
 require 'rack/cors'
 use Rack::Cors do
   allow do
@@ -16,3 +17,4 @@ use Rack::Cors do
     resource '*', :headers => :any, :methods => [:get]
   end
 end
+=end
