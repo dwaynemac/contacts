@@ -369,7 +369,11 @@ class Contact
 
   def owner_name
     ActiveSupport::Notifications.instrument('owner_name.contact') do
-      self.owner.try :name
+      return nil if self.owner_id.nil?
+      if @owner_name.nil?
+        @owner_name = Account.name_for_id(self.owner_id)
+      end
+      return @owner_name
     end
   end
 
