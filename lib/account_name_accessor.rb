@@ -11,11 +11,7 @@ module AccountNameAccessor
   # @return [String] account name
   def account_name
     if @account_name.nil?
-      @account_name = Rails.cache.read(['account_name_by_id',self.account_id])
-      if @account_name.nil?
-        @account_name = Account.only([:_id,:name]).find(self.account_id).try(:name)
-        Rails.cache.write(['account_name_by_id',self.account_id],@account_name)
-      end
+      @account_name = Account.name_for_id(self.account_id)
     end
     return @account_name
   end

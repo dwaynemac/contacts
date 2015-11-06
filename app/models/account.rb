@@ -41,4 +41,20 @@ class Account
   def linked_to?(contact)
     self._id.in?(contact.account_ids)
   end
+
+  def self.name_for_id(id)
+    begin
+      name = Rails.cache.read(['account_name_by_id',id])
+      if name.nil?
+        name = Account.find(id).try(:name)
+        # using only might use less memory but generates errors
+        # of frozen arrays in some specs
+        # name = Account.only([:_id,:name]).find(id).try(:name)
+        Rails.cache.write(['account_name_by_id',id],name)
+      end
+      return name
+    rescue Mongoid::Errors::DocumentNotFound => e
+     return nil 
+    end
+  end
 end
