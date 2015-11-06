@@ -369,7 +369,15 @@ class Contact
 
   def owner_name
     ActiveSupport::Notifications.instrument('owner_name.contact') do
-      self.owner.try :name
+      return nil if self.owner_id.nil?
+      if @owner_name.nil?
+        @owner_name = Rails.cache.read(['account_name_by_id',self.owner_id])
+        if @owner_name.nil?
+          @owner_name = self.owner.try(:name)
+          Rails.cache.write(['account_name_by_id',self.owner_id],@owner_name)
+        end
+      end
+      return @owner_name
     end
   end
 
