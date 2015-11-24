@@ -368,7 +368,13 @@ class Contact
   end
 
   def owner_name
-    self.owner.try :name
+    ActiveSupport::Notifications.instrument('owner_name.contact') do
+      return nil if self.owner_id.nil?
+      if @owner_name.nil?
+        @owner_name = Account.name_for_id(self.owner_id)
+      end
+      return @owner_name
+    end
   end
 
   def owner_name=(name)
@@ -622,7 +628,7 @@ class Contact
             verb: 'updated',
             target_id: id, target_type: 'Contact',
             object_id: id, object_type: 'Contact',
-            public: true,
+            public: true
         )
         a.create(username: activity_username, account_name: activity_account)
       end

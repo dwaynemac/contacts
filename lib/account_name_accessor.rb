@@ -11,11 +11,7 @@ module AccountNameAccessor
   # @return [String] account name
   def account_name
     if @account_name.nil?
-      @account_name = Rails.cache.read(['account_name_by_id',self.account_id])
-      if @account_name.nil?
-        @account_name = self.account.try(:name)
-        Rails.cache.write(['account_name_by_id',self.account_id],@account_name)
-      end
+      @account_name = Account.name_for_id(self.account_id)
     end
     return @account_name
   end
@@ -23,7 +19,7 @@ module AccountNameAccessor
   # Sets account by name
   # won't create account if inexistant
   def account_name=(name)
-    self.account = Account.where(name: name).first
+    self.account = Account.where(name: name).only([:_id,:name]).first
     @account_name = self.account.try(:name)
     return @account_name
   end

@@ -44,6 +44,8 @@ gem 'i18n', '~> 0.6.6'
 
 gem 'minitest'
 
+gem 'rack-cors', :require => 'rack/cors'
+
 group :documentation do
   gem 'yard', '~> 0.8.3'
   gem 'yard-restful'
@@ -59,7 +61,7 @@ group :heroku do
   gem 'heroku-mongo-backup', '~> 0.4.3' # Gem for making mongo -> AmazonS3 backups
 end
 
-gem 'appsignal', '0.11.9', group: [:production, :development, :deploying]
+gem 'appsignal', '0.11.17', group: [:production, :development, :deploying]
 gem 'appsignal-mongo', group: [:production, :development]
 
 group :development do
