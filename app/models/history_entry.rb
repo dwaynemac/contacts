@@ -77,7 +77,7 @@ class HistoryEntry
   
     # use first key of options as attribute
     ref_attribute = options.keys.first
-    ref_date      = options[:at].to_time
+    ref_date      = options[:at].to_time.end_of_day
     if options[:account_name] && !options[:account]
       options[:account] = Account.where(name: options.delete(:account_name)).first
     end
