@@ -129,6 +129,14 @@ describe HistoryEntry do
       s._id.in?(res).should be_falsy
     end
 
+    it "should get value at limit dates" do
+      s = Contact.make(level: 'aspirante')
+      s.history_entries.delete_all
+      s.history_entries.create(attribute: 'level', old_value: nil, changed_at: "2015-10-31 14:35".to_time(:utc))
+      res = HistoryEntry.element_ids_with(level: Contact::VALID_LEVELS['aspirante'], at: "2015-10-31", class: 'Contact')
+      s._id.in?(res).should be_truthy
+    end
+
     context "attribute: :status" do
       it "should returns elements without history entries after specified date that currently match expected attribute" do
         s = Contact.make(status: :student)
