@@ -61,6 +61,12 @@ Identification.blueprint do
   category "DNI"
 end
 
+SocialNetworkId.blueprint do
+  account { Account.make }
+  value 'dwaynemac'
+  category "facebook"
+end
+
 Account.blueprint do
   name { Faker::Internet.user_name }
 end
