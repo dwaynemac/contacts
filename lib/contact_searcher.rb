@@ -131,7 +131,7 @@ class ContactSearcher
             andit({
               account_ids: nucleo_id_to_account_id(v)
             })
-          when 'telephone', 'email', 'address', 'custom_attribute', 'occupation'
+          when 'telephone', 'email', 'address', 'custom_attribute', 'occupation', 'identification'
             andit({
               :contact_attributes => { '$elemMatch' => { "_type" => k.camelize, "value" => Regexp.new(v.to_s,Regexp::IGNORECASE)}}
             })
