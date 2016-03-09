@@ -56,11 +56,19 @@ class MailchimpSynchronizer
     update_attribute(:status, :ready)
     return true
   rescue => e
-    Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
+    Rails.logger.warn "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
     update_attribute(:status, :failed)
+    wait_and_set_ready # this will run on the background and set this to ready for retry
     raise e
   end
   handle_asynchronously :subscribe_contacts
+
+  def wait_and_set_ready
+    sleep(60)
+    Rails.logger.warn "[mailchimp_synchronizer #{self.id}] setting to ready for retry"
+    update_attribute(:status, :ready)
+  end
+  handle_asynchronously :wait_and_set_ready
   
   def unsubscribe_contacts (querys = [])
     update_attribute(:status, :working)
