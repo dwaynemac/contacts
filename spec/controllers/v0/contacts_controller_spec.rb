@@ -822,6 +822,57 @@ describe V0::ContactsController do
     end
   end
 
+  describe "#create with find_or_create flag" do
+    let(:contact_attributes){
+      {
+        first_name: 'Ramona',
+        last_name: 'Flowers',
+        contact_attributes_attributes: [ 
+          {_type: 'Email', value: 'ramona@flower.com'},
+          {_type: 'Telephone', value: '12341234'}
+        ]
+      }
+    }
+    describe "if duplicates exist" do
+      let(:dup){Contact.make}
+      let(:account){Account.make}
+      before do
+        dup.contact_attributes << Email.make(value: 'ramona@flower.com')
+      end
+      it "should not create a contact" do
+      expect{post :create,
+                  contact: contact_attributes,
+                  account_name: account.name,
+                  find_or_create: true,
+                  app_key: V0::ApplicationController::APP_KEY}.not_to change{Contact.count}
+      end
+      it "should link contact to account_name" do
+        post :create,
+            contact: contact_attributes,
+            account_name: account.name,
+            find_or_create: true,
+            app_key: V0::ApplicationController::APP_KEY
+        expect(Contact.last.accounts).to include account
+      end
+      it "should add attributes to the contact" do
+        post :create,
+            contact: contact_attributes,
+            account_name: account.name,
+            find_or_create: true,
+            app_key: V0::ApplicationController::APP_KEY
+        expect(Contact.last.telephones.count).to eq 1
+      end
+    end
+    describe "if there is no duplicate" do
+      it "should create a contact" do
+        expect{post :create,
+                    contact: contact_attributes,
+                    find_or_create: true,
+                    app_key: V0::ApplicationController::APP_KEY}.to change{Contact.count}.by(1)
+      end
+    end
+  end
+
   describe "#create" do
     before do
       @account = Account.make(name: "belgrano")

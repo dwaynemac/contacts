@@ -249,6 +249,8 @@ class V0::ContactsController < V0::ApplicationController
   # @required [String] account_name account which the contact will belong to
   # @required [String] name name of the contact
   #
+  # @optional [Boolean] find_or_create
+  #
   # @example_response == Successfull (status: created)
   #   { id: '245po46sjlka' }
   #
@@ -265,7 +267,6 @@ class V0::ContactsController < V0::ApplicationController
   # @response_code failure 400
   #
   def create
-
     @contact = Contact.new(params[:contact])
     @contact.owner = @account if @account
 
@@ -275,8 +276,21 @@ class V0::ContactsController < V0::ApplicationController
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
-    #set again check duplicates virtual attribute (lost after reloading)
-    @contact.check_duplicates = params[:contact][:check_duplicates]
+    success = if params[:find_or_create]
+      duplicates = @contact.similar(ignore_name: true)
+      existing_contact = duplicates.first
+      if existing_contact
+
+        copy_data_to_existing_contact(@contact,existing_contact)
+        @contact = existing_contact
+
+        # Work on existing contact
+        @contact = existing_contact
+      end
+    else
+      #set again check duplicates virtual attribute (lost after reloading)
+      @contact.check_duplicates = params[:contact][:check_duplicates]
+    end
 
     if @contact.save
       @contact.index_keywords!
@@ -526,6 +540,28 @@ class V0::ContactsController < V0::ApplicationController
   def measure(key)
     ActiveSupport::Notifications.instrument(key) do
       yield
+    end
+  end
+
+  def copy_data_to_existing_contact(contact,existing_contact)
+    request_account = Account.where(name: params[:account_name]).first
+
+    # Copy Contact Attributes
+    contact.contact_attributes.each do |ca|
+      ca.account = request_account
+      existing_contact.contact_attributes << ca.clone
+    end
+
+    # Copy Local Statuses
+    contact.local_statuses.each do |ls|
+      if existing_contact.local_statuses.where(:account_id => ls.account_id).count == 0
+        existing_contact.local_unique_attributes << ls
+      end
+    end
+
+    # Link existing contact to request account
+    unless existing_contact.linked_to?(request_account)
+      existing_contact.accounts << request_account
     end
   end
 end
