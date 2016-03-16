@@ -559,6 +559,29 @@ class V0::ContactsController < V0::ApplicationController
       existing_contact.contact_attributes << ca.clone
     end
 
+    # set last_name if blank
+    if existing_contact.last_name.blank?
+      existing_contact.last_name = contact.last_name
+    else
+      unless contact.last_name.blank?
+        # save new lastname as custom_attribute
+        existing_contact.contact_attributes << CustomAttribute.new(
+          name: 'other last name',
+          value: contact.last_name,
+          account: request_account
+        )
+      end
+    end
+
+    # save new firstname as custom_attribute
+    unless contact.first_name.blank?
+      existing_contact.contact_attributes << CustomAttribute.new(
+        name: 'other first name',
+        value: contact.first_name,
+        account: request_account
+      )
+    end
+
     # Copy Local Statuses
     contact.local_statuses.each do |ls|
       if existing_contact.local_statuses.where(:account_id => ls.account_id).count == 0

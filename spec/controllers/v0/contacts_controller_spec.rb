@@ -841,18 +841,19 @@ describe V0::ContactsController do
                                              account: account)
       end
       it "should not create a contact" do
-      expect{post :create,
-                  contact: contact_attributes,
-                  account_name: account.name,
-                  find_or_create: true,
-                  app_key: V0::ApplicationController::APP_KEY}.not_to change{Contact.count}
+        expect{post :create,
+                    contact: contact_attributes,
+                    account_name: account.name,
+                    find_or_create: true,
+                    app_key: V0::ApplicationController::APP_KEY
+        }.not_to change{Contact.count}
       end
       it "should link contact to account_name" do
         post :create,
-            contact: contact_attributes,
-            account_name: account.name,
-            find_or_create: true,
-            app_key: V0::ApplicationController::APP_KEY
+             contact: contact_attributes,
+             account_name: account.name,
+             find_or_create: true,
+             app_key: V0::ApplicationController::APP_KEY
         expect(Contact.last.accounts).to include account
       end
       it "should add attributes to the contact" do
@@ -870,6 +871,22 @@ describe V0::ContactsController do
             find_or_create: true,
             app_key: V0::ApplicationController::APP_KEY
         expect(Contact.last.emails.where(account_id: account.id).count).to eq 1
+      end
+      it "should add first_name as custom_attribute" do
+        post :create,
+            contact: contact_attributes,
+            account_name: account.name,
+            find_or_create: true,
+            app_key: V0::ApplicationController::APP_KEY
+        expect(Contact.last.custom_attributes.where(name: 'other first name').first.value).to eq contact_attributes[:first_name]
+      end
+      it "should add last_name as custom_attribute" do
+        post :create,
+            contact: contact_attributes,
+            account_name: account.name,
+            find_or_create: true,
+            app_key: V0::ApplicationController::APP_KEY
+        expect(Contact.last.custom_attributes.where(name: 'other last name').first.value).to eq contact_attributes[:last_name]
       end
     end
     describe "if there is no duplicate" do
