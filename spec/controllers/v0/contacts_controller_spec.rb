@@ -837,7 +837,8 @@ describe V0::ContactsController do
       let(:dup){Contact.make}
       let(:account){Account.make}
       before do
-        dup.contact_attributes << Email.make(value: 'ramona@flower.com')
+        dup.contact_attributes << Email.make(value: 'ramona@flower.com',
+                                             account: account)
       end
       it "should not create a contact" do
       expect{post :create,
@@ -861,6 +862,14 @@ describe V0::ContactsController do
             find_or_create: true,
             app_key: V0::ApplicationController::APP_KEY
         expect(Contact.last.telephones.count).to eq 1
+      end
+      it "should not duplicate existing attributes" do
+        post :create,
+            contact: contact_attributes,
+            account_name: account.name,
+            find_or_create: true,
+            app_key: V0::ApplicationController::APP_KEY
+        expect(Contact.last.emails.where(account_id: account.id).count).to eq 1
       end
     end
     describe "if there is no duplicate" do
