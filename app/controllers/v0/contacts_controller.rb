@@ -547,9 +547,39 @@ class V0::ContactsController < V0::ApplicationController
     request_account = Account.where(name: params[:account_name]).first
 
     # Copy Contact Attributes
-    contact.contact_attributes.each do |ca|
+    contact.contact_attributes.select do |ca|
+      # ignore attributes already existing in contact
+      existing_contact.contact_attributes
+                       .where(_type: ca._type,
+                              value: ca.value,
+                              account_id: request_account.id)
+                       .empty?
+    end.each do |ca|
       ca.account = request_account
       existing_contact.contact_attributes << ca.clone
+    end
+
+    # set last_name if blank
+    if existing_contact.last_name.blank?
+      existing_contact.last_name = contact.last_name
+    else
+      unless contact.last_name.blank?
+        # save new lastname as custom_attribute
+        existing_contact.contact_attributes << CustomAttribute.new(
+          name: 'other last name',
+          value: contact.last_name,
+          account: request_account
+        )
+      end
+    end
+
+    # save new firstname as custom_attribute
+    unless contact.first_name.blank?
+      existing_contact.contact_attributes << CustomAttribute.new(
+        name: 'other first name',
+        value: contact.first_name,
+        account: request_account
+      )
     end
 
     # Copy Local Statuses
