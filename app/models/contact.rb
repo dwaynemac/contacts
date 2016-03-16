@@ -395,21 +395,23 @@ class Contact
 
   # Returns contacts that are similar to this one.
   # @return [Array<Contact>]
-  def similar
+  def similar(options = {})
     ActiveSupport::Notifications.instrument("get_similar_contacts") do
       contacts = Contact.all
 
-      if self.last_name.blank?
-        unless self.first_name.blank?
-          self.first_name.split.each do |first_name|
-            contacts = contacts.any_of(:normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+      unless options[:ignore_name]
+        if self.last_name.blank?
+          unless self.first_name.blank?
+            self.first_name.split.each do |first_name|
+              contacts = contacts.any_of(:normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+            end
           end
-        end
-      else
-        self.last_name.split.each do |last_name|
-          self.first_name.split.each do |first_name|
-            contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
-                                       :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+        else
+          self.last_name.split.each do |last_name|
+            self.first_name.split.each do |first_name|
+              contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
+                                         :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
+            end
           end
         end
       end
