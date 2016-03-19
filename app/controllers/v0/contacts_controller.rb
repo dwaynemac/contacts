@@ -250,6 +250,7 @@ class V0::ContactsController < V0::ApplicationController
   # @required [String] name name of the contact
   #
   # @optional [Boolean] find_or_create
+  # @optional [String] id . if find_or_create is given and id is present will find contact by given id
   #
   # @example_response == Successfull (status: created)
   #   { id: '245po46sjlka' }
@@ -277,8 +278,14 @@ class V0::ContactsController < V0::ApplicationController
     @contact = @contact.reload unless @contact.new_record?
 
     if params[:find_or_create]
-      duplicates = @contact.similar(ignore_name: true)
-      existing_contact = duplicates.first
+
+      existing_contact = if params[:id]
+        Contact.find(params[:id])
+      else
+        duplicates = @contact.similar(ignore_name: true)
+        duplicates.first
+      end
+
       if existing_contact
 
         copy_data_to_existing_contact(@contact,existing_contact)

@@ -823,6 +823,7 @@ describe V0::ContactsController do
   end
 
   describe "#create with find_or_create flag" do
+    let(:account){Account.make}
     let(:contact_attributes){
       {
         first_name: 'Ramona',
@@ -833,9 +834,32 @@ describe V0::ContactsController do
         ]
       }
     }
+
+    describe "if id is given" do
+      let!(:dup){Contact.make}
+      it "should not create a new contact" do
+        expect{post :create,
+                    contact: contact_attributes,
+                    account_name: account.name,
+                    find_or_create: true,
+                    id: dup.id,
+                    app_key: V0::ApplicationController::APP_KEY
+        }.not_to change{Contact.count}
+      end
+      it "should copy received attributes to contact of given id" do
+        post :create,
+            contact: contact_attributes,
+            account_name: account.name,
+            find_or_create: true,
+            id: dup.id,
+            app_key: V0::ApplicationController::APP_KEY
+        dup.reload
+        expect(dup.telephones.count).to eq 1
+      end
+    end
+
     describe "if duplicates exist" do
       let(:dup){Contact.make}
-      let(:account){Account.make}
       before do
         dup.contact_attributes << Email.make(value: 'ramona@flower.com',
                                              account: account)
