@@ -282,7 +282,6 @@ class V0::ContactsController < V0::ApplicationController
       if existing_contact
 
         copy_data_to_existing_contact(@contact,existing_contact)
-        @contact = existing_contact
 
         # Work on existing contact
         @contact = existing_contact
