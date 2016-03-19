@@ -589,6 +589,9 @@ class V0::ContactsController < V0::ApplicationController
       end
     end
 
+    existing_contact.request_account_name = contact.request_account_name
+    existing_contact.request_username = contact.request_username
+
     # Link existing contact to request account
     unless existing_contact.linked_to?(request_account)
       existing_contact.accounts << request_account
