@@ -276,7 +276,7 @@ class V0::ContactsController < V0::ApplicationController
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
-    success = if params[:find_or_create]
+    if params[:find_or_create]
       duplicates = @contact.similar(ignore_name: true)
       existing_contact = duplicates.first
       if existing_contact
