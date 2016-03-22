@@ -251,6 +251,7 @@ class V0::ContactsController < V0::ApplicationController
   #
   # @optional [Boolean] find_or_create
   # @optional [String] id . if find_or_create is given and id is present will find contact by given id
+  # @options  [Boolean] dont_save_name . wont copy name into the contact. used for dumping attributes
   #
   # @example_response == Successfull (status: created)
   #   { id: '245po46sjlka' }
@@ -273,7 +274,7 @@ class V0::ContactsController < V0::ApplicationController
 
     @contact.request_account_name = params[:account_name]
     @contact.request_username = params[:username]
-
+    
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
@@ -563,29 +564,35 @@ class V0::ContactsController < V0::ApplicationController
     end.each do |ca|
       ca.account = request_account
       existing_contact.contact_attributes << ca.clone
+      existing_contact.contact_attributes.last._type = ca._type # clone wont copy _type
     end
 
-    # set last_name if blank
-    if existing_contact.last_name.blank?
-      existing_contact.last_name = contact.last_name
-    else
-      unless contact.last_name.blank?
-        # save new lastname as custom_attribute
-        existing_contact.contact_attributes << CustomAttribute.new(
-          name: 'other last name',
-          value: contact.last_name,
-          account: request_account
-        )
+
+    unless params[:dont_save_name]
+      # set last_name if blank
+      if existing_contact.last_name.blank?
+        existing_contact.last_name = contact.last_name
+      else
+        unless contact.last_name.blank?
+          # save new lastname as custom_attribute
+          existing_contact.contact_attributes << CustomAttribute.new(
+            name: 'other last name',
+            value: contact.last_name,
+            account: request_account
+          )
+        end
       end
     end
 
-    # save new firstname as custom_attribute
-    unless contact.first_name.blank?
-      existing_contact.contact_attributes << CustomAttribute.new(
-        name: 'other first name',
-        value: contact.first_name,
-        account: request_account
-      )
+    unless params[:dont_save_name]
+      # save new firstname as custom_attribute
+      unless contact.first_name.blank?
+        existing_contact.contact_attributes << CustomAttribute.new(
+          name: 'other first name',
+          value: contact.first_name,
+          account: request_account
+        )
+      end
     end
 
     # Copy Local Statuses
