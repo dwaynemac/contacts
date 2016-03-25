@@ -594,7 +594,7 @@ class Contact
     if new_owner && new_owner.id != old_owner_id
       self.owner = new_owner
       self.skip_assign_owner = true
-      self.save
+      self.save(validate: false)
       
       # Callbacks arent called when mass-assigning nested models.
       # Iterate over the contact_attributes and set the owner.
