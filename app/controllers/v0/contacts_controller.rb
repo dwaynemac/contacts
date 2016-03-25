@@ -602,6 +602,13 @@ class V0::ContactsController < V0::ApplicationController
       end
     end
 
+    # Copy coefficient
+    contact.coefficients.each do |lc|
+      if existing_contact.coefficients.where(:account_id => lc.account_id).count == 0
+        existing_contact.local_unique_attributes << lc
+      end
+    end
+
     existing_contact.request_account_name = contact.request_account_name
     existing_contact.request_username = contact.request_username
 
