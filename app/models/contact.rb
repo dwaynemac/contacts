@@ -379,7 +379,7 @@ class Contact
 
   def owner_name=(name)
     self.owner = Account.where(:name => name).first
-    @owner_name = self.owner.name
+    @owner_name = self.owner.try(:name)
   end
 
   # Updates global_status (#status) and saves contact
