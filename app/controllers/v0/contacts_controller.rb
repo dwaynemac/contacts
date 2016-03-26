@@ -616,5 +616,14 @@ class V0::ContactsController < V0::ApplicationController
     unless existing_contact.linked_to?(request_account)
       existing_contact.accounts << request_account
     end
+
+    # Owner was set manually, transfer
+    if contact.new? && contact.owner_name.present?
+      # wont relinquish ownership of student
+      unless existing_contact.status == :student
+        existing_contact.owner_name = contact.owner_name 
+      end
+    end
+
   end
 end
