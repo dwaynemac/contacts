@@ -64,11 +64,10 @@ class MailchimpSynchronizer
   handle_asynchronously :subscribe_contacts
 
   def wait_and_set_ready
-    sleep(60)
     Rails.logger.warn "[mailchimp_synchronizer #{self.id}] setting to ready for retry"
     update_attribute(:status, :ready)
   end
-  handle_asynchronously :wait_and_set_ready
+  handle_asynchronously :wait_and_set_ready, run_at: Proc.new { 5.minutes.from_now }
   
   def unsubscribe_contacts (querys = [])
     update_attribute(:status, :working)
