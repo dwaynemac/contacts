@@ -1,4 +1,5 @@
 # encoding: UTF-8
+require 'rest_client'
 
 class MailchimpSynchronizer
   include Mongoid::Document
@@ -51,7 +52,6 @@ class MailchimpSynchronizer
         retry
       end
     end
-
     update_attribute(:status, :ready)
     return true
   rescue => e
@@ -110,7 +110,8 @@ class MailchimpSynchronizer
       COEFF: get_coefficient_translation(contact),
       ADDR: get_primary_attribute_value(contact, 'Address'),
       SYSCOEFF: get_system_coefficient(contact),
-      SYSSTATUS: get_system_status(contact)   
+      SYSSTATUS: get_system_status(contact),
+      FOLLOWEDBY: get_followers_for(contact)
     }
   end
 
@@ -154,6 +155,23 @@ class MailchimpSynchronizer
   def get_coefficient_translation (contact)
     contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || ''
   end
+
+  # TODO primero lo cableo para probarlo, luego lo hago de forma copada
+  def get_followers_for(contact)
+    response = RestClient.get PADMA_CRM_HOST + '/api/v0/follows/followed_by',
+      {params: {  app_key: ENV['crm_key'],
+                  account_name: account.name,
+                  contact_id: contact.id}}
+    
+    followers = JSON.parse(response)
+
+    if followers.blank?
+      return "none"
+    else
+      followers << "any"
+      return followers.join(",")
+    end
+  end
   
   #
   # Merge Vars (fields)
@@ -168,6 +186,7 @@ class MailchimpSynchronizer
     merge_var_add('ADDR', I18n.t('mailchimp.address.address'), 'text') 
     merge_var_add('SYSSTATUS', 'System Status', 'text') 
     merge_var_add('SYSCOEFF', 'System Coefficient', 'text') 
+    merge_var_add('FOLLOWEDBY', 'Followed by', 'text')
   end
   
   #
