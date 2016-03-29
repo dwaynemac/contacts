@@ -30,6 +30,7 @@ class V0::MailchimpSegmentsController < V0::ApplicationController
         mailchimp_synchronizer: synchro,
         statuses: params[:segment][:statuses],
         coefficients: params[:segment][:coefficients],
+        followed_by: params[:segment][:followed_by],
         gender: params[:segment][:gender],
         name: params[:segment][:name]
       )
