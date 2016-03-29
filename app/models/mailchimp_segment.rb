@@ -6,6 +6,7 @@ class MailchimpSegment
   field :statuses
   field :gender
   field :coefficients
+  field :followed_by
   field :name
   field :mailchimp_id
 
@@ -99,8 +100,9 @@ class MailchimpSegment
   def segment_conditions
     conditions = []
     conditions << status_condition if !statuses.empty?   
-    conditions << coefficient_condition if !coefficients.empty?   
+    conditions << coefficient_condition if !coefficients.empty?
     conditions << gender_condition if gender == 'male'
+    conditions << followed_by_condition if !followed_by.empty?
     conditions
   end
 
@@ -138,6 +140,14 @@ class MailchimpSegment
       field: 'SYSCOEFF',
       op: 'eq',
       value: coefficient
+    }
+  end
+
+  def followed_by_condition
+    {
+      field: 'FOLLOWEDBY',
+      op: 'like',
+      value: followed_by
     }
   end
 
