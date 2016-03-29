@@ -759,6 +759,16 @@ describe Contact do
         @homer.contact_attributes << Telephone.make(value: '1540995071', category: 'mobile')
         @homer.save!
       end
+
+      describe "if ignore_name is set" do
+        it "should ignore similar by name" do
+          contact = Contact.new(first_name: "Homer", last_name: "Simpson")
+          contact.contact_attributes << Telephone.make(value: '123412314', category: 'mobile')
+          expect(contact.similar).not_to be_empty
+          expect(contact.similar(ignore_name: true)).to be_empty
+        end
+      end
+
       it "new contact should match it by mobile" do
         c = Contact.new(first_name: 'Juan', last_name: 'Perez')
         c.contact_attributes << Telephone.make(value: '1540995071', category: 'mobile')

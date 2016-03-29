@@ -249,6 +249,10 @@ class V0::ContactsController < V0::ApplicationController
   # @required [String] account_name account which the contact will belong to
   # @required [String] name name of the contact
   #
+  # @optional [Boolean] find_or_create
+  # @optional [String] id . if find_or_create is given and id is present will find contact by given id
+  # @options  [Boolean] dont_save_name . wont copy name into the contact. used for dumping attributes
+  #
   # @example_response == Successfull (status: created)
   #   { id: '245po46sjlka' }
   #
@@ -265,18 +269,35 @@ class V0::ContactsController < V0::ApplicationController
   # @response_code failure 400
   #
   def create
-
     @contact = Contact.new(params[:contact])
     @contact.owner = @account if @account
 
     @contact.request_account_name = params[:account_name]
     @contact.request_username = params[:username]
-
+    
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
 
-    #set again check duplicates virtual attribute (lost after reloading)
-    @contact.check_duplicates = params[:contact][:check_duplicates]
+    if params[:find_or_create]
+
+      existing_contact = if params[:id]
+        Contact.find(params[:id])
+      else
+        duplicates = @contact.similar(ignore_name: true)
+        duplicates.first
+      end
+
+      if existing_contact
+
+        copy_data_to_existing_contact(@contact,existing_contact)
+
+        # Work on existing contact
+        @contact = existing_contact
+      end
+    else
+      #set again check duplicates virtual attribute (lost after reloading)
+      @contact.check_duplicates = params[:contact][:check_duplicates]
+    end
 
     if @contact.save
       @contact.index_keywords!
@@ -527,5 +548,82 @@ class V0::ContactsController < V0::ApplicationController
     ActiveSupport::Notifications.instrument(key) do
       yield
     end
+  end
+
+  def copy_data_to_existing_contact(contact,existing_contact)
+    request_account = Account.where(name: params[:account_name]).first
+
+    # Copy Contact Attributes
+    contact.contact_attributes.select do |ca|
+      # ignore attributes already existing in contact
+      existing_contact.contact_attributes
+                       .where(_type: ca._type,
+                              value: ca.value,
+                              account_id: request_account.id)
+                       .empty?
+    end.each do |ca|
+      ca.account = request_account
+      existing_contact.contact_attributes << ca.clone
+      existing_contact.contact_attributes.last._type = ca._type # clone wont copy _type
+    end
+
+
+    unless params[:dont_save_name]
+      # set last_name if blank
+      if existing_contact.last_name.blank?
+        existing_contact.last_name = contact.last_name
+      else
+        unless contact.last_name.blank?
+          # save new lastname as custom_attribute
+          existing_contact.contact_attributes << CustomAttribute.new(
+            name: 'other last name',
+            value: contact.last_name,
+            account: request_account
+          )
+        end
+      end
+    end
+
+    unless params[:dont_save_name]
+      # save new firstname as custom_attribute
+      unless contact.first_name.blank?
+        existing_contact.contact_attributes << CustomAttribute.new(
+          name: 'other first name',
+          value: contact.first_name,
+          account: request_account
+        )
+      end
+    end
+
+    # Copy Local Statuses
+    contact.local_statuses.each do |ls|
+      if existing_contact.local_statuses.where(:account_id => ls.account_id).count == 0
+        existing_contact.local_unique_attributes << ls
+      end
+    end
+
+    # Copy coefficient
+    contact.coefficients.each do |lc|
+      if existing_contact.coefficients.where(:account_id => lc.account_id).count == 0
+        existing_contact.local_unique_attributes << lc
+      end
+    end
+
+    existing_contact.request_account_name = contact.request_account_name
+    existing_contact.request_username = contact.request_username
+
+    # Link existing contact to request account
+    unless existing_contact.linked_to?(request_account)
+      existing_contact.accounts << request_account
+    end
+
+    # Owner was set manually, transfer
+    if contact.new? && contact.owner_name.present?
+      # wont relinquish ownership of student
+      unless existing_contact.status == :student
+        existing_contact.owner_name = contact.owner_name 
+      end
+    end
+
   end
 end
