@@ -1,5 +1,4 @@
 # encoding: UTF-8
-require 'rest_client'
 
 class MailchimpSynchronizer
   include Mongoid::Document
@@ -164,14 +163,18 @@ class MailchimpSynchronizer
     contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || ''
   end
 
-  # TODO primero lo cableo para probarlo, luego lo hago de forma copada
   def get_followers_for(contact)
-    response = RestClient.get PADMA_CRM_HOST + '/api/v0/follows/followed_by',
-      {params: {  app_key: ENV['crm_key'],
+    followers = []
+    response = Typhoeus::Request.get(
+      PADMA_CRM_HOST + "/api/v0/follows/followed_by",
+      params: {  app_key: ENV["crm_key"],
                   account_name: account.name,
-                  contact_id: contact.id}}
-    
-    followers = JSON.parse(response)
+                  contact_id: contact.id}
+      ) 
+
+    if response.code == 200
+      followers = JSON.parse(response.body)
+    end
 
     if followers.blank?
       return "none"
