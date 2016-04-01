@@ -7,6 +7,7 @@ class MailchimpSynchronizer
   field :list_id
   field :status
   field :filter_method
+  field :coefficient_group
 
   belongs_to :account
   validates_presence_of :account
@@ -135,6 +136,7 @@ class MailchimpSynchronizer
     end
   end
   
+
   def get_system_coefficient (contact)
     case contact.coefficients.where(account_id: account.id).first.try(:value)
     when 'unknown'
@@ -220,6 +222,7 @@ class MailchimpSynchronizer
     if !params[:list_id].nil? && params[:list_id] != list_id
       update_attribute(:list_id, params[:list_id])
       update_fields_in_mailchimp
+      initialize_list_groups
     end
     
     if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
@@ -258,7 +261,25 @@ class MailchimpSynchronizer
       I18n.locale = padma_account.locale
     end
   end
+
+  def initialize_list_groups
+    create_coefficients_group
+  end
   
+  def create_coefficients_group
+    set_api
+    begin
+      coefficient_group = @api.lists.interest_grouping_add({
+        id: list_id,
+        name: 'coefficients',
+        type: 'hidden',
+        groups: ["?", "perfil", "pmas", "pmenos", "np"]
+        })
+    rescue Gibbon::MailChimpError => e
+      raise unless e.message =~ /already exists/
+    end
+  end
+
   def set_default_attributes
     self.status = :ready
     self.filter_method = 'segments'
