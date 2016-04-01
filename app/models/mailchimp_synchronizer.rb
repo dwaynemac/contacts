@@ -41,7 +41,7 @@ class MailchimpSynchronizer
         Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
         retries -= 1
         if retries >= 0
-          sleep(retries*10)
+          sleep((RETRIES-retries)*10)
           retry
         else
           Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
@@ -193,28 +193,26 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     merge_var_add('PHONE', I18n.t('mailchimp.phone.phone'), 'text') 
-    merge_var_add('GENDER', I18n.t('mailchimp.gender.gender'), 'text') 
-    merge_var_add('STATUS', I18n.t('mailchimp.status.status'), 'text') 
-    merge_var_add('COEFF', I18n.t('mailchimp.coefficient.coefficient'), 'text') 
+    merge_var_add('GENDER', I18n.t('mailchimp.gender.gender'), 'text', {public: false}) 
+    merge_var_add('STATUS', I18n.t('mailchimp.status.status'), 'text', {public: false}) 
+    merge_var_add('COEFF', I18n.t('mailchimp.coefficient.coefficient'), 'text', {public: false}) 
     merge_var_add('ADDR', I18n.t('mailchimp.address.address'), 'text') 
-    merge_var_add('SYSSTATUS', 'System Status', 'text') 
-    merge_var_add('SYSCOEFF', 'System Coefficient', 'text') 
-    merge_var_add('FOLLOWEDBY', 'Followed by', 'text')
+    merge_var_add('SYSSTATUS', 'System Status', 'text', {public: false, show: false}) 
+    merge_var_add('SYSCOEFF', 'System Coefficient', 'text', {public: false, show: false}) 
+    merge_var_add('FOLLOWEDBY', 'Followed by', 'text', {public: false})
   end
   
-  #
-  # merge_var_add throws an exception
-  # the field already exists
-  #
-  def merge_var_add (tag, name, type)
+  def merge_var_add (tag, name, type, options={})
+    options = options.merge!({field_type: type})
     begin
       @api.lists.merge_var_add({
         id: list_id,
         tag: tag,
         name: name,
-        options: {field_type: type}
+        options: options
       }) 
-    rescue Gibbon::MailChimpError
+    rescue Gibbon::MailChimpError => e
+      raise unless e.messsage =~ /already exists/
     end
   end
   
