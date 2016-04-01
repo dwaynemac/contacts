@@ -129,17 +129,17 @@ class MailchimpSegment
   end
   
   def coefficient_condition
-    coefficient = 'fp'
-    if coefficients.include?('perfil')
-      coefficient = 'perfil'
-    elsif coefficients.include?('pmas')
-      coefficient = 'pmas'
-    end
+    #coefficient = 'fp'
+    #if coefficients.include?('perfil')
+    #  coefficient = 'perfil'
+    #elsif coefficients.include?('pmas')
+    #  coefficient = 'pmas'
+    #end
     
     {
-      field: 'SYSCOEFF',
-      op: 'eq',
-      value: coefficient
+      field: "interest-#{mailchimp_synchronizer.coefficient_group}",
+      op: 'one',
+      value: coefficients
     }
   end
 
