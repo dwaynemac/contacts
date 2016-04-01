@@ -209,9 +209,8 @@ class MailchimpSynchronizer
         name: name,
         options: options
       }) 
-    rescue Gibbon::MailChimpError
-      # merge_var_add throws an exception
-      # the field already exists
+    rescue Gibbon::MailChimpError => e
+      raise unless e.messsage =~ /already exists/
     end
   end
   
