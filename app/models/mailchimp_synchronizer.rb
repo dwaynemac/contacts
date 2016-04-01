@@ -40,7 +40,7 @@ class MailchimpSynchronizer
         Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
         retries -= 1
         if retries >= 0
-          sleep(retries*10)
+          sleep((RETRIES-retries)*10)
           retry
         else
           Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
