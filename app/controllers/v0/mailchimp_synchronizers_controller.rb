@@ -5,6 +5,20 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
 
   before_filter :get_account
 
+  # @url /v0/mailchimp_synchronizers/:id/synchronize
+  # @action POST
+  #
+  # @required id
+  def synchronize
+    synchro = MailchimpSynchronizer.find(params[:id])
+    if !synchro.nil?
+      synchro.subscribe_contacts # queues to background
+      render json: "OK", status: 202
+    else
+      render json: 'Synchronizer missing', status: 404
+    end
+  end
+
   ##
   # Creates a Mailchimp Contact Synchronizer.
   # @url /v0/mailchimp_synchronizers

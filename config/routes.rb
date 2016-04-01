@@ -24,7 +24,11 @@ Contacts::Application.routes.draw do
         end
       end
     end
-    resources :mailchimp_synchronizers
+    resources :mailchimp_synchronizers, only: [:create,:update,:destroy] do
+      member do
+        post :synchronize
+      end
+    end
     resources :mailchimp_segments
     resources :imports do
       member do
