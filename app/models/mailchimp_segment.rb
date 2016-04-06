@@ -99,10 +99,10 @@ class MailchimpSegment
   
   def segment_conditions
     conditions = []
-    conditions << status_condition if !statuses.empty?   
-    conditions << coefficient_condition if !coefficients.empty?
-    conditions << gender_condition if !gender.blank?
-    conditions << followed_by_condition if !followed_by.empty?
+    conditions << status_condition unless statuses.empty?   
+    conditions << coefficient_condition unless coefficients.empty?
+    conditions << gender_condition unless gender.blank?
+    conditions << followed_by_condition unless followed_by.empty?
     conditions
   end
 
@@ -137,9 +137,9 @@ class MailchimpSegment
     #end
     
     {
-      field: "interest-#{mailchimp_synchronizer.coefficient_group}",
+      field: "interests-#{mailchimp_synchronizer.coefficient_group}",
       op: 'one',
-      value: coefficients
+      value: coefficients.join(",")
     }
   end
 
