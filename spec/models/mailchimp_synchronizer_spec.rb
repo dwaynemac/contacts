@@ -84,7 +84,7 @@ describe MailchimpSynchronizer do
   describe "#get_coefficient_translation" do
     describe "if contacts has no coefficient" do
       it "return ''" do
-        expect(sync.get_coefficient_translation(contact)).to eq ''
+        expect(sync.get_coefficient_translation(contact)).to eq [{id: sync.coefficient_group, groups: [""]}]
       end
     end
   end
