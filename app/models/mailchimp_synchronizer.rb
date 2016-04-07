@@ -7,6 +7,7 @@ class MailchimpSynchronizer
   field :list_id
   field :status
   field :filter_method
+  field :coefficient_group
 
   belongs_to :account
   validates_presence_of :account
@@ -114,7 +115,7 @@ class MailchimpSynchronizer
       PHONE: get_primary_attribute_value(contact, 'Telephone'),
       GENDER: get_gender_translation(contact),
       STATUS: get_status_translation(contact),
-      COEFF: get_coefficient_translation(contact),
+      groupings: get_coefficient_translation(contact),
       ADDR: get_primary_attribute_value(contact, 'Address'),
       SYSCOEFF: get_system_coefficient(contact),
       SYSSTATUS: get_system_status(contact),
@@ -135,6 +136,7 @@ class MailchimpSynchronizer
     end
   end
   
+
   def get_system_coefficient (contact)
     case contact.coefficients.where(account_id: account.id).first.try(:value)
     when 'unknown'
@@ -160,7 +162,17 @@ class MailchimpSynchronizer
   end
   
   def get_coefficient_translation (contact)
-    contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || ''
+    [
+      {id: coefficient_group, groups: [set_fp_to_np(contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || '')]}
+    ]
+  end
+
+  def set_fp_to_np(coefficient)
+    if coefficient == "fp"
+      return "np"
+    else
+      return coefficient
+    end
   end
 
   def get_followers_for(contact)
@@ -193,7 +205,6 @@ class MailchimpSynchronizer
     merge_var_add('PHONE', I18n.t('mailchimp.phone.phone'), 'text') 
     merge_var_add('GENDER', I18n.t('mailchimp.gender.gender'), 'text', {public: false}) 
     merge_var_add('STATUS', I18n.t('mailchimp.status.status'), 'text', {public: false}) 
-    merge_var_add('COEFF', I18n.t('mailchimp.coefficient.coefficient'), 'text', {public: false}) 
     merge_var_add('ADDR', I18n.t('mailchimp.address.address'), 'text') 
     merge_var_add('SYSSTATUS', 'System Status', 'text', {public: false, show: false}) 
     merge_var_add('SYSCOEFF', 'System Coefficient', 'text', {public: false, show: false}) 
@@ -218,6 +229,7 @@ class MailchimpSynchronizer
     if !params[:list_id].nil? && params[:list_id] != list_id
       update_attribute(:list_id, params[:list_id])
       update_fields_in_mailchimp
+      initialize_list_groups
     end
     
     if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
@@ -256,7 +268,27 @@ class MailchimpSynchronizer
       I18n.locale = padma_account.locale
     end
   end
+
+  def initialize_list_groups
+    create_coefficients_group
+  end
   
+  def create_coefficients_group
+    set_i18n
+    set_api
+    begin
+      mailchimp_coefficient_group = @api.lists.interest_grouping_add({
+        id: list_id,
+        name: I18n.t('mailchimp.coefficient.coefficient'),
+        type: 'hidden',
+        groups: ["unknown", "perfil", "pmas", "pmenos", "np"]
+        })
+      update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
+    rescue Gibbon::MailChimpError => e
+      raise unless e.message =~ /already exists/
+    end
+  end
+
   def set_default_attributes
     self.status = :ready
     self.filter_method = 'segments'
