@@ -9,6 +9,8 @@ class MailchimpSynchronizer
   field :filter_method
   field :coefficient_group
 
+  attr_accessor :has_coefficient_group, false
+
   belongs_to :account
   validates_presence_of :account
 
@@ -229,6 +231,7 @@ class MailchimpSynchronizer
     if !params[:list_id].nil? && params[:list_id] != list_id
       update_attribute(:list_id, params[:list_id])
       update_fields_in_mailchimp
+      subscribe_contacts
       initialize_list_groups
     end
     
@@ -270,28 +273,46 @@ class MailchimpSynchronizer
   end
 
   def initialize_list_groups
-    create_coefficients_group
+    find_or_create_coefficients_group
   end
   
-  def create_coefficients_group
+  def find_or_create_coefficients_group
     set_i18n
     set_api
     begin
-      mailchimp_coefficient_group = @api.lists.interest_grouping_add({
-        id: list_id,
-        name: I18n.t('mailchimp.coefficient.coefficient'),
-        type: 'hidden',
-        groups: ["unknown", "perfil", "pmas", "pmenos", "np"]
-        })
+      mailchimp_coefficient_group = nil
+      if has_coefficient_group
+        groupings = @api.lists.interest_groupings({
+          id: list_id
+          })
+        groupings.each do |group|
+          if group["name"] == I18n.t('mailchimp.coefficient.coefficient')
+            mailchimp_coefficient_group = group
+          end
+        end
+      else
+        mailchimp_coefficient_group = @api.lists.interest_grouping_add({
+          id: list_id,
+          name: I18n.t('mailchimp.coefficient.coefficient'),
+          type: 'hidden',
+          groups: ["unknown", "perfil", "pmas", "pmenos", "np"]
+          })
+      end
       update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
     rescue Gibbon::MailChimpError => e
-      raise unless e.message =~ /already exists/
+      if e.message =~ /already exists/ && has_coefficient_group == false
+        update_attribute(:has_coefficient_group, true)
+        retry
+      else
+        raise
+      end
     end
   end
 
   def set_default_attributes
     self.status = :ready
     self.filter_method = 'segments'
+    self.has_coefficient_group = false
   end
   
   def destroy_segments
