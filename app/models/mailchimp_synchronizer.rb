@@ -281,7 +281,7 @@ class MailchimpSynchronizer
     set_api
     begin
       mailchimp_coefficient_group = nil
-      if has_coefficient_group
+      if @has_coefficient_group
         groupings = @api.lists.interest_groupings({
           id: list_id
           })
@@ -300,8 +300,8 @@ class MailchimpSynchronizer
       end
       update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
     rescue Gibbon::MailChimpError => e
-      if e.message =~ /already exists/ && has_coefficient_group == false
-        update_attribute(:has_coefficient_group, true)
+      if e.message =~ /already exists/ && @has_coefficient_group == false
+        @has_coefficient_group = true
         retry
       else
         raise
@@ -312,7 +312,6 @@ class MailchimpSynchronizer
   def set_default_attributes
     self.status = :ready
     self.filter_method = 'segments'
-    self.has_coefficient_group = false
   end
   
   def destroy_segments
