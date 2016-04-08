@@ -9,7 +9,7 @@ class MailchimpSynchronizer
   field :filter_method
   field :coefficient_group
 
-  attr_accessor :has_coefficient_group, false
+  attr_accessor :has_coefficient_group
 
   belongs_to :account
   validates_presence_of :account
