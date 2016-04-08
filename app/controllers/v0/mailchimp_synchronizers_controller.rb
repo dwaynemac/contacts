@@ -36,7 +36,6 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
     )
 
     if synchro.save
-      synchro.subscribe_contacts # queues to background
       render json: {message: "OK", id: synchro.id}.to_json,
         status: 201
     else
