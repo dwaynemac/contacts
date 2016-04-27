@@ -365,6 +365,7 @@ class MailchimpSynchronizer
   def set_default_attributes
     self.status = :ready
     self.filter_method = 'segments'
+    self.contact_attributes = ""
   end
   
   def destroy_segments
