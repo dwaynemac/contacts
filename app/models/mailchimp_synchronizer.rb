@@ -8,6 +8,7 @@ class MailchimpSynchronizer
   field :status
   field :filter_method
   field :coefficient_group
+  field :contact_attributes
 
   attr_accessor :has_coefficient_group
 
@@ -111,6 +112,7 @@ class MailchimpSynchronizer
   end
   
   def merge_vars_for_contact (contact)
+    response = 
     {
       FNAME: contact.first_name,
       LNAME: contact.last_name,
@@ -121,8 +123,17 @@ class MailchimpSynchronizer
       ADDR: get_primary_attribute_value(contact, 'Address'),
       SYSCOEFF: get_system_coefficient(contact),
       SYSSTATUS: get_system_status(contact),
-      FOLLOWEDBY: get_followers_for(contact)
-    }
+      FOLLOWEDBY: get_followers_for(contact),
+    } 
+    contact_attributes.split(",").each do |contact_attribute|
+      if %w(email telephone address custom_attribute date_attribute identification occupation 
+      contact_attachment social_network_id).include? contact_attribute
+        response[get_tag_for(contact_attribute)] = contact.send(contact_attribute.pluralize).first.try :value
+      else
+        response[get_tag_for(contact_attribute)] = contact.contact_attributes.where(name: contact_attribute).first.try :value
+      end
+    end
+    response
   end
 
   def get_system_status (contact)
@@ -223,11 +234,52 @@ class MailchimpSynchronizer
         options: options
       }) 
     rescue Gibbon::MailChimpError => e
-      raise unless e.messsage =~ /already exists/
+      raise unless e.message =~ /already exists/
     end
+  end
+
+  def merge_var_del(tag_name)
+    begin
+      @api.lists.merge_var_del({
+        id: list_id,
+        tag: tag_name
+      }) 
+    rescue Gibbon::MailChimpError => e
+      raise
+    end
+  end
+
+  def add_custom_fields_in_mailchimp
+    set_api
+    set_i18n
+    contact_attributes.split(",").each do |contact_attribute|
+      merge_var_add(get_tag_for(contact_attribute), contact_attribute.capitalize, 'text', {public: false})
+    end
+  end
+
+  def remove_unused_fields_in_mailchimp(field_names)
+    return if field_names.blank?
+    set_api
+    field_names.each do |field_name|
+      merge_var_del(get_tag_for(field_name))
+    end
+  end
+
+  # do not pass 10 bytes
+  # each should be unique
+  def get_tag_for(contact_attribute)
+    Digest::SHA1.hexdigest(contact_attribute)[0..9].upcase
   end
   
   def update_sync_options (params)
+    unless params[:contact_attributes].nil?
+      remove_unused_fields_in_mailchimp(
+        contact_attributes.split(",") - params[:contact_attributes].split(",")
+        ) unless contact_attributes.nil?
+      update_attribute(:contact_attributes, params[:contact_attributes])
+      add_custom_fields_in_mailchimp
+    end
+
     if !params[:list_id].nil? && params[:list_id] != list_id
       update_attribute(:list_id, params[:list_id])
       update_fields_in_mailchimp
@@ -245,6 +297,7 @@ class MailchimpSynchronizer
     if !params[:api_key].nil? && params[:api_key] != api_key
       update_attribute(:api_key, params[:api_key])
     end
+
   end
   
   def get_scope
