@@ -1,6 +1,6 @@
 # @restful_api v0
 class V0::MailchimpSynchronizersController < V0::ApplicationController
-
+  rescue_from Gibbon::MailChimpError, with: :mailchimp_error
   authorize_resource
 
   before_filter :get_account
@@ -76,5 +76,19 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
       render json: 'Synchronizer missing', status: 400
     end
   end
+
+  protected
+
+    def mailchimp_error(exception)
+      message = 
+      case exception.message
+      when /Invalid MailChimp List ID/
+        t('errors.mailchimp.list_not_found')
+      else
+        exception.message
+      end
+      render json: message, status: 500
+      return
+    end
 
 end
