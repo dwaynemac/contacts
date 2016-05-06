@@ -19,7 +19,10 @@ describe MailchimpSynchronizer do
         expect{sync.subscribe_contacts_without_delay}.to raise_exception
       end
       it "sends email to padma admins" do
-        expect {sync.subscribe_contacts_without_delay}.to change { ActionMailer::Base.deliveries.count }.by(1)
+        deliveries = ActionMailer::Base.deliveries.count
+        expect{sync.subscribe_contacts_without_delay}.to raise_exception
+        # Action Mailer should have one more mail delivered
+        deliveries.should == ActionMailer::Base.deliveries.count - 1
       end
     end
     context "if mailchimp fails erratically" do

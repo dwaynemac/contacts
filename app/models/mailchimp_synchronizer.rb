@@ -48,7 +48,7 @@ class MailchimpSynchronizer
           retry
         else
           Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
-          email_admins_about_failure
+          email_admins_about_failure(e.message)
           update_attribute(:status, :failed)
           raise e
         end
@@ -363,8 +363,8 @@ class MailchimpSynchronizer
     end
   end
 
-  def email_admins_about_failure
-    ContactsMailer.alert_failure.deliver
+  def email_admins_about_failure(error_message)
+    ContactsMailer.alert_failure.deliver(error_message)
   end
 
   def set_default_attributes
