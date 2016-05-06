@@ -18,6 +18,9 @@ describe MailchimpSynchronizer do
       it "re-raises Gibbon::MailChimpError" do
         expect{sync.subscribe_contacts_without_delay}.to raise_exception
       end
+      it "sends email to padma admins" do
+        expect {sync.subscribe_contacts_without_delay}.to change { ActionMailer::Base.deliveries.count }.by(1)
+      end
     end
     context "if mailchimp fails erratically" do
       before do

@@ -23,7 +23,7 @@ class MailchimpSynchronizer
 
   CONTACTS_BATCH_SIZE = 1000
 
-  RETRIES = 10
+  RETRIES = 2
   def subscribe_contacts
     return unless status == :ready
     retries = RETRIES
@@ -48,6 +48,7 @@ class MailchimpSynchronizer
           retry
         else
           Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
+          email_admins_about_failure
           update_attribute(:status, :failed)
           raise e
         end
@@ -360,6 +361,10 @@ class MailchimpSynchronizer
         raise
       end
     end
+  end
+
+  def email_admins_about_failure
+    ContactsMailer.alert_failure.deliver
   end
 
   def set_default_attributes
