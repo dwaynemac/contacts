@@ -60,12 +60,16 @@ class MailchimpSegment
   def sync_before_segment_destruction
     synchro = mailchimp_synchronizer
     
-    if !mailchimp_id.nil?
-      api = Gibbon::API.new(synchro.api_key)
-      api.lists.segment_del({
-        id: synchro.list_id,
-        seg_id: mailchimp_id     
-      })
+    begin
+      if !mailchimp_id.nil?
+        api = Gibbon::API.new(synchro.api_key)
+        api.lists.segment_del({
+          id: synchro.list_id,
+          seg_id: mailchimp_id     
+        })
+      end
+    rescue Gibbon::MailChimpError => e
+      raise unless e.message =~ /Invalid MailChimp List ID/
     end
 
     if synchro.filter_method == 'segments'
