@@ -22,6 +22,8 @@ gem 'gibbon'
 
 gem 'kaminari', '~> 0.13'
 
+gem 'aws-ses'
+
 gem 'oj'
 
 gem 'rmagick'
