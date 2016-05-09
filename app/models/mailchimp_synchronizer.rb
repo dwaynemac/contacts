@@ -364,7 +364,7 @@ class MailchimpSynchronizer
   end
 
   def email_admins_about_failure(account_name, error_message)
-    ContactsMailer.alert_failure.deliver(error_message)
+    ContactsMailer.alert_failure(account_name, error_message).deliver
   end
 
   def set_default_attributes

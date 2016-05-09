@@ -11,9 +11,10 @@ describe MailchimpSynchronizer do
       contact.accounts << account
       sync.save
     end
-    context "if mailchimp fails concistenly" do
+    context "if mailchimp fails consistenly" do
       before do
         Gibbon::API.any_instance.stub(:lists).and_raise(Gibbon::MailChimpError)
+        stub_const("MailchimpSynchronizer::RETRIES", 1)
       end
       it "re-raises Gibbon::MailChimpError" do
         expect{sync.subscribe_contacts_without_delay}.to raise_exception
