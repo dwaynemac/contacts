@@ -4,6 +4,6 @@ class ContactsMailer < ActionMailer::Base
   def alert_failure(account_name, error_message)
     @body[:error_message] = error_message
     @body[:account_name] = account_name
-    mail(to: "padma@metododerose.org", subject: "Fallo la sincronización de MailChimp")
+    mail(to: "padma@metododerose.org", subject: "Fallo la sincronizacion de MailChimp")
   end
 end
