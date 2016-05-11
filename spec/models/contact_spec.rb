@@ -1260,4 +1260,58 @@ describe Contact do
                         historiable_id: @contact._id
     )
   end
+
+  describe "after_create" do
+    context "when account is linked to MailChimp" do
+      context "and contact is to be subscribed" do
+        it "should call MailChimp via api to subscribe contact" do
+        end
+      end
+      context "and contact is not to be subscribed" do
+        it "should not call MailChimp via api to subscribe contact" do
+        end
+      end
+    end
+
+    describe "when account is not linked to MailChimp" do
+      it "should not call MailChimp via api to subscribe contact" do
+      end
+    end
+  end
+
+  describe "after_update" do
+    context "when account is linked to MailChimp" do
+      context "and contact is to be subscribed" do
+        it "should call MailChimp via api to update contact" do
+        end
+      end
+      context "and contact is not to be subscribed" do
+        it "should not call MailChimp via api to update contact" do
+        end
+      end
+    end
+
+    describe "when account is not linked to MailChimp" do
+      it "should not call MailChimp via api to update contact" do
+      end
+    end
+  end
+
+  describe "after_delete" do
+    context "when account is linked to MailChimp" do
+      context "and contact is to be subscribed" do
+        it "should call MailChimp via api to unsubscribe contact" do
+        end
+      end
+      context "and contact is not to be subscribed" do
+        it "should not call MailChimp via api to unsubscribe contact" do
+        end
+      end
+    end
+
+    describe "when account is not linked to MailChimp" do
+      it "should not call MailChimp via api to unsubscribe contact" do
+      end
+    end
+  end
 end
