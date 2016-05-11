@@ -1262,13 +1262,35 @@ describe Contact do
   end
 
   describe "after_create" do
+    before do
+      @account = Account.make
+      @c = Contact.make(owner: @account)
+      @c.status = :student
+    end
     context "when account is linked to MailChimp" do
+      before do
+        @ms = MailchimpSynchronizer.create(account: @account)
+      end
       context "and contact is to be subscribed" do
+        before do
+          @ms.filter_method = "all"
+          @ms.save
+        end
         it "should call MailChimp via api to subscribe contact" do
         end
       end
       context "and contact is not to be subscribed" do
+        before do
+          @ms.filter_method = "segments"
+          @ms.save
+          mss = @ms.mailchimp_segments.new(name: "my_segment", coefficients: [], followed_by: [])
+          mss.statuses = ["prospect"]
+          Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({'id' => "1234"})
+          mss.save
+        end
         it "should not call MailChimp via api to subscribe contact" do
+          expect(Gibbon::API.any_instance).to receive(:subscribe)
+          @c.save
         end
       end
     end
