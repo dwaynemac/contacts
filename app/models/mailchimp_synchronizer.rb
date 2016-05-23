@@ -126,12 +126,14 @@ class MailchimpSynchronizer
       SYSSTATUS: get_system_status(contact),
       FOLLOWEDBY: get_followers_for(contact),
     } 
-    contact_attributes.split(",").each do |contact_attribute|
-      if %w(email telephone address custom_attribute date_attribute identification occupation 
-      contact_attachment social_network_id).include? contact_attribute
-        response[get_tag_for(contact_attribute)] = contact.send(contact_attribute.pluralize).first.try :value
-      else
-        response[get_tag_for(contact_attribute)] = contact.contact_attributes.where(name: contact_attribute).first.try :value
+    if contact_attributes
+      contact_attributes.split(",").each do |contact_attribute|
+        if %w(email telephone address custom_attribute date_attribute identification occupation 
+        contact_attachment social_network_id).include? contact_attribute
+          response[get_tag_for(contact_attribute)] = contact.send(contact_attribute.pluralize).first.try :value
+        else
+          response[get_tag_for(contact_attribute)] = contact.contact_attributes.where(name: contact_attribute).first.try :value
+        end
       end
     end
     response
