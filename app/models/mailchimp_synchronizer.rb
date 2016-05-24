@@ -26,12 +26,14 @@ class MailchimpSynchronizer
   RETRIES = 10
   def subscribe_contacts
     return unless status == :ready
+    Rails.logger.info "[mailchimp_synchronizer #{self.id}] starting"
     retries = RETRIES
 
     update_attribute(:status, :working)
     set_api
     set_i18n
     get_scope.page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
+      Rails.logger.info "[mailchimp_synchronizer #{self.id}] batch #{i}"
       page = get_scope.page(i + 1).per(CONTACTS_BATCH_SIZE)
       begin
         @api.lists.batch_subscribe({
