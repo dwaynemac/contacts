@@ -1264,12 +1264,13 @@ describe Contact do
   describe "after_create" do
     before do
       @account = Account.make
-      @c = Contact.make(owner: @account)
+      @c = Contact.new(owner: @account)
+      @c.first_name = "Alex"
       @c.status = :student
     end
     context "when account is linked to MailChimp" do
       before do
-        @ms = MailchimpSynchronizer.create(account: @account)
+        @ms = MailchimpSynchronizer.create(account_id: @account.id, status: :ready)
       end
       context "and contact is to be subscribed" do
         before do
@@ -1277,6 +1278,14 @@ describe Contact do
           @ms.save
         end
         it "should call MailChimp via api to subscribe contact" do
+          Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
+          MailchimpSynchronizer.any_instance.should_receive(:subscribe_contact).once
+          @c.save
+        end
+        it "contact should be in scope to be subscribed" do
+          Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
+          MailchimpSynchronizer.any_instance.should_receive(:is_in_scope).and_return(true)
+          @c.save
         end
       end
       context "and contact is not to be subscribed" do
@@ -1285,26 +1294,53 @@ describe Contact do
           @ms.save
           mss = @ms.mailchimp_segments.new(name: "my_segment", coefficients: [], followed_by: [])
           mss.statuses = ["prospect"]
+          Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
           Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({'id' => "1234"})
           mss.save
         end
         it "should not call MailChimp via api to subscribe contact" do
-          expect(Gibbon::API.any_instance).to receive(:subscribe)
+          @ms.status.should == :ready
+          #expect(MailchimpSynchronizer.any_instance).to receive(:is_in_scope).and_return(false)
+          MailchimpSynchronizer.any_instance.should_not_receive(:update_contact)
+          MailchimpSynchronizer.any_instance.should_receive(:is_in_scope).and_return(false)
           @c.save
         end
       end
     end
-
-    describe "when account is not linked to MailChimp" do
-      it "should not call MailChimp via api to subscribe contact" do
+    context "when account is not linked to MailChimp" do
+      it "should not subscribe contact" do
+        MailchimpSynchronizer.any_instance.should_not_receive(:subscribe_contact)
+        @c.save
       end
     end
   end
 
   describe "after_update" do
+    before do
+      @account = Account.make
+      @c = Contact.new(owner: @account)
+      @c.first_name = "Alex"
+      @c.status = :student
+      @c.save
+    end
     context "when account is linked to MailChimp" do
+      before do
+        @ms = MailchimpSynchronizer.create(account_id: @account.id, status: :ready)
+      end
       context "and contact is to be subscribed" do
+        before do
+          @ms.filter_method = "all"
+          @ms.save
+          @c.last_name = "Falke"
+          Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
+        end
+        it "it should be in scope to update in MailChimp" do
+          MailchimpSynchronizer.any_instance.should_receive(:is_in_scope).and_return(true)
+          @c.save
+        end
         it "should call MailChimp via api to update contact" do
+          MailchimpSynchronizer.any_instance.should_receive(:update_contact).once
+          @c.save
         end
       end
       context "and contact is not to be subscribed" do

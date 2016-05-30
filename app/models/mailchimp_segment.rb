@@ -46,7 +46,7 @@ class MailchimpSegment
       }
     end
     
-    if !gender.nil?
+    if !gender.blank?
       criteria << {"gender" => gender}
     end
 
