@@ -32,12 +32,16 @@ class Contact
 
   has_many :history_entries, as: 'historiable', dependent: :delete
   after_save :keep_history_of_changes
+  after_update :update_contact_in_mailchimp
   attr_accessor :skip_history_entries # default: nil
 
   after_save :post_activity_if_level_changed
   attr_accessor :skip_level_change_activity # default: nil
 
   after_create :post_activity_of_creation
+  after_create :add_contact_to_mailchimp
+
+  before_destroy :delete_contact_from_mailchimp
 
   field :first_name
   field :last_name
@@ -720,6 +724,32 @@ class Contact
       if da.new_record?
         da.value = DateAttribute.new(da.attributes).set_value
       end
+    end
+  end
+
+  def add_contact_to_mailchimp
+    # check whether account is subscribed to mailchimp
+    ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
+    unless ms.empty?
+      ms.first.subscribe_contact(id)
+    end
+  end
+
+  def update_contact_in_mailchimp
+    # check whether account is subscribed to mailchimp
+    ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
+    unless ms.empty?
+      reference_email = primary_attribute(owner, "Email")
+      mail = reference_email.value_changed? ? reference_email.value_was : reference_email.value
+      ms.first.update_contact(id, mail)
+    end
+  end
+
+  def delete_contact_from_mailchimp
+    # check whether account is subscribed to mailchimp
+    ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
+    unless ms.empty?
+      ms.first.unsubscribe_contact(id)
     end
   end
 
