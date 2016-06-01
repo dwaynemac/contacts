@@ -5,11 +5,12 @@ describe MailchimpSynchronizer do
   let(:sync){MailchimpSynchronizer.new(account: account)}
   let(:contact){Contact.make}
 
-
+  
   describe "#subscribe_contacts" do
     before do
       contact.accounts << account
       sync.save
+      sync.status = :ready
     end
     context "if mailchimp fails consistenly" do
       before do
@@ -120,6 +121,48 @@ describe MailchimpSynchronizer do
       it "returns i18n key 'mailchimp.gender.female'" do
 
         expect(sync.get_gender_translation(contact)).to eq I18n.t('mailchimp.gender.female')
+      end
+    end
+  end
+
+  describe "on create" do
+    it "should set status to :setting_up" do
+      ms = MailchimpSynchronizer.new
+      ms.account = account
+      ms.save
+      ms.status.should == :setting_up
+    end
+  end
+
+  describe "when updating" do
+    before do
+      @ms = MailchimpSynchronizer.new
+      @ms.account = account
+      @ms.save
+    end
+    context "when mailchimp configuration isn't finished" do
+      before do
+        @ms.list_id = "1234"
+      end
+      it "should not subscribe contacts" do
+        MailchimpSynchronizer.any_instance.should_receive(:completed_initial_setup?).and_return(false)
+        MailchimpSynchronizer.any_instance.should_not_receive(:subscribe_contacts)
+        @ms.save
+      end
+    end
+    context "when mailchimp configuration is finished" do
+      before do
+        @ms.list_id = "1234"
+        @ms.api_key = "123123"
+        @ms.save
+        Gibbon::API.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
+        @ms.mailchimp_segments.create(statuses: "", coefficients: "", gender: "", followed_by: "")
+        @ms.filter_method = "segments"
+      end
+      it "should subscribe contacts" do
+        MailchimpSynchronizer.any_instance.should_receive(:completed_initial_setup?).and_return(true)
+        MailchimpSynchronizer.any_instance.should_receive(:subscribe_contacts)
+        @ms.save
       end
     end
   end
