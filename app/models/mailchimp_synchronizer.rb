@@ -19,7 +19,7 @@ class MailchimpSynchronizer
   
   before_create :set_default_attributes
   before_save :set_status
-  after_save :subscribe_contacts
+  after_save :update_contact_list
   
   before_destroy :destroy_segments
 
@@ -390,7 +390,11 @@ class MailchimpSynchronizer
   end
 
   def set_status
-    self.status = :ready if (status == :setting_up) && completed_initial_setup?
+    self.status = :ready if completed_initial_setup? && status == :setting_up
+  end
+
+  def update_contact_list
+    subscribe_contacts unless status == :setting_up
   end
 
   def completed_initial_setup?
