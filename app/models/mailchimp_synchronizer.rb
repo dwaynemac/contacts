@@ -390,7 +390,7 @@ class MailchimpSynchronizer
   end
 
   def set_status
-    self.status = :ready if completed_initial_setup? && status == :setting_up
+    self.status = :ready if (status == :setting_up) && completed_initial_setup?
   end
 
   def update_contact_list
