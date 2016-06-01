@@ -18,6 +18,8 @@ class MailchimpSynchronizer
   has_many :mailchimp_segments
   
   before_create :set_default_attributes
+  before_save :set_status
+  after_save :update_contact_list
   
   before_destroy :destroy_segments
 
@@ -46,7 +48,7 @@ class MailchimpSynchronizer
         Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
         retries -= 1
         if retries >= 0
-          # sleep((RETRIES-retries)*10)
+          sleep((RETRIES-retries)*10)
           retry
         else
           Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
@@ -288,7 +290,6 @@ class MailchimpSynchronizer
     if !params[:list_id].nil? && params[:list_id] != list_id
       update_attribute(:list_id, params[:list_id])
       update_fields_in_mailchimp
-      subscribe_contacts
       initialize_list_groups
     end
     
@@ -372,8 +373,8 @@ class MailchimpSynchronizer
   end
 
   def set_default_attributes
-    self.status = :ready
-    self.filter_method = 'segments'
+    self.status = :setting_up
+    self.filter_method = nil
     self.contact_attributes = ""
   end
   
@@ -386,5 +387,19 @@ class MailchimpSynchronizer
       Rails.logger.info "MAILCHIMP - synchronizing #{ms.account.name}"
       ms.subscribe_contacts # this will queue to background
     end
+  end
+
+  def set_status
+    self.status = :ready if completed_initial_setup?
+  end
+
+  def update_contact_list
+    subscribe_contacts unless status == :setting_up
+  end
+
+  def completed_initial_setup?
+    list_id.present? && (
+      !mailchimp_segments.empty? || filter_method == 'all'
+    )
   end
 end
