@@ -43,6 +43,82 @@ describe MailchimpSynchronizer do
         expect{sync.subscribe_contacts_without_delay}.not_to raise_exception
       end
     end
+    context "on the first subscription" do
+      context "all contacts should be send to mailchimp" do
+        it "scopes all contacts" do
+          Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+          @c = Contact.make
+          @c.accounts << account
+          @c.save
+          sync.api_key = "123123"
+          sync.filter_method = "all"
+          sync.save
+
+          sync.last_synchronization.should be_nil
+          sync.get_scope.count.should == 2
+        end
+      end
+    end
+    context "when subscription has been updated" do
+      context "with filter_method: :all" do
+        before do
+          Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+          @c = Contact.make
+          @c.accounts << account
+          @c.save
+          sync.api_key = "123123"
+          sync.filter_method = "all"
+          sync.save
+          sync.subscribe_contacts_without_delay
+        end
+        describe "and no contact was has been updated since last sincronization" do
+          it "should not get any contacts to subscribe" do
+            sync.get_scope.count.should == 0
+          end
+        end
+        describe "and one or more contacts had changes in between sincronizations" do
+          it "only those contacts should be updated in mailchimp" do
+            @c.last_name = "Falke"
+            sleep(2)
+            @c.save
+
+            sync.get_scope.count.should == 1
+          end
+        end
+      end
+      context "with filter_method: :segments" do
+        before do
+          Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+          Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
+          @c = Contact.make
+          @c.local_unique_attributes << LocalStatus.create(account_id: account.id, value: :status)
+          @c.accounts << account
+          @c.save
+          sync.mailchimp_segments << MailchimpSegment.new(status: ["student"], followed_by: [])
+          sync.api_key = "123123"
+          sync.filter_method = "segments"
+          sync.save
+          sync.subscribe_contacts_without_delay
+        end
+        describe "and no contact was has been updated since last sincronization" do
+          it "should not get any contacts to subscribe" do
+            sync.get_scope.count.should == 0
+          end
+        end
+        describe "and one or more contacts had changes in between sincronizations" do
+          it "only those contacts should be updated in mailchimp" do
+            cs = Contact.make
+            cs.accounts << account
+            cs.save
+            @c.last_name = "Falke"
+            sleep(2)
+            @c.save
+
+            sync.get_scope.count.should == 1
+          end
+        end
+      end
+    end
   end
 
   describe "#get_scope" do

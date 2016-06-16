@@ -9,6 +9,7 @@ class MailchimpSynchronizer
   field :filter_method
   field :coefficient_group
   field :contact_attributes
+  field :last_synchronization
 
   attr_accessor :has_coefficient_group
 
@@ -60,6 +61,7 @@ class MailchimpSynchronizer
         retry
       end
     end
+    update_attribute(:last_synchronization, DateTime.now.to_s)
     update_attribute(:status, :ready)
     return true
   rescue => e
@@ -294,7 +296,7 @@ class MailchimpSynchronizer
     
     if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
       if filter_method == 'all' && params[:filter_method] == 'segments'
-        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})      
+        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true, last_synchronization)})      
       end
       update_attribute(:filter_method, params[:filter_method])
     end
@@ -306,11 +308,11 @@ class MailchimpSynchronizer
   end
   
   def get_scope
-    return account.contacts if self.filter_method == 'all'
+    return account.contacts.where(:updated_at.gt => last_synchronization || "1/1/2000 00:00") if self.filter_method == 'all'
     if mailchimp_segments.empty?
-      Contact.any_in( account_ids: [self.account.id] )
+      Contact.any_in( account_ids: [self.account.id] ).where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
     else
-      Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
+      Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query(last_synchronization)})
     end
   end
   
