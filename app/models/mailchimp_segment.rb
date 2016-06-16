@@ -16,7 +16,7 @@ class MailchimpSegment
   before_destroy :sync_before_segment_destruction 
   before_create :create_segment_in_mailchimp
   
-  def to_query (negative = false)
+  def to_query (negative = false, last_synchronization)
     query = {}
     
     in_or_not_in = "$in"
@@ -26,6 +26,11 @@ class MailchimpSegment
     and_or_or = "$or" if negative
     
     criteria = []
+
+    unless last_synchronization.nil?
+      criteria << {:updated_at.gt => last_synchronization}
+    end
+
     if !statuses.empty?
       criteria << {"local_unique_attributes" => 
         {"$elemMatch" => {

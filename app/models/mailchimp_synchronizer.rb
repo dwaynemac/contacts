@@ -9,6 +9,7 @@ class MailchimpSynchronizer
   field :filter_method
   field :coefficient_group
   field :contact_attributes
+  field :last_synchronization
 
   attr_accessor :has_coefficient_group
 
@@ -18,6 +19,7 @@ class MailchimpSynchronizer
   has_many :mailchimp_segments
   
   before_create :set_default_attributes
+  after_save :finish_setup
   
   before_destroy :destroy_segments
 
@@ -26,12 +28,14 @@ class MailchimpSynchronizer
   RETRIES = 10
   def subscribe_contacts
     return unless status == :ready
+    Rails.logger.info "[mailchimp_synchronizer #{self.id}] starting"
     retries = RETRIES
 
     update_attribute(:status, :working)
     set_api
     set_i18n
     get_scope.page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
+      Rails.logger.info "[mailchimp_synchronizer #{self.id}] batch #{i}"
       page = get_scope.page(i + 1).per(CONTACTS_BATCH_SIZE)
       begin
         @api.lists.batch_subscribe({
@@ -48,6 +52,7 @@ class MailchimpSynchronizer
           retry
         else
           Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
+          email_admins_about_failure(account.name, e.message)
           update_attribute(:status, :failed)
           raise e
         end
@@ -56,6 +61,7 @@ class MailchimpSynchronizer
         retry
       end
     end
+    update_attribute(:last_synchronization, DateTime.now.to_s)
     update_attribute(:status, :ready)
     return true
   rescue => e
@@ -125,12 +131,14 @@ class MailchimpSynchronizer
       SYSSTATUS: get_system_status(contact),
       FOLLOWEDBY: get_followers_for(contact),
     } 
-    contact_attributes.split(",").each do |contact_attribute|
-      if %w(email telephone address custom_attribute date_attribute identification occupation 
-      contact_attachment social_network_id).include? contact_attribute
-        response[get_tag_for(contact_attribute)] = contact.send(contact_attribute.pluralize).first.try :value
-      else
-        response[get_tag_for(contact_attribute)] = contact.contact_attributes.where(name: contact_attribute).first.try :value
+    if contact_attributes
+      contact_attributes.split(",").each do |contact_attribute|
+        if %w(email telephone address custom_attribute date_attribute identification occupation 
+        contact_attachment social_network_id).include? contact_attribute
+          response[get_tag_for(contact_attribute)] = contact.send(contact_attribute.pluralize).first.try :value
+        else
+          response[get_tag_for(contact_attribute)] = contact.contact_attributes.where(name: contact_attribute).first.try :value
+        end
       end
     end
     response
@@ -283,13 +291,12 @@ class MailchimpSynchronizer
     if !params[:list_id].nil? && params[:list_id] != list_id
       update_attribute(:list_id, params[:list_id])
       update_fields_in_mailchimp
-      subscribe_contacts
       initialize_list_groups
     end
     
     if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
       if filter_method == 'all' && params[:filter_method] == 'segments'
-        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})      
+        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true, last_synchronization)})      
       end
       update_attribute(:filter_method, params[:filter_method])
     end
@@ -426,11 +433,11 @@ class MailchimpSynchronizer
   end
 
   def get_scope
-    return account.contacts if self.filter_method == 'all'
+    return account.contacts.where(:updated_at.gt => last_synchronization || "1/1/2000 00:00") if self.filter_method == 'all'
     if mailchimp_segments.empty?
-      Contact.any_in( account_ids: [self.account.id] )
+      Contact.any_in( account_ids: [self.account.id] ).where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
     else
-      Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
+      Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query(last_synchronization)})
     end
   end
 
@@ -492,9 +499,13 @@ class MailchimpSynchronizer
     end
   end
 
+  def email_admins_about_failure(account_name, error_message)
+    ContactsMailer.alert_failure(account_name, error_message).deliver
+  end
+
   def set_default_attributes
-    self.status = :ready
-    self.filter_method = 'segments'
+    self.status = :setting_up
+    self.filter_method = nil
     self.contact_attributes = ""
   end
   
@@ -507,5 +518,17 @@ class MailchimpSynchronizer
       Rails.logger.info "MAILCHIMP - synchronizing #{ms.account.name}"
       ms.subscribe_contacts # this will queue to background
     end
+  end
+
+  def finish_setup
+    if (status == :setting_up) && completed_initial_setup?
+      update_attribute :status, :ready
+    end
+  end
+
+  def completed_initial_setup?
+    list_id.present? && (
+      !mailchimp_segments.empty? || filter_method == 'all'
+    )
   end
 end
