@@ -735,13 +735,12 @@ class Contact
     end
   end
 
-  def update_contact_in_mailchimp
+  def update_contact_in_mailchimp(reference_email = nil)
     # check whether account is subscribed to mailchimp
     ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
     unless ms.empty?
-      reference_email = primary_attribute(owner, "Email")
-      mail = reference_email.value_changed? ? reference_email.value_was : reference_email.value
-      ms.first.update_contact(id, mail)
+      reference_email = primary_attribute(owner, "Email").value if reference_email.nil? && primary_attribute(owner, "Email")
+      ms.first.update_contact(id, reference_email)
     end
   end
 
