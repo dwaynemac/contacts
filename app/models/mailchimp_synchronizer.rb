@@ -204,7 +204,6 @@ class MailchimpSynchronizer
                   account_name: account.name,
                   contact_id: contact.id}
       ) 
-
     if response.code == 200
       followers = JSON.parse(response.body)
     end
@@ -296,7 +295,7 @@ class MailchimpSynchronizer
     
     if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
       if filter_method == 'all' && params[:filter_method] == 'segments'
-        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true, last_synchronization)})      
+        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})      
       end
       update_attribute(:filter_method, params[:filter_method])
     end
@@ -348,29 +347,21 @@ class MailchimpSynchronizer
   end
   
   def update_contact(contact_id, old_mail)
-    puts ""
-    puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~4"
-    puts "status: #{status}"
-    puts "in scope? => #{is_in_scope(contact_id)}"
     return unless status == :ready && is_in_scope(contact_id) == true
-    puts "lets do it"
     retries = RETRIES
-
+    
     update_attribute(:status, :working)
     c = Contact.find contact_id
     set_api
     set_i18n
-    puts "to begin with reference mail: #{old_mail}"
     merge_vars = merge_vars_for_contact(c)
     merge_vars['EMAIL'] = get_primary_attribute_value(c, 'Email')
-    puts "and new mail: #{get_primary_attribute_value(c, 'Email')}"
     begin
       resp = @api.lists.update_member({
         id: list_id,
         email: {email: old_mail},
-        merge_vars: merge_vars_for_contact(c)
+        merge_vars: merge_vars
       })
-      puts "response: #{resp}"
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
       retries -= 1
@@ -394,6 +385,7 @@ class MailchimpSynchronizer
     wait_and_set_ready # this will run on the background and set this to ready for retry
     raise e
   end
+  handle_asynchronously :update_contact
 
   def unsubscribe_contact(contact_id)
     return unless status == :ready && is_in_scope(contact_id) == true
@@ -431,13 +423,14 @@ class MailchimpSynchronizer
     wait_and_set_ready # this will run on the background and set this to ready for retry
     raise e
   end
+  handle_asynchronously :unsubscribe_contact
 
   def get_scope
     return account.contacts.where(:updated_at.gt => last_synchronization || "1/1/2000 00:00") if self.filter_method == 'all'
     if mailchimp_segments.empty?
       Contact.any_in( account_ids: [self.account.id] ).where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
     else
-      Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query(last_synchronization)})
+      Contact.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
     end
   end
 

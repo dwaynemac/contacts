@@ -23,4 +23,21 @@ describe Email do
     c.save!
     c.global_primary_attribute('Email').value.should == "eva_pilot_01@gmail.com"
   end
+
+  describe "on #update" do
+    context "value is being changed" do
+      before do
+        @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+        @c.save!
+        @c.contact_attributes.first.value = "bart2@thesimpsons.com"
+      end
+      it "should call update_contact_in_mailchimp with previous value" do
+        Contact.any_instance.should_receive(:update_contact_in_mailchimp).with().once
+        Contact.any_instance.should_receive(:update_contact_in_mailchimp).with("bart@thesimpsons.com").once
+        @c.save
+        @c.contact_attributes.first.value.should == "bart2@thesimpsons.com"
+      end
+    end
+  end
 end

@@ -90,8 +90,8 @@ describe MailchimpSynchronizer do
         before do
           Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
           Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
-          @c = Contact.make
-          @c.local_unique_attributes << LocalStatus.create(account_id: account.id, value: :status)
+          @c = Contact.make(first_name: "Alex", last_name: "Halcon")
+          @c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
           @c.accounts << account
           @c.save
           sync.mailchimp_segments << MailchimpSegment.new(status: ["student"], followed_by: [])
@@ -107,14 +107,15 @@ describe MailchimpSynchronizer do
         end
         describe "and one or more contacts had changes in between sincronizations" do
           it "only those contacts should be updated in mailchimp" do
-            cs = Contact.make
+            cs = Contact.make(first_name: "Beto", last_name: "Alonso")
             cs.accounts << account
-            cs.save
+            cs.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
             @c.last_name = "Falke"
             sleep(2)
+            cs.save
             @c.save
 
-            sync.get_scope.count.should == 1
+            sync.get_scope.count.should == 2
           end
         end
       end
