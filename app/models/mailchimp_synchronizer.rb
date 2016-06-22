@@ -387,18 +387,17 @@ class MailchimpSynchronizer
   end
   handle_asynchronously :update_contact
 
-  def unsubscribe_contact(contact_id)
+  def unsubscribe_contact(contact_id, email)
     return unless status == :ready && is_in_scope(contact_id) == true
     retries = RETRIES
 
     update_attribute(:status, :working)
-    c = Contact.find contact_id
     set_api
     set_i18n
     begin
       @api.lists.unsubscribe({
         id: list_id,
-        email: {email: get_primary_attribute_value(c, 'Email')}
+        email: {email: email}
       })
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
