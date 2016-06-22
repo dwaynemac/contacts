@@ -3,6 +3,7 @@ class Email < ContactAttribute
   before_validation :strip_whitespace
   before_save :normalize_email
   before_save :update_contact_in_mailchimp
+  before_destroy :delete_contact_from_mailchimp
 
   field :category
 
@@ -24,6 +25,14 @@ class Email < ContactAttribute
   end
 
   def update_contact_in_mailchimp
-    contact.update_contact_in_mailchimp(self.value_was) if self.value_changed?
+    if self.primary? && self.value_changed?
+      contact.update_contact_in_mailchimp(self.value_was)
+    end
+  end
+
+  def delete_contact_from_mailchimp
+    if self.primary?
+      contact.delete_contact_from_mailchimp(self.value_was)
+    end
   end
 end
