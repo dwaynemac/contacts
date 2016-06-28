@@ -345,6 +345,7 @@ class MailchimpSynchronizer
     wait_and_set_ready # this will run on the background and set this to ready for retry
     raise e
   end
+  handle_asynchronously :subscribe_contact
   
   def update_contact(contact_id, old_mail)
     return unless status == :ready && is_in_scope(contact_id) == true
