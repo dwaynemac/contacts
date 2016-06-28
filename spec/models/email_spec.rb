@@ -59,6 +59,56 @@ describe Email do
         end
       end
     end
+    context "neither value or primary are being changed" do
+      before do
+        @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "maggie@thesimpsons.com")
+        @c.save!
+        @c.contact_attributes.first.destroy
+        @c.contact_attributes.first.category = "other"
+      end
+      it "should call update_contact_in_mailchimp with previous value" do
+        Contact.any_instance.should_receive(:update_contact_in_mailchimp).with().once
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("bart@thesimpsons.com")
+        @c.save
+      end
+    end
+    context "when no longer primary" do
+      before do
+        @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "maggie@thesimpsons.com")
+        @c.contact_attributes.first.primary = true
+        @c.contact_attributes.last.primary = true
+      end
+      it "should call delete_contact_from_mailchimp with its value" do
+        expect(@c).to receive(:update_contact_in_mailchimp).with().once
+        expect(@c).to receive(:delete_contact_from_mailchimp).with("bart@thesimpsons.com")
+        expect(@c).to receive(:add_contact_to_mailchimp).with("maggie@thesimpsons.com")
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("bart@thesimpsons.com")
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("maggie@thesimpsons.com")
+        Contact.any_instance.should_not_receive(:add_contact_to_mailchimp)
+        @c.save
+      end
+    end
+    context "when turning primary" do
+      before do
+        @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "maggie@thesimpsons.com")
+        @c.save!
+        @c.contact_attributes.first.destroy
+        @c.contact_attributes.first.primary = true
+      end
+      it "should call subscribe_contact_in_mailchimp with its value" do
+        Contact.any_instance.should_receive(:update_contact_in_mailchimp).with().once
+        Contact.any_instance.should_receive(:add_contact_to_mailchimp).with("maggie@thesimpsons.com").once
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("bart@thesimpsons.com")
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("maggie@thesimpsons.com")
+        @c.save
+      end
+    end
   end
 
   describe "on #delete" do
