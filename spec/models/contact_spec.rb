@@ -1269,6 +1269,9 @@ describe Contact do
       @c.first_name = "Alex"
       @c.status = :student
     end
+    after do
+      Delayed::Worker.delay_jobs = true
+    end
     context "when account is linked to MailChimp" do
       before do
         @ms = MailchimpSynchronizer.create(account_id: @account.id, status: :ready)
@@ -1327,6 +1330,9 @@ describe Contact do
       @c.contact_attributes << Email.new(:category => :personal, :value => "alex@falke.com")
       @c.status = :student
       @c.save
+    end
+    after do
+      Delayed::Worker.delay_jobs = true
     end
     context "when account is linked to MailChimp" do
       before do
