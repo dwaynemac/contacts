@@ -1263,6 +1263,7 @@ describe Contact do
 
   describe "after_create" do
     before do
+      Delayed::Worker.delay_jobs = false
       @account = Account.make
       @c = Contact.new(owner: @account)
       @c.first_name = "Alex"
@@ -1274,8 +1275,9 @@ describe Contact do
       end
       context "and contact is to be subscribed" do
         before do
+          @ms.list_id = "1234"
           @ms.filter_method = "all"
-          @ms.save
+          @ms.save!
         end
         it "should call MailChimp via api to subscribe contact" do
           Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
@@ -1291,16 +1293,17 @@ describe Contact do
       context "and contact is not to be subscribed" do
         before do
           @ms.filter_method = "segments"
+          @ms.list_id = "1234"
           @ms.save
           mss = @ms.mailchimp_segments.new(name: "my_segment", coefficients: [], followed_by: [])
           mss.statuses = ["prospect"]
           Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
           Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({'id' => "1234"})
           mss.save
+          @ms.save!
         end
         it "should not call MailChimp via api to subscribe contact" do
           @ms.status.should == :ready
-          #expect(MailchimpSynchronizer.any_instance).to receive(:is_in_scope).and_return(false)
           MailchimpSynchronizer.any_instance.should_not_receive(:update_contact)
           MailchimpSynchronizer.any_instance.should_receive(:is_in_scope).and_return(false)
           @c.save
@@ -1317,9 +1320,11 @@ describe Contact do
 
   describe "after_update" do
     before do
+      Delayed::Worker.delay_jobs = false
       @account = Account.make
       @c = Contact.new(owner: @account)
       @c.first_name = "Alex"
+      @c.contact_attributes << Email.new(:category => :personal, :value => "alex@falke.com")
       @c.status = :student
       @c.save
     end
@@ -1330,11 +1335,14 @@ describe Contact do
       context "and contact is to be subscribed" do
         before do
           @ms.filter_method = "all"
-          @ms.save
+          @ms.list_id = "1234"
+          @ms.save!
           @c.last_name = "Falke"
           Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
+          Gibbon::API.any_instance.stub_chain(:lists, :update_member)
         end
         it "it should be in scope to update in MailChimp" do
+          @ms.status.should == :ready
           MailchimpSynchronizer.any_instance.should_receive(:is_in_scope).and_return(true)
           @c.save
         end

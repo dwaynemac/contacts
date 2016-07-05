@@ -731,7 +731,6 @@ class Contact
   def add_contact_to_mailchimp(reference_email = nil)
     # check whether account is subscribed to mailchimp
     ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
-    email = reference_email.blank? ? (primary_attribute(owner, "Email").try :value) : reference_email
     unless ms.empty?
       ms.first.subscribe_contact(id)
     end
@@ -750,8 +749,8 @@ class Contact
   def delete_contact_from_mailchimp(email = nil)
     # check whether account is subscribed to mailchimp
     ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
-    email = primary_attribute(owner, "Email").value if email.nil? && primary_attribute(owner, "Email")
     unless ms.empty?
+      email = primary_attribute(owner, "Email").value if email.nil? && primary_attribute(owner, "Email")
       ms.first.unsubscribe_contact(id, email) unless email.blank?
     end
   end
