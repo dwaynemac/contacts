@@ -378,7 +378,7 @@ class MailchimpSynchronizer
       end
       update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
     rescue Gibbon::MailChimpError => e
-      if e.message =~ /already exists/ && @has_coefficient_group == false
+      if e.message =~ /already exists/ && !@has_coefficient_group
         @has_coefficient_group = true
         retry
       else
