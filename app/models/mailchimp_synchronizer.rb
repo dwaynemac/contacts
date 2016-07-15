@@ -30,7 +30,7 @@ class MailchimpSynchronizer
     Delayed::Job.all.each do |dj|
       begin
         handler = YAML.load(dj.handler)
-        if (handler.method_name == :subscribe_contacts) && (handler.account.name == account.name) && (handler.status.in?([:ready,:setting_up]))
+        if (handler.method_name == :subscribe_contacts) && (handler.account.name == account.name)
          # subscribe_contacts is already queued for this account and ready to run
          @skip = true 
          break
