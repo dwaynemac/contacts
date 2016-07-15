@@ -24,6 +24,25 @@ class MailchimpSynchronizer
 
   CONTACTS_BATCH_SIZE = 1000
 
+  def queue_subscribe_contacts
+    @skip = false
+
+    Delayed::Job.all.each do |dj|
+      begin
+        handler = YAML.load(dj.handler)
+        if (handler.method_name == :subscribe_contacts) && (handler.account.name == account.name) && (handler.status.in?([:ready,:setting_up]))
+         # subscribe_contacts is already queued for this account and ready to run
+         @skip = true 
+         break
+        end
+      rescue
+        next
+      end
+    end
+
+    self.delay.subscribe_contacts unless @skip
+  end
+
   RETRIES = 10
   def subscribe_contacts
     return unless status == :ready
@@ -68,7 +87,6 @@ class MailchimpSynchronizer
     wait_and_set_ready # this will run on the background and set this to ready for retry
     raise e
   end
-  handle_asynchronously :subscribe_contacts
 
   def wait_and_set_ready
     Rails.logger.warn "[mailchimp_synchronizer #{self.id}] setting to ready for retry"
@@ -384,7 +402,7 @@ class MailchimpSynchronizer
   def self.synchronize_all
     self.all.each do |ms|
       Rails.logger.info "MAILCHIMP - synchronizing #{ms.account.name}"
-      ms.subscribe_contacts # this will queue to background
+      ms.queue_subscribe_contacts
     end
   end
 
