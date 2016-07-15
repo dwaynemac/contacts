@@ -278,6 +278,12 @@ class MailchimpSynchronizer
   end
   
   def update_sync_options (params)
+    if !params[:list_id].nil? && params[:list_id] != list_id
+      update_attribute(:list_id, params[:list_id])
+      update_fields_in_mailchimp
+      initialize_list_groups
+    end
+    
     unless params[:contact_attributes].nil?
       remove_unused_fields_in_mailchimp(
         contact_attributes.split(",") - params[:contact_attributes].split(",")
@@ -286,12 +292,6 @@ class MailchimpSynchronizer
       add_custom_fields_in_mailchimp
     end
 
-    if !params[:list_id].nil? && params[:list_id] != list_id
-      update_attribute(:list_id, params[:list_id])
-      update_fields_in_mailchimp
-      initialize_list_groups
-    end
-    
     if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
       if filter_method == 'all' && params[:filter_method] == 'segments'
         unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})      
