@@ -24,19 +24,21 @@ class MailchimpSynchronizer
 
   CONTACTS_BATCH_SIZE = 1000
 
-  def queue_subscribe_contacts
+  def queue_subscribe_contacts(options={})
     @skip = false
 
-    Delayed::Job.all.each do |dj|
-      begin
-        handler = YAML.load(dj.handler)
-        if (handler.method_name == :subscribe_contacts) && (handler.account.name == account.name)
-         # subscribe_contacts is already queued for this account and ready to run
-         @skip = true 
-         break
+    unless options[:force]
+      Delayed::Job.all.each do |dj|
+        begin
+          handler = YAML.load(dj.handler)
+          if (handler.method_name == :subscribe_contacts) && (handler.account.name == account.name)
+           # subscribe_contacts is already queued for this account and ready to run
+           @skip = true 
+           break
+          end
+        rescue
+          next
         end
-      rescue
-        next
       end
     end
 
