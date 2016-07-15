@@ -364,7 +364,7 @@ class MailchimpSynchronizer
           id: list_id
           })
         groupings.each do |group|
-          if group["name"] == I18n.t('mailchimp.coefficient.coefficient')
+          if group["name"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
             mailchimp_coefficient_group = group
           end
         end
