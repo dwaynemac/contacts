@@ -148,6 +148,25 @@ describe ContactAttribute do
       contact.reload
       contact.emails.where(:primary => true).count.should == 1
     end
+    let(:other_account){Account.make}
+    specify "The set of attributes that share account and type must have at least one primary element" do
+      contact.save
+      ca = contact.contact_attributes.new(value: "test00@mail.com", primary: true)
+      ca._type= 'Email'
+      ca.account = other_account
+      ca.save
+      (1..3).each do |i|
+        # create the same way controller does
+        ca = contact.contact_attributes.new(value: "test#{i}@mail.com", primary: false)
+        ca._type= 'Email'
+        ca.account = account
+        ca.save
+      end
+      contact.reload
+      expect(contact.emails.count).to eq 4
+      expect(contact.emails.where(primary: true).count).to eq 2
+      expect(contact.emails.where(account_id: account.id, primary: true).count).to eq 1
+    end
   end
 
   describe "Primary attributes must be accesible by contact.primary_attribute" do
