@@ -307,7 +307,7 @@ class MailchimpSynchronizer
   end
   
   def subscribe_contact(contact_id)
-    return unless status == :ready && is_in_scope(contact_id) == true
+    return if is_in_scope(contact_id) == false
     retries = RETRIES
 
     update_attribute(:status, :working)
@@ -323,32 +323,28 @@ class MailchimpSynchronizer
         update_existing: true
       })
     rescue Gibbon::MailChimpError => e
-      Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
+      Rails.logger.info "[mailchimp_subscribe of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
       if retries >= 0
         sleep((RETRIES-retries)*10)
         retry
       else
-        Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
-        update_attribute(:status, :failed)
+        Rails.logger.info "[mailchimp_subscribe of contact #{contact_id}] failed: #{e.message}"
         raise e
       end
     rescue Timeout::Error 
-      Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp, retrying"
+      Rails.logger.info "[mailchimp_subscribe of contact #{contact_id}] timeout subscribing contacts to mailchimp, retrying"
       retry
     end
-    update_attribute(:status, :ready)
     return true
   rescue => e
-    Rails.logger.warn "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
-    update_attribute(:status, :failed)
-    wait_and_set_ready # this will run on the background and set this to ready for retry
+    Rails.logger.warn "[mailchimp_subscribe of contact #{contact_id}] failed: #{e.message}"
     raise e
   end
   handle_asynchronously :subscribe_contact
   
   def update_contact(contact_id, old_mail)
-    return unless status == :ready && is_in_scope(contact_id) == true
+    return if is_in_scope(contact_id) == false
     retries = RETRIES
     
     update_attribute(:status, :working)
@@ -364,32 +360,28 @@ class MailchimpSynchronizer
         merge_vars: merge_vars
       })
     rescue Gibbon::MailChimpError => e
-      Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
+      Rails.logger.info "[mailchimp_update of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
       if retries >= 0
         sleep((RETRIES-retries)*10)
         retry
       else
-        Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
-        update_attribute(:status, :failed)
+        Rails.logger.info "[mailchimp_update of contact #{contact_id}] failed: #{e.message}"
         raise e
       end
     rescue Timeout::Error 
-      Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp, retrying"
+      Rails.logger.info "[mailchimp_update of contact #{contact_id}] timeout subscribing contacts to mailchimp, retrying"
       retry
     end
-    update_attribute(:status, :ready)
     return true
   rescue => e
-    Rails.logger.warn "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
-    update_attribute(:status, :failed)
-    wait_and_set_ready # this will run on the background and set this to ready for retry
+    Rails.logger.warn "[mailchimp_update of contact #{contact_id}] failed: #{e.message}"
     raise e
   end
   handle_asynchronously :update_contact
 
   def unsubscribe_contact(contact_id, email, delete_member = true)
-    return unless status == :ready && is_in_scope(contact_id) == true
+    return if is_in_scope(contact_id) == false
     retries = RETRIES
 
     update_attribute(:status, :working)
@@ -402,26 +394,22 @@ class MailchimpSynchronizer
         delete_member: delete_member
       })
     rescue Gibbon::MailChimpError => e
-      Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
+      Rails.logger.info "[mailchimp_unsubscribe of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
       if retries >= 0
         sleep((RETRIES-retries)*10)
         retry
       else
-        Rails.logger.info "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
-        update_attribute(:status, :failed)
+        Rails.logger.info "[mailchimp_unsubscribe of contact #{contact_id}] failed: #{e.message}"
         raise e
       end
     rescue Timeout::Error 
-      Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp, retrying"
+      Rails.logger.info "[mailchimp_unsubscribe of contact #{contact_id}] timeout subscribing contacts to mailchimp, retrying"
       retry
     end
-    update_attribute(:status, :ready)
     return true
   rescue => e
-    Rails.logger.warn "[mailchimp_synchronizer #{self.id}] failed: #{e.message}"
-    update_attribute(:status, :failed)
-    wait_and_set_ready # this will run on the background and set this to ready for retry
+    Rails.logger.warn "[mailchimp_unsubscribe of contact #{contact_id}] failed: #{e.message}"
     raise e
   end
   handle_asynchronously :unsubscribe_contact
