@@ -70,7 +70,7 @@ class MailchimpSegment
         })
       end
     rescue Gibbon::MailChimpError => e
-      raise unless e.message =~ /Invalid MailChimp List ID/
+      raise unless e.message =~ /Invalid MailChimp List ID|This account has been deactivated/
     end
 
     if synchro.filter_method == 'segments'

@@ -164,17 +164,31 @@ class ContactSerializer
         end
 
         if serialize?(:email)
-          email = @contact.global_primary_attribute('Email')
+          email = if @account
+            @contact.primary_attribute(@account,'Email')
+          else
+            @contact.global_primary_attribute('Email')
+          end
+
           @json['email'] = email.value unless email.nil?
         end
         
         if serialize?(:telephone)
-          telephone = @contact.global_primary_attribute('Telephone') 
+          telephone = if @account
+            @contact.primary_attribute(@account,'Telephone') 
+          else
+            @contact.global_primary_attribute('Telephone') 
+          end
           @json['telephone'] = telephone.value unless telephone.nil?
         end
 
         if serialize?(:identification)
-          identification = @contact.global_primary_attribute('Identification') 
+          identification = if @account
+            @contact.primary_attribute(@account,'Identification') 
+          else
+            @contact.global_primary_attribute('Identification') 
+          end
+           
           @json['identification'] = identification.value unless identification.nil?
         end
 

@@ -25,6 +25,27 @@ class MailchimpSynchronizer
 
   CONTACTS_BATCH_SIZE = 1000
 
+  def queue_subscribe_contacts(options={})
+    @skip = false
+
+    unless options[:force]
+      Delayed::Job.all.each do |dj|
+        begin
+          handler = YAML.load(dj.handler)
+          if (handler.method_name == :subscribe_contacts) && (handler.account.name == account.name)
+           # subscribe_contacts is already queued for this account and ready to run
+           @skip = true 
+           break
+          end
+        rescue
+          next
+        end
+      end
+    end
+
+    self.delay.subscribe_contacts unless @skip
+  end
+
   RETRIES = 10
   def subscribe_contacts
     return unless status == :ready
@@ -70,7 +91,6 @@ class MailchimpSynchronizer
     wait_and_set_ready # this will run on the background and set this to ready for retry
     raise e
   end
-  handle_asynchronously :subscribe_contacts
 
   def wait_and_set_ready
     Rails.logger.warn "[mailchimp_synchronizer #{self.id}] setting to ready for retry"
@@ -279,6 +299,12 @@ class MailchimpSynchronizer
   end
   
   def update_sync_options (params)
+    if !params[:list_id].nil? && params[:list_id] != list_id
+      update_attribute(:list_id, params[:list_id])
+      update_fields_in_mailchimp
+      initialize_list_groups
+    end
+    
     unless params[:contact_attributes].nil?
       remove_unused_fields_in_mailchimp(
         contact_attributes.split(",") - params[:contact_attributes].split(",")
@@ -287,12 +313,6 @@ class MailchimpSynchronizer
       add_custom_fields_in_mailchimp
     end
 
-    if !params[:list_id].nil? && params[:list_id] != list_id
-      update_attribute(:list_id, params[:list_id])
-      update_fields_in_mailchimp
-      initialize_list_groups
-    end
-    
     if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
       if filter_method == 'all' && params[:filter_method] == 'segments'
         unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})      
@@ -458,7 +478,7 @@ class MailchimpSynchronizer
           id: list_id
           })
         groupings.each do |group|
-          if group["name"] == I18n.t('mailchimp.coefficient.coefficient')
+          if group["name"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
             mailchimp_coefficient_group = group
           end
         end
@@ -472,7 +492,7 @@ class MailchimpSynchronizer
       end
       update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
     rescue Gibbon::MailChimpError => e
-      if e.message =~ /already exists/ && @has_coefficient_group == false
+      if e.message =~ /already exists/ && !@has_coefficient_group
         @has_coefficient_group = true
         retry
       else
@@ -498,7 +518,7 @@ class MailchimpSynchronizer
   def self.synchronize_all
     self.all.each do |ms|
       Rails.logger.info "MAILCHIMP - synchronizing #{ms.account.name}"
-      ms.subscribe_contacts # this will queue to background
+      ms.queue_subscribe_contacts
     end
   end
 
