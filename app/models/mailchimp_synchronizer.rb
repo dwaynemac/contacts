@@ -423,6 +423,15 @@ class MailchimpSynchronizer
     end
   end
 
+  def calculate_scope_count(filter_method, segments)
+    return account.contacts.count if filter_method == 'all'
+    if segments.blank?
+      Contact.any_in( account_ids: [self.account.id] ).count
+    else
+      Contact.where( "$or" => segments.map {|seg| MailchimpSegment.to_query(seg["statuses"], seg["coefficients"], seg["gender"])} ).count
+    end
+  end
+
   def is_in_scope(contact_id)
     return true if self.filter_method == 'all' || mailchimp_segments.empty?
     return Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query}).and(_id: contact_id).count > 0 ? true : false

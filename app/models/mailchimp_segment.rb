@@ -57,6 +57,48 @@ class MailchimpSegment
     
     query  
   end
+
+  def self.to_query(statuses, coefficients, gender, negative = false)
+    query = {}
+    
+    in_or_not_in = "$in"
+    in_or_not_in = "$nin" if negative
+
+    and_or_or = "$and"
+    and_or_or = "$or" if negative
+    
+    criteria = []
+
+    if !statuses.blank?
+      criteria << {"local_unique_attributes" => 
+        {"$elemMatch" => {
+          "_type" => "LocalStatus",
+          "account_id" => mailchimp_synchronizer.account.id,
+          "value" => {in_or_not_in => statuses}
+        }}
+      }
+    end
+
+    if !coefficients.blank?
+      criteria << {"local_unique_attributes" =>
+        {"$elemMatch" => {
+          "_type" => "Coefficient",
+          "account_id" => mailchimp_synchronizer.account.id,
+          "value" => {in_or_not_in => coefficients}
+        }}
+      }
+    end
+    
+    if !gender.blank?
+      criteria << {"gender" => gender}
+    end
+
+    if !criteria.empty?
+      query[and_or_or] = criteria
+    end
+    
+    query
+  end
   
   def sync_before_segment_destruction
     synchro = mailchimp_synchronizer
