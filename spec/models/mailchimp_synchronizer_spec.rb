@@ -124,7 +124,7 @@ describe MailchimpSynchronizer do
           sync.api_key = "123123"
           sync.filter_method = "all"
           sync.save
-          sync.subscribe_contacts_without_delay
+          sync.subscribe_contacts
         end
         describe "and no contact was has been updated since last sincronization" do
           it "should not get any contacts to subscribe" do
@@ -153,7 +153,7 @@ describe MailchimpSynchronizer do
           sync.api_key = "123123"
           sync.filter_method = "segments"
           sync.save
-          sync.subscribe_contacts_without_delay
+          sync.subscribe_contacts
         end
         describe "and no contact was has been updated since last sincronization" do
           it "should not get any contacts to subscribe" do
