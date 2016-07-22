@@ -365,7 +365,11 @@ class MailchimpSynchronizer
   handle_asynchronously :subscribe_contact
   
   def update_contact(contact_id, old_mail)
-    return if is_in_scope(contact_id) == false
+    in_scope = is_in_scope(contact_id)
+    if in_scope == false && is_in_list(old_mail)
+      unsubscribe_contact(contact_id, old_mail)
+    end
+    return if in_scope == false
     retries = RETRIES
     
     update_attribute(:status, :working)
@@ -434,6 +438,16 @@ class MailchimpSynchronizer
     raise e
   end
   handle_asynchronously :unsubscribe_contact
+
+  # Check if a single email is currently subscribed to a list
+  def is_in_list?(email)
+    set_api
+    resp = @api.lists.member_info({
+        id: list_id,
+        email: [{email: email}]
+      })
+    return resp[:success_count] > 0
+  end
 
   def get_scope(from_last_synchronization)
     if self.filter_method == "all"
