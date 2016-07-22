@@ -48,7 +48,7 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
     synchro = MailchimpSynchronizer.find(params[:id])
     if !synchro.nil?
       synchro.update_sync_options(params[:synchronizer])
-      synchro.queue_subscribe_contacts
+      synchro.queue_subscribe_contacts({from_last_synchronization: false})
       render json: "OK", status: 200
     else
       render json: 'Synchronizer missing', status: 400
