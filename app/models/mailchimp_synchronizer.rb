@@ -331,7 +331,6 @@ class MailchimpSynchronizer
     return if is_in_scope(contact_id) == false
     retries = RETRIES
 
-    update_attribute(:status, :working)
     c = Contact.find contact_id
     set_api
     set_i18n
@@ -366,13 +365,15 @@ class MailchimpSynchronizer
   
   def update_contact(contact_id, old_mail)
     in_scope = is_in_scope(contact_id)
-    if in_scope == false && is_in_list(old_mail)
-      unsubscribe_contact(contact_id, old_mail)
+    in_list = is_in_list?(old_mail)
+    if in_scope == false && in_list
+      unsubscribe_contact(contact_id, old_mail, true)
+    elsif in_scope == true && !in_list
+      subscribe_contact(contact_id)
     end
-    return if in_scope == false
+    return if in_scope == false || (in_scope == true && !in_list)
     retries = RETRIES
     
-    update_attribute(:status, :working)
     c = Contact.find contact_id
     set_api
     set_i18n
@@ -405,11 +406,10 @@ class MailchimpSynchronizer
   end
   handle_asynchronously :update_contact
 
-  def unsubscribe_contact(contact_id, email, delete_member = true)
-    return if is_in_scope(contact_id) == false
+  def unsubscribe_contact(contact_id, email, is_in_list = false, delete_member = true)
+    return if !is_in_list && is_in_scope(contact_id) == false
     retries = RETRIES
 
-    update_attribute(:status, :working)
     set_api
     set_i18n
     begin
@@ -444,9 +444,9 @@ class MailchimpSynchronizer
     set_api
     resp = @api.lists.member_info({
         id: list_id,
-        email: [{email: email}]
+        emails: [{email: email}]
       })
-    return resp[:success_count] > 0
+    return !resp.blank? && resp["success_count"] > 0 && resp["data"][0]["status"] == "subscribed"
   end
 
   def get_scope(from_last_synchronization)
