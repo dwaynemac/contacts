@@ -1346,6 +1346,7 @@ describe Contact do
           @c.last_name = "Falke"
           Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
           Gibbon::API.any_instance.stub_chain(:lists, :update_member)
+          MailchimpSynchronizer.any_instance.stub(:is_in_list?).and_return(true)
         end
         it "it should be in scope to update in MailChimp" do
           @ms.status.should == :ready
