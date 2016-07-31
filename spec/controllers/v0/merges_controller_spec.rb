@@ -99,6 +99,7 @@ describe V0::MergesController do
           PlanningMerge.any_instance.stub(:create).and_return(true)
           FnzMerge.any_instance.stub(:create).and_return(true)
           MailingMerge.any_instance.stub(:create).and_return(true)
+          AttendanceMerge.any_instance.stub(:create).and_return(true)
 
 
           @post_args = {account_name: @acc.name,
