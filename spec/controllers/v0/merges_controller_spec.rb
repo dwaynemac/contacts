@@ -98,6 +98,7 @@ describe V0::MergesController do
           ActivityStream::Merge.any_instance.stub(:create).and_return(true)
           PlanningMerge.any_instance.stub(:create).and_return(true)
           FnzMerge.any_instance.stub(:create).and_return(true)
+          MailingMerge.any_instance.stub(:create).and_return(true)
 
 
           @post_args = {account_name: @acc.name,
