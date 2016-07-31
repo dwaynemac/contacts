@@ -1,5 +1,16 @@
 HYDRA = Typhoeus::Hydra.new
 
+PADMA_MAILING_HOST = case Rails.env
+  when "production"
+    "padma-mailing.herokuapp.com"
+  when "staging"
+    "padma-mailing-staging.herokuapp.com"
+  when "development"
+    "localhost:3020"
+  when "test"
+    "localhost:3020"
+end
+
 PADMA_FNZ_HOST = case Rails.env
   when "production"
     "fnz.herokuapp.com"
