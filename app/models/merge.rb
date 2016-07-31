@@ -233,7 +233,7 @@ class Merge
   end
 
   def mailing_service_merge(father,son)
-    mailing_merge = MailingMerge.new(father_id: father.id, son_id: son.id)
+    mailing_merge = MailingMerge.new(parent_id: father.id, son_id: son.id)
     res = mailing_merge.create
     case res
       when true
