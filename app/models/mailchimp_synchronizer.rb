@@ -25,6 +25,42 @@ class MailchimpSynchronizer
 
   CONTACTS_BATCH_SIZE = 1000
 
+  def queue_synchronizer(method_name, options={})
+    @skip = false
+    
+    unless options[:force]
+      Delayed::Job.all.each do |dj|
+        begin
+          handler = YAML.load(dj.handler)
+          if (handler.method_name == method_name.to_sym) && (handler.account.name == account.name)
+           # subscribe_contacts is already queued for this account and ready to run
+           @skip = true 
+           break
+          end
+        rescue
+          next
+        end
+      end
+    end
+
+    unless @skip
+      case method_name
+        when "subscribe_contacts"
+          self.delay.subscribe_contacts(options[:from_last_synchronization])
+        when "subscribe_contact"
+          self.delay.subscribe_contact(options[:params][:contact_id])
+        when "update_contact"
+          self.delay.update_contact(options[:params][:contact_id], options[:params][:old_mail])
+        when "unsubscribe_contact"
+          self.delay.unsubscribe_contact(
+            options[:params][:contact_id], 
+            options[:params][:email], 
+            options[:params][:is_in_list], 
+            options[:params][:delete_member])
+      end
+    end
+  end
+
   def queue_subscribe_contacts(options={})
     @skip = false
     from_last_synchronization = options.blank? ? nil : options[:from_last_synchronization]
@@ -361,7 +397,6 @@ class MailchimpSynchronizer
     Rails.logger.warn "[mailchimp_subscribe of contact #{contact_id}] failed: #{e.message}"
     raise e
   end
-  handle_asynchronously :subscribe_contact
   
   def update_contact(contact_id, old_mail)
     in_scope = is_in_scope(contact_id)
@@ -404,7 +439,6 @@ class MailchimpSynchronizer
     Rails.logger.warn "[mailchimp_update of contact #{contact_id}] failed: #{e.message}"
     raise e
   end
-  handle_asynchronously :update_contact
 
   def unsubscribe_contact(contact_id, email, is_in_list = false, delete_member = true)
     return if !is_in_list && is_in_scope(contact_id) == false
@@ -437,7 +471,6 @@ class MailchimpSynchronizer
     Rails.logger.warn "[mailchimp_unsubscribe of contact #{contact_id}] failed: #{e.message}"
     raise e
   end
-  handle_asynchronously :unsubscribe_contact
 
   # Check if a single email is currently subscribed to a list
   def is_in_list?(email)

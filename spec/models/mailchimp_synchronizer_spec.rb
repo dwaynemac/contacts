@@ -22,7 +22,7 @@ describe MailchimpSynchronizer do
     end
   end
 
-  describe "#queue_subscribe_contacts" do
+  describe "#queue_synchronizer" do
     let(:other_account){Account.make(name: 'othermyaccname')}
     let(:other_sync){MailchimpSynchronizer.new(account: other_account)}
     before do
@@ -37,26 +37,26 @@ describe MailchimpSynchronizer do
     it "creates a new delayed_job" do
       Delayed::Job.delete_all
       expect(Delayed::Job.count).to eq 0
-      sync.queue_subscribe_contacts
+      sync.queue_synchronizer("subscribe_contacts")
       expect(Delayed::Job.count).to eq 1
     end
     it "wont duplicate jobs" do
       Delayed::Job.delete_all
       expect(Delayed::Job.count).to eq 0
-      sync.queue_subscribe_contacts
-      sync.queue_subscribe_contacts
-      sync.queue_subscribe_contacts
+      sync.queue_synchronizer("subscribe_contacts")
+      sync.queue_synchronizer("subscribe_contacts")
+      sync.queue_synchronizer("subscribe_contacts")
       expect(Delayed::Job.count).to eq 1
     end
     it "will create a job for each account" do
       Delayed::Job.delete_all
       expect(Delayed::Job.count).to eq 0
-      sync.queue_subscribe_contacts
-      sync.queue_subscribe_contacts
-      sync.queue_subscribe_contacts
-      other_sync.queue_subscribe_contacts
-      other_sync.queue_subscribe_contacts
-      other_sync.queue_subscribe_contacts
+      sync.queue_synchronizer("subscribe_contacts")
+      sync.queue_synchronizer("subscribe_contacts")
+      sync.queue_synchronizer("subscribe_contacts")
+      other_sync.queue_synchronizer("subscribe_contacts")
+      other_sync.queue_synchronizer("subscribe_contacts")
+      other_sync.queue_synchronizer("subscribe_contacts")
       expect(Delayed::Job.count).to eq 2
     end
   end
