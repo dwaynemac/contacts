@@ -185,6 +185,13 @@ class Merge
       father.attachments << Attachment.new(file: son_avatar_file, name: son[:avatar])
     end
 
+    # First enrollment date
+    if father.first_enrolled_on.blank?
+      father.first_enrolled_on = son.first_enrolled_on
+    elsif son.first_enrolled_on && ( son.first_enrolled_on < father.first_enrolled_on )
+      father.first_enrolled_on = son.first_enrolled_on
+    end
+
     son.contact_attributes.delete_all
     father.save
 
