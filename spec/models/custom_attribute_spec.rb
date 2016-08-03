@@ -1,6 +1,21 @@
 require 'spec_helper'
 
 describe CustomAttribute do
+
+  it "wont allow ContactAttribute system types as name" do
+    ContactAttribute::TYPES.each do |cctype|
+      ca = CustomAttribute.new(name: cctype)
+      ca.valid?
+      expect(ca.errors.messages[:name]).to eq ["restricted value"]
+    end
+  end
+  it "allows name not in system types" do
+    ContactAttribute::TYPES.each do |cctype|
+      ca = CustomAttribute.new(name: "#{cctype}a")
+      ca.valid?
+      expect(ca.errors.messages[:name]).to be_blank
+    end
+  end
   describe ".custom_keys" do
     let(:account){Account.make}
     context "if account has custom keys" do
