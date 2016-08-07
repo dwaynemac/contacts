@@ -18,6 +18,7 @@ development:
 production:
   <<: *defaults
   active: true
+  enable_host_metrics: true
 
 staging:
   <<: *defaults
