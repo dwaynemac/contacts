@@ -37,9 +37,12 @@ GEM
     activity_stream_client (0.0.15)
       logical_model (>= 0.5.0)
       railties (>= 3.1)
-    appsignal (1.2.3)
+    appsignal (0.11.17)
       rack
       thread_safe
+    appsignal-mongo (0.1.10)
+      appsignal (> 0.7)
+      mongo
     arel (2.2.3)
     aws-ses (0.6.0)
       builder
@@ -227,11 +230,13 @@ GEM
       railties (>= 3.1)
     pivotal-tracker (0.5.12)
       builder
+      builder
       crack
       happymapper (>= 0.3.2)
       nokogiri (>= 1.4.3)
       nokogiri (>= 1.5.5)
       nokogiri-happymapper (>= 0.5.4)
+      rest-client (~> 1.6.0)
       rest-client (~> 1.6.0)
     polyglot (0.3.5)
     pry (0.10.0)
@@ -357,7 +362,8 @@ PLATFORMS
 DEPENDENCIES
   accounts_client (>= 0.2.15)
   activity_stream_client (~> 0.0.14)
-  appsignal (~> 1.2)
+  appsignal (= 0.11.17)
+  appsignal-mongo
   aws-ses
   bson (= 1.4.0)
   bson_ext (= 1.4.0)
@@ -414,9 +420,3 @@ DEPENDENCIES
   workless
   yard (~> 0.8.3)
   yard-restful
-
-RUBY VERSION
-   ruby 1.9.3p551
-
-BUNDLED WITH
-   1.12.5
