@@ -63,8 +63,7 @@ group :heroku do
   gem 'heroku-mongo-backup', '~> 0.4.3' # Gem for making mongo -> AmazonS3 backups
 end
 
-gem 'appsignal', '0.11.17', group: [:production, :development, :deploying]
-gem 'appsignal-mongo', group: [:production, :development]
+gem 'appsignal', '~> 1.2', group: [:production, :development, :deploying]
 
 group :development do
   gem 'git-pivotal-tracker-integration'
