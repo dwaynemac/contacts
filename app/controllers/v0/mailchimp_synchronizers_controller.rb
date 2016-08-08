@@ -86,7 +86,14 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
   #
   def get_scope
     ms = MailchimpSynchronizer.where(api_key: params[:api_key]).first
-    segments = params[:segments] if params[:filter_method] == "segments"
+    segments = params[:mailchimp_list][:mailchimp_segments_attributes] if params[:filter_method] == "segments"
+
+    puts ""
+    puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    #puts "received segments: #{segments}"
+    #puts "-----------------------------------------------"
+    #puts "#{segments.map {|seg| MailchimpSegment.to_query(seg["statuses"], seg["coefficients"], seg["gender"], ms.account.id)}}"
+    #puts ""
 
     render json: ms.calculate_scope_count(params[:filter_method], segments)
   end

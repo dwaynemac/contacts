@@ -58,7 +58,7 @@ class MailchimpSegment
     query  
   end
 
-  def self.to_query(statuses, coefficients, gender, negative = false)
+  def self.to_query(statuses, coefficients, gender, account_id, negative = false)
     query = {}
     
     in_or_not_in = "$in"
@@ -73,7 +73,7 @@ class MailchimpSegment
       criteria << {"local_unique_attributes" => 
         {"$elemMatch" => {
           "_type" => "LocalStatus",
-          "account_id" => mailchimp_synchronizer.account.id,
+          "account_id" => account_id,
           "value" => {in_or_not_in => statuses}
         }}
       }
@@ -83,7 +83,7 @@ class MailchimpSegment
       criteria << {"local_unique_attributes" =>
         {"$elemMatch" => {
           "_type" => "Coefficient",
-          "account_id" => mailchimp_synchronizer.account.id,
+          "account_id" => account_id,
           "value" => {in_or_not_in => coefficients}
         }}
       }

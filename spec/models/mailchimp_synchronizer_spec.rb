@@ -127,6 +127,83 @@ describe MailchimpSynchronizer do
     describe "when no segments" do
       it { should_not raise_exception }
     end
+    context "when account does not have unlinked contacts" do
+      before do
+        c = Contact.make(first_name: "Hy Thuong", last_name: "Nguyen", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Samsung", last_name: "Galaxy", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Homer", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Lisa", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :former_student)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Bart", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Maggie", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Marge", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "pmenos"
+        c.save
+        c = Contact.make(first_name: "Julieta", last_name: "Wertheimer", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        sync.mailchimp_segments << MailchimpSegment.new(statuses: ["prospect"], followed_by: [], coefficients: ["perfil", "pmas"])
+        sync.mailchimp_segments << MailchimpSegment.new(statuses: ["student"], followed_by: [], coefficients: [])
+        sync.api_key = "123123"
+        sync.last_synchronization = "1/1/2000 00:00"
+        sync.filter_method = "segments"
+        sync.save
+      end
+      it "should get correct scope" do
+        sync.get_scope.count.should == 6
+      end
+    end
+    context "when account has unlinked contacts" do
+      before do
+        c = Contact.make(first_name: "Hy Thuong", last_name: "Nguyen", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Samsung", last_name: "Galaxy")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Homer", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Bart", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Lisa", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :former_student)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Maggie", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c.unlink(account)
+        c = Contact.make(first_name: "Marge", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "pmenos"
+        c.save
+        c = Contact.make(first_name: "Julieta", last_name: "Wertheimer")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c.save
+        c.unlink(account)
+        sync.mailchimp_segments << MailchimpSegment.new(statuses: ["prospect"], followed_by: [], coefficients: ["perfil", "pmas"])
+        sync.mailchimp_segments << MailchimpSegment.new(statuses: ["student"], followed_by: [], coefficients: [])
+        sync.api_key = "123123"
+        sync.last_synchronization = "1/1/2000 00:00"
+        sync.filter_method = "segments"
+        sync.save
+      end
+      it "should not count them" do
+        sync.get_scope.count.should == 4
+      end
+    end
   end
   describe "#get_system_status" do
     subject { sync.get_system_status(contact) }

@@ -419,7 +419,7 @@ class MailchimpSynchronizer
     if mailchimp_segments.empty?
       Contact.any_in( account_ids: [self.account.id] ).where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
     else
-      Contact.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
+      account.contacts.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
     end
   end
 
@@ -428,7 +428,26 @@ class MailchimpSynchronizer
     if segments.blank?
       Contact.any_in( account_ids: [self.account.id] ).count
     else
-      Contact.where( "$or" => segments.map {|seg| MailchimpSegment.to_query(seg["statuses"], seg["coefficients"], seg["gender"])} ).count
+      puts "segment count: #{segments.reject{|s| s["_destroy"] == "1"}.count}"
+      segments.each do |seg|
+        puts "#{seg["student"].reject(&:blank?)} #{seg["coefficient"].reject(&:blank?)} #{seg["gender"]}"
+      end
+      puts "#{segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
+          seg["student"].reject(&:blank?), 
+          seg["coefficient"].reject(&:blank?), 
+          seg["gender"], 
+          account.id
+          )
+        }}"
+      account.contacts.where( 
+        "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
+          seg["student"].reject(&:blank?), 
+          seg["coefficient"].reject(&:blank?), 
+          seg["gender"], 
+          account.id
+          )
+        }
+      ).count
     end
   end
 
