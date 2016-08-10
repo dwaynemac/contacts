@@ -5,6 +5,61 @@ describe MailchimpSynchronizer do
   let(:sync){MailchimpSynchronizer.new(account: account)}
   let(:contact){Contact.make}
 
+  describe "unsubscribe_contacts" do
+    before do
+      contact.accounts << account
+      sync.status = :ready
+      sync.save
+    end
+    it "queues job" do
+      Delayed::Job.delete_all
+      expect(Delayed::Job.count).to eq 0
+      sync.unsubscribe_contacts
+      sync.unsubscribe_contacts
+      sync.unsubscribe_contacts
+      sync.unsubscribe_contacts
+      expect(Delayed::Job.count).to eq 4
+    end
+  end
+
+  describe "#queue_subscribe_contacts" do
+    let(:other_account){Account.make(name: 'othermyaccname')}
+    let(:other_sync){MailchimpSynchronizer.new(account: other_account)}
+    before do
+      Delayed::Worker.delay_jobs = true
+      contact.accounts << account
+      contact.accounts << other_account
+      sync.status = :ready
+      sync.save
+      other_sync.status = :ready
+      other_sync.save
+    end
+    it "creates a new delayed_job" do
+      Delayed::Job.delete_all
+      expect(Delayed::Job.count).to eq 0
+      sync.queue_subscribe_contacts
+      expect(Delayed::Job.count).to eq 1
+    end
+    it "wont duplicate jobs" do
+      Delayed::Job.delete_all
+      expect(Delayed::Job.count).to eq 0
+      sync.queue_subscribe_contacts
+      sync.queue_subscribe_contacts
+      sync.queue_subscribe_contacts
+      expect(Delayed::Job.count).to eq 1
+    end
+    it "will create a job for each account" do
+      Delayed::Job.delete_all
+      expect(Delayed::Job.count).to eq 0
+      sync.queue_subscribe_contacts
+      sync.queue_subscribe_contacts
+      sync.queue_subscribe_contacts
+      other_sync.queue_subscribe_contacts
+      other_sync.queue_subscribe_contacts
+      other_sync.queue_subscribe_contacts
+      expect(Delayed::Job.count).to eq 2
+    end
+  end
   
   describe "#subscribe_contacts" do
     before do
@@ -18,11 +73,11 @@ describe MailchimpSynchronizer do
         stub_const("MailchimpSynchronizer::RETRIES", 1)
       end
       it "re-raises Gibbon::MailChimpError" do
-        expect{sync.subscribe_contacts_without_delay}.to raise_exception
+        expect{sync.subscribe_contacts}.to raise_exception
       end
       it "sends email to padma admins" do
         deliveries = ActionMailer::Base.deliveries.count
-        expect{sync.subscribe_contacts_without_delay}.to raise_exception
+        expect{sync.subscribe_contacts}.to raise_exception
         # Action Mailer should have one more mail delivered
         deliveries.should == ActionMailer::Base.deliveries.count - 1
       end
@@ -40,7 +95,7 @@ describe MailchimpSynchronizer do
         end
       end
       it "catches Gibbon::MailChimpError and retries" do
-        expect{sync.subscribe_contacts_without_delay}.not_to raise_exception
+        expect{sync.subscribe_contacts}.not_to raise_exception
       end
     end
     context "on the first subscription" do
@@ -316,7 +371,7 @@ describe MailchimpSynchronizer do
       end
       it "should subscribe contacts" do
         MailchimpSynchronizer.any_instance.should_receive(:completed_initial_setup?).and_return(true)
-        MailchimpSynchronizer.any_instance.should_receive(:subscribe_contacts)
+        MailchimpSynchronizer.any_instance.should_receive(:queue_subscribe_contacts)
         @ms.save
       end
     end

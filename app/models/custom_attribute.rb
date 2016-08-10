@@ -1,7 +1,10 @@
 class CustomAttribute < ContactAttribute
   field :name
   field :key
-  validate :name, :presence => true
+
+  validate :name, presence: true
+  validates :name, not_a_system_attribute: true
+
   before_save :set_key
 
   def set_key

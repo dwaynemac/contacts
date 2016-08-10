@@ -23,7 +23,9 @@ accounts_key: secret
 activity_key: secret
 office_key: secret
 planning_key: secret
+attendance_key: secret
 fnz_key: secret
+mailing_key: secret
 readonly_key: secret
 aws_access_key_id: "acsdfasf"
 aws_secret_access_key: "asdfdf"

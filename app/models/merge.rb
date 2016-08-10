@@ -19,9 +19,9 @@ class Merge
     'crm' => false,
     'activity_stream' => false,
     'planning' => false,
-    'fnz' => false
-    # TODO attendance
-    # TODO mailing
+    'fnz' => false,
+    'mailing' => false,
+    'attendance' => false
   }
 
   field :services, :type => Hash, :default => SERVICES
@@ -126,6 +126,8 @@ class Merge
       activity_stream_service_merge(father,son) unless self.services['activity_stream']
       planning_service_merge(father,son) unless self.services['planning']
       fnz_service_merge(father,son) unless self.services['fnz']
+      mailing_service_merge(father,son) unless self.services['mailing']
+      attendance_service_merge(father,son) unless self.services['attendance']
     ensure
       self.stop
     end
@@ -183,6 +185,13 @@ class Merge
       father.attachments << Attachment.new(file: son_avatar_file, name: son[:avatar])
     end
 
+    # First enrollment date
+    if father.first_enrolled_on.blank?
+      father.first_enrolled_on = son.first_enrolled_on
+    elsif son.first_enrolled_on && ( son.first_enrolled_on < father.first_enrolled_on )
+      father.first_enrolled_on = son.first_enrolled_on
+    end
+
     son.contact_attributes.delete_all
     father.save
 
@@ -227,6 +236,34 @@ class Merge
         self.update_message :fnz_service, I18n.t('errors.merge.services.merge_failed')
       when nil
         self.update_message :fnz_service, I18n.t('errors.merge.services.connection_failed')
+    end
+    res
+  end
+
+  def mailing_service_merge(father,son)
+    mailing_merge = MailingMerge.new(parent_id: father.id, son_id: son.id)
+    res = mailing_merge.create
+    case res
+      when true
+        self.update_service('mailing', true)
+      when false
+        self.update_message :mailing_service, I18n.t('errors.merge.services.merge_failed')
+      when nil
+        self.update_message :mailing_service, I18n.t('errors.merge.services.connection_failed')
+    end
+    res
+  end
+
+  def attendance_service_merge(father,son)
+    attendance_merge = AttendanceMerge.new(father_id: father.id, son_id: son.id)
+    res = attendance_merge.create
+    case res
+      when true
+        self.update_service('attendance', true)
+      when false
+        self.update_message :attendance_service, I18n.t('errors.merge.services.merge_failed')
+      when nil
+        self.update_message :attendance_service, I18n.t('errors.merge.services.connection_failed')
     end
     res
   end
