@@ -124,7 +124,7 @@ describe MailchimpSynchronizer do
           sync.api_key = "123123"
           sync.filter_method = "all"
           sync.save
-          sync.subscribe_contacts_without_delay
+          sync.subscribe_contacts
         end
         describe "and no contact was has been updated since last sincronization" do
           it "should not get any contacts to subscribe" do
@@ -153,7 +153,7 @@ describe MailchimpSynchronizer do
           sync.api_key = "123123"
           sync.filter_method = "segments"
           sync.save
-          sync.subscribe_contacts_without_delay
+          sync.subscribe_contacts
         end
         describe "and no contact was has been updated since last sincronization" do
           it "should not get any contacts to subscribe" do
@@ -235,17 +235,21 @@ describe MailchimpSynchronizer do
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :former_student)
         c.coefficient_for_myaccname = "perfil"
         c.save
-        c = Contact.make(first_name: "Maggie", last_name: "Simpson")
-        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
-        c.coefficient_for_myaccname = "perfil"
-        c.save
-        c.unlink(account)
         c = Contact.make(first_name: "Marge", last_name: "Simpson")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
         c.coefficient_for_myaccname = "pmenos"
         c.save
         c = Contact.make(first_name: "Julieta", last_name: "Wertheimer")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        # for some bizarre reason only onw unlink is not working, have to do it two times
+        # only in this contact..
+        c.unlink(account)
+        c.unlink(account)
+        c = Contact.make(first_name: "Maggie", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "perfil"
         c.save
         c.unlink(account)
         sync.mailchimp_segments << MailchimpSegment.new(statuses: ["prospect"], followed_by: [], coefficients: ["perfil", "pmas"])
@@ -256,6 +260,8 @@ describe MailchimpSynchronizer do
         sync.save
       end
       it "should not count them" do
+        Contact.where(first_name: "Julieta").first.owner.should be_nil
+        account.contacts.count.should == 6
         sync.get_scope.count.should == 4
       end
     end

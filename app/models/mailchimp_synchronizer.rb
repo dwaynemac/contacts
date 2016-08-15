@@ -448,17 +448,6 @@ class MailchimpSynchronizer
     if segments.blank?
       Contact.any_in( account_ids: [self.account.id] ).count
     else
-      puts "segment count: #{segments.reject{|s| s["_destroy"] == "1"}.count}"
-      segments.each do |seg|
-        puts "#{seg["student"].reject(&:blank?)} #{seg["coefficient"].reject(&:blank?)} #{seg["gender"]}"
-      end
-      puts "#{segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
-          seg["student"].reject(&:blank?), 
-          seg["coefficient"].reject(&:blank?), 
-          seg["gender"], 
-          account.id
-          )
-        }}"
       account.contacts.where( 
         "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
           seg["student"].reject(&:blank?), 
