@@ -450,8 +450,8 @@ class MailchimpSynchronizer
     else
       account.contacts.where( 
         "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
-          seg["student"].reject(&:blank?), 
-          seg["coefficient"].reject(&:blank?), 
+          seg["student"], 
+          seg["coefficient"], 
           seg["gender"], 
           account.id
           )
