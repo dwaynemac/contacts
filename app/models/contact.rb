@@ -732,7 +732,6 @@ class Contact
     # check whether account is subscribed to mailchimp
     ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
     unless ms.empty?
-      #ms.first.queue_synchronizer("subscribe_contact", {params: {contact_id: id}})
       ms.first.subscribe_contact(id)
     end
   end
@@ -748,7 +747,6 @@ class Contact
           ).value if reference_email.nil? && primary_attribute(Account.find(m.account_id), "Email")
         m.update_contact(id, reference_email) unless reference_email.blank?
       end
-      #ms.first.queue_synchronizer("update_contact", {params: {contact_id: id, old_mail: reference_email}}) unless reference_email.blank?
     end
   end
 
@@ -758,16 +756,6 @@ class Contact
     unless ms.empty?
       email = primary_attribute(owner, "Email").value if email.nil? && primary_attribute(owner, "Email")
       ms.first.unsubscribe_contact(id, email, false) unless email.blank?
-      #ms.first.queue_synchronizer(
-      #  "unsubscribe_contact", 
-      #  {params: 
-      #    {
-      #      contact_id: id, 
-      #      email: email, 
-      #      is_in_list: false, 
-      #      delete_member: true}
-      #    }
-      #      ) unless email.blank?
     end
   end
 
