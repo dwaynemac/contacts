@@ -18,6 +18,8 @@ class ContactAttribute
   field :public, type: Boolean
   field :value, type: String
   field :primary, type: Boolean
+  
+  TYPES = %W(email telephone address custom_attribute date_attribute identification occupation attachment social_network_id)
 
   validates :value, :presence => true
 
@@ -48,16 +50,7 @@ class ContactAttribute
     json
   end
 
-  %W(email
-     telephone 
-     address 
-     custom_attribute
-     date_attribute
-     identification
-     occupation
-     attachment
-     social_network_id
-  ).each do |k|
+  TYPES.each do |k|
     scope k.pluralize, where( _type: k.camelcase )
   end
   scope :mobiles, where(_type: 'Telephone', category: 'mobile' )
