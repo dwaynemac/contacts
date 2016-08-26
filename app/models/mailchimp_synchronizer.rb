@@ -485,10 +485,27 @@ class MailchimpSynchronizer
       end
     else
       if from_last_synchronization
-        Contact.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
+        account.contacts.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
       else
-        Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
+        account.contacts.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
       end
+    end
+  end
+
+  def calculate_scope_count(filter_method, segments)
+    return account.contacts.count if filter_method == 'all'
+    if segments.blank?
+      Contact.any_in( account_ids: [self.account.id] ).count
+    else
+      account.contacts.where( 
+        "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
+          (seg.key?("student") ? seg["student"] : []), 
+          (seg.key?("coefficient") ? seg["coefficient"] : []), 
+          (seg.key?("gender") ? seg["gender"] : ""), 
+          account.id
+          )
+        }
+      ).count
     end
   end
 

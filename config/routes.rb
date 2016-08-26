@@ -28,6 +28,9 @@ Contacts::Application.routes.draw do
       member do
         post :synchronize
       end
+      collection do
+        get :get_scope
+      end
     end
     resources :mailchimp_segments
     resources :imports do
