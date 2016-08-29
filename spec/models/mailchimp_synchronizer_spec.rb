@@ -216,7 +216,7 @@ describe MailchimpSynchronizer do
         sync.save
       end
       it "should get correct scope" do
-        sync.get_scope.count.should == 6
+        sync.get_scope(true).count.should == 6
       end
     end
     context "when account has unlinked contacts" do
@@ -262,7 +262,7 @@ describe MailchimpSynchronizer do
       it "should not count them" do
         Contact.where(first_name: "Julieta").first.owner.should be_nil
         account.contacts.count.should == 6
-        sync.get_scope.count.should == 4
+        sync.get_scope(true).count.should == 4
       end
     end
   end
