@@ -1260,4 +1260,130 @@ describe Contact do
                         historiable_id: @contact._id
     )
   end
+
+  describe "after_create" do
+    before do
+      Delayed::Worker.delay_jobs = false
+      @account = Account.make
+      @c = Contact.new(owner: @account)
+      @c.first_name = "Alex"
+      @c.status = :student
+    end
+    after do
+      Delayed::Worker.delay_jobs = true
+    end
+    context "when account is linked to MailChimp" do
+      before do
+        @ms = MailchimpSynchronizer.create(account_id: @account.id, status: :ready)
+      end
+      context "and contact is to be subscribed" do
+        before do
+          @ms.list_id = "1234"
+          @ms.filter_method = "all"
+          @ms.save!
+        end
+        it "should call MailChimp via api to subscribe contact" do
+          Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
+          MailchimpSynchronizer.any_instance.should_receive(:subscribe_contact).once
+          @c.save
+        end
+        it "contact should be in scope to be subscribed" do
+          Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
+          MailchimpSynchronizer.any_instance.should_receive(:is_in_scope).and_return(true)
+          @c.save
+        end
+      end
+      context "and contact is not to be subscribed" do
+        before do
+          @ms.filter_method = "segments"
+          @ms.list_id = "1234"
+          @ms.save
+          mss = @ms.mailchimp_segments.new(name: "my_segment", coefficients: [], followed_by: [])
+          mss.statuses = ["prospect"]
+          Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
+          Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({'id' => "1234"})
+          mss.save
+          @ms.save!
+        end
+        it "should not call MailChimp via api to subscribe contact" do
+          @ms.status.should == :ready
+          MailchimpSynchronizer.any_instance.should_not_receive(:update_contact)
+          MailchimpSynchronizer.any_instance.should_receive(:is_in_scope).and_return(false)
+          @c.save
+        end
+      end
+    end
+    context "when account is not linked to MailChimp" do
+      it "should not subscribe contact" do
+        MailchimpSynchronizer.any_instance.should_not_receive(:subscribe_contact)
+        @c.save
+      end
+    end
+  end
+
+  describe "after_update" do
+    before do
+      Delayed::Worker.delay_jobs = false
+      @account = Account.make
+      @c = Contact.new(owner: @account)
+      @c.first_name = "Alex"
+      @c.contact_attributes << Email.new(:category => :personal, :value => "alex@falke.com")
+      @c.status = :student
+      @c.save
+    end
+    after do
+      Delayed::Worker.delay_jobs = true
+    end
+    context "when account is linked to MailChimp" do
+      before do
+        @ms = MailchimpSynchronizer.create(account_id: @account.id, status: :ready)
+      end
+      context "and contact is to be subscribed" do
+        before do
+          @ms.filter_method = "all"
+          @ms.list_id = "1234"
+          @ms.save!
+          @c.last_name = "Falke"
+          Gibbon::API.any_instance.stub_chain(:lists, :subscribe)
+          Gibbon::API.any_instance.stub_chain(:lists, :update_member)
+        end
+        it "it should be in scope to update in MailChimp" do
+          @ms.status.should == :ready
+          MailchimpSynchronizer.any_instance.should_receive(:is_in_scope).and_return(true)
+          @c.save
+        end
+        it "should call MailChimp via api to update contact" do
+          MailchimpSynchronizer.any_instance.should_receive(:update_contact).once
+          @c.save
+        end
+      end
+      context "and contact is not to be subscribed" do
+        it "should not call MailChimp via api to update contact" do
+        end
+      end
+    end
+
+    describe "when account is not linked to MailChimp" do
+      it "should not call MailChimp via api to update contact" do
+      end
+    end
+  end
+
+  describe "after_delete" do
+    context "when account is linked to MailChimp" do
+      context "and contact is to be subscribed" do
+        it "should call MailChimp via api to unsubscribe contact" do
+        end
+      end
+      context "and contact is not to be subscribed" do
+        it "should not call MailChimp via api to unsubscribe contact" do
+        end
+      end
+    end
+
+    describe "when account is not linked to MailChimp" do
+      it "should not call MailChimp via api to unsubscribe contact" do
+      end
+    end
+  end
 end

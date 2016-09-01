@@ -14,6 +14,7 @@ class Contact
 
   include Mongoid::Search
 
+  before_destroy :delete_contact_from_mailchimp
   search_in :first_name, :last_name, {:contact_attributes => :value }, {:tags => :name} , {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
   embeds_many :attachments, cascade_callbacks: true
@@ -32,12 +33,15 @@ class Contact
 
   has_many :history_entries, as: 'historiable', dependent: :delete
   after_save :keep_history_of_changes
+  after_update :update_contact_in_mailchimp
   attr_accessor :skip_history_entries # default: nil
 
   after_save :post_activity_if_level_changed
   attr_accessor :skip_level_change_activity # default: nil
 
   after_create :post_activity_of_creation
+  after_create :add_contact_to_mailchimp
+
 
   field :first_name
   field :last_name
@@ -359,6 +363,7 @@ class Contact
 
   # @see Account#unlink
   def unlink(account)
+    delete_contact_from_mailchimp
     account.unlink(self)
   end
 
@@ -720,6 +725,33 @@ class Contact
       if da.new_record?
         da.value = DateAttribute.new(da.attributes).set_value
       end
+    end
+  end
+
+  def add_contact_to_mailchimp(reference_email = nil)
+    # check whether account is subscribed to mailchimp
+    ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
+    unless ms.empty?
+      ms.first.subscribe_contact(id)
+    end
+  end
+
+  def update_contact_in_mailchimp(reference_email = nil)
+    # check whether account is subscribed to mailchimp
+    ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
+    unless ms.empty?
+      reference_email = primary_attribute(owner, "Email").value if reference_email.nil? && primary_attribute(owner, "Email")
+      # do not update contact if this is the first time email is set
+      ms.first.update_contact(id, reference_email) unless reference_email.blank?
+    end
+  end
+
+  def delete_contact_from_mailchimp(email = nil)
+    # check whether account is subscribed to mailchimp
+    ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
+    unless ms.empty?
+      email = primary_attribute(owner, "Email").value if email.nil? && primary_attribute(owner, "Email")
+      ms.first.unsubscribe_contact(id, email) unless email.blank?
     end
   end
 

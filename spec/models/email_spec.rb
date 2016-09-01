@@ -23,4 +23,112 @@ describe Email do
     c.save!
     c.global_primary_attribute('Email').value.should == "eva_pilot_01@gmail.com"
   end
+
+  describe "on #update" do
+    context "value is being changed" do
+      context "and email is primary" do
+        before do
+          @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+          @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+          @c.save!
+          @c.contact_attributes.first.value = "bart2@thesimpsons.com"
+        end
+        it "should call update_contact_in_mailchimp with previous value" do
+          @c.contact_attributes.first.primary.should be_truthy
+          Contact.any_instance.should_receive(:update_contact_in_mailchimp).with().once
+          Contact.any_instance.should_receive(:update_contact_in_mailchimp).with("bart@thesimpsons.com").once
+          @c.save
+          @c.contact_attributes.first.value.should == "bart2@thesimpsons.com"
+        end
+      end
+      context "and email is not primary" do
+        before do
+          @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+          @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+          @c.contact_attributes << Email.new(:category => :personal, :value => "maggie@thesimpsons.com")
+          @c.save!
+          @c.contact_attributes.last.value = "maggie2@thesimpsons.com"
+        end
+        it "should not call update_contact_in_mailchimp with previous value" do
+          @c.contact_attributes.first.primary.should be_truthy
+          @c.contact_attributes.last.primary.should be_falsy
+          Contact.any_instance.should_receive(:update_contact_in_mailchimp).with().once
+          Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("maggie2@thesimpsons.com")
+          @c.save
+          @c.contact_attributes.last.value.should == "maggie2@thesimpsons.com"
+        end
+      end
+    end
+    context "neither value or primary are being changed" do
+      before do
+        @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "maggie@thesimpsons.com")
+        @c.save!
+        @c.contact_attributes.first.destroy
+        @c.contact_attributes.first.category = "other"
+      end
+      it "should call update_contact_in_mailchimp with previous value" do
+        Contact.any_instance.should_receive(:update_contact_in_mailchimp).with().once
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("bart@thesimpsons.com")
+        @c.save
+      end
+    end
+    context "when no longer primary" do
+      before do
+        @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "maggie@thesimpsons.com")
+        @c.contact_attributes.first.primary = true
+        @c.contact_attributes.last.primary = true
+      end
+      it "should call delete_contact_from_mailchimp with its value" do
+        expect(@c).to receive(:update_contact_in_mailchimp).with().once
+        expect(@c).to receive(:delete_contact_from_mailchimp).with("bart@thesimpsons.com")
+        expect(@c).to receive(:add_contact_to_mailchimp).with("maggie@thesimpsons.com")
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("bart@thesimpsons.com")
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("maggie@thesimpsons.com")
+        Contact.any_instance.should_not_receive(:add_contact_to_mailchimp)
+        @c.save
+      end
+    end
+    context "when turning primary" do
+      before do
+        @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+        @c.contact_attributes << Email.new(:category => :personal, :value => "maggie@thesimpsons.com")
+        @c.save!
+        @c.contact_attributes.first.destroy
+        @c.contact_attributes.first.primary = true
+      end
+      it "should call subscribe_contact_in_mailchimp with its value" do
+        Contact.any_instance.should_receive(:update_contact_in_mailchimp).with().once
+        Contact.any_instance.should_receive(:add_contact_to_mailchimp).with("maggie@thesimpsons.com").once
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("bart@thesimpsons.com")
+        Contact.any_instance.should_not_receive(:update_contact_in_mailchimp).with("maggie@thesimpsons.com")
+        @c.save
+      end
+    end
+  end
+
+  describe "on #delete" do
+    before do
+      @c = Contact.make(:first_name => "Bart", :last_name => "Simpson")
+      @c.contact_attributes << Email.new(:category => :personal, :value => "bart@thesimpsons.com")
+      @c.contact_attributes << Email.new(:category => :personal, :value => "maggie@thesimpsons.com")
+      @c.save!
+    end
+    context "email is primary" do
+      it "should unsubscribe contact from mailchimp" do
+        Contact.any_instance.should_receive(:delete_contact_from_mailchimp).with("bart@thesimpsons.com")
+        @c.contact_attributes.first.destroy
+      end
+    end
+    context "email is not primary" do
+      it "should not unsubscribe contact from mailchimp" do
+        Contact.any_instance.should_not_receive(:delete_contact_from_mailchimp)
+        @c.contact_attributes.last.destroy
+      end
+    end
+  end
 end

@@ -9,6 +9,7 @@ class MailchimpSynchronizer
   field :filter_method
   field :coefficient_group
   field :contact_attributes
+  field :last_synchronization
 
   attr_accessor :has_coefficient_group
 
@@ -81,6 +82,7 @@ class MailchimpSynchronizer
         retry
       end
     end
+    update_attribute(:last_synchronization, DateTime.now.to_s)
     update_attribute(:status, :ready)
     return true
   rescue => e
@@ -222,7 +224,6 @@ class MailchimpSynchronizer
                   account_name: account.name,
                   contact_id: contact.id}
       ) 
-
     if response.code == 200
       followers = JSON.parse(response.body)
     end
@@ -325,13 +326,143 @@ class MailchimpSynchronizer
 
   end
   
-  def get_scope
-    return account.contacts if self.filter_method == 'all'
-    if mailchimp_segments.empty?
-      Contact.any_in( account_ids: [self.account.id] )
-    else
-      Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
+  def subscribe_contact(contact_id)
+    return if is_in_scope(contact_id) == false
+    retries = RETRIES
+
+    update_attribute(:status, :working)
+    c = Contact.find contact_id
+    set_api
+    set_i18n
+    begin
+      @api.lists.subscribe({
+        id: list_id,
+        email: {email: get_primary_attribute_value(c, 'Email')},
+        merge_vars: merge_vars_for_contact(c),
+        double_optin: false,
+        update_existing: true
+      })
+    rescue Gibbon::MailChimpError => e
+      Rails.logger.info "[mailchimp_subscribe of contact #{contact_id}] retrying: #{e.message}"
+      retries -= 1
+      if retries >= 0
+        sleep((RETRIES-retries)*10)
+        retry
+      else
+        Rails.logger.info "[mailchimp_subscribe of contact #{contact_id}] failed: #{e.message}"
+        raise e
+      end
+    rescue Timeout::Error 
+      Rails.logger.info "[mailchimp_subscribe of contact #{contact_id}] timeout subscribing contacts to mailchimp, retrying"
+      retry
     end
+    return true
+  rescue => e
+    Rails.logger.warn "[mailchimp_subscribe of contact #{contact_id}] failed: #{e.message}"
+    raise e
+  end
+  handle_asynchronously :subscribe_contact
+  
+  def update_contact(contact_id, old_mail)
+    return if is_in_scope(contact_id) == false
+    retries = RETRIES
+    
+    update_attribute(:status, :working)
+    c = Contact.find contact_id
+    set_api
+    set_i18n
+    merge_vars = merge_vars_for_contact(c)
+    merge_vars['EMAIL'] = get_primary_attribute_value(c, 'Email')
+    begin
+      resp = @api.lists.update_member({
+        id: list_id,
+        email: {email: old_mail},
+        merge_vars: merge_vars
+      })
+    rescue Gibbon::MailChimpError => e
+      Rails.logger.info "[mailchimp_update of contact #{contact_id}] retrying: #{e.message}"
+      retries -= 1
+      if retries >= 0
+        sleep((RETRIES-retries)*10)
+        retry
+      else
+        Rails.logger.info "[mailchimp_update of contact #{contact_id}] failed: #{e.message}"
+        raise e
+      end
+    rescue Timeout::Error 
+      Rails.logger.info "[mailchimp_update of contact #{contact_id}] timeout subscribing contacts to mailchimp, retrying"
+      retry
+    end
+    return true
+  rescue => e
+    Rails.logger.warn "[mailchimp_update of contact #{contact_id}] failed: #{e.message}"
+    raise e
+  end
+  handle_asynchronously :update_contact
+
+  def unsubscribe_contact(contact_id, email, delete_member = true)
+    return if is_in_scope(contact_id) == false
+    retries = RETRIES
+
+    update_attribute(:status, :working)
+    set_api
+    set_i18n
+    begin
+      @api.lists.unsubscribe({
+        id: list_id,
+        email: {email: email},
+        delete_member: delete_member
+      })
+    rescue Gibbon::MailChimpError => e
+      Rails.logger.info "[mailchimp_unsubscribe of contact #{contact_id}] retrying: #{e.message}"
+      retries -= 1
+      if retries >= 0
+        sleep((RETRIES-retries)*10)
+        retry
+      else
+        Rails.logger.info "[mailchimp_unsubscribe of contact #{contact_id}] failed: #{e.message}"
+        raise e
+      end
+    rescue Timeout::Error 
+      Rails.logger.info "[mailchimp_unsubscribe of contact #{contact_id}] timeout subscribing contacts to mailchimp, retrying"
+      retry
+    end
+    return true
+  rescue => e
+    Rails.logger.warn "[mailchimp_unsubscribe of contact #{contact_id}] failed: #{e.message}"
+    raise e
+  end
+  handle_asynchronously :unsubscribe_contact
+
+  def get_scope
+    return account.contacts.where(:updated_at.gt => last_synchronization || "1/1/2000 00:00") if self.filter_method == 'all'
+    if mailchimp_segments.empty?
+      Contact.any_in( account_ids: [self.account.id] ).where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
+    else
+      account.contacts.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
+    end
+  end
+
+  def calculate_scope_count(filter_method, segments)
+    return account.contacts.count if filter_method == 'all'
+    if segments.blank?
+      Contact.any_in( account_ids: [self.account.id] ).count
+    else
+      account.contacts.where( 
+        "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
+          (seg.key?("student") ? seg["student"] : []), 
+          (seg.key?("coefficient") ? seg["coefficient"] : []), 
+          (seg.key?("gender") ? seg["gender"] : ""), 
+          account.id
+          )
+        }
+      ).count
+    end
+  end
+
+  def is_in_scope(contact_id)
+    return true if self.filter_method == 'all' || mailchimp_segments.empty?
+    return Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query}).and(_id: contact_id).count > 0 ? true : false
   end
   
   def get_primary_attribute_value (contact, type)

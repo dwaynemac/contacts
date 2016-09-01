@@ -98,12 +98,172 @@ describe MailchimpSynchronizer do
         expect{sync.subscribe_contacts}.not_to raise_exception
       end
     end
+    context "on the first subscription" do
+      context "all contacts should be send to mailchimp" do
+        it "scopes all contacts" do
+          Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+          @c = Contact.make
+          @c.accounts << account
+          @c.save
+          sync.api_key = "123123"
+          sync.filter_method = "all"
+          sync.save
+
+          sync.last_synchronization.should be_nil
+          sync.get_scope.count.should == 2
+        end
+      end
+    end
+    context "when subscription has been updated" do
+      context "with filter_method: :all" do
+        before do
+          Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+          @c = Contact.make
+          @c.accounts << account
+          @c.save
+          sync.api_key = "123123"
+          sync.filter_method = "all"
+          sync.save
+          sync.subscribe_contacts
+        end
+        describe "and no contact was has been updated since last sincronization" do
+          it "should not get any contacts to subscribe" do
+            sync.get_scope.count.should == 0
+          end
+        end
+        describe "and one or more contacts had changes in between sincronizations" do
+          it "only those contacts should be updated in mailchimp" do
+            @c.last_name = "Falke"
+            sleep(2)
+            @c.save
+
+            sync.get_scope.count.should == 1
+          end
+        end
+      end
+      context "with filter_method: :segments" do
+        before do
+          Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+          Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
+          @c = Contact.make(first_name: "Alex", last_name: "Halcon")
+          @c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+          @c.accounts << account
+          @c.save
+          sync.mailchimp_segments << MailchimpSegment.new(status: ["student"], followed_by: [])
+          sync.api_key = "123123"
+          sync.filter_method = "segments"
+          sync.save
+          sync.subscribe_contacts
+        end
+        describe "and no contact was has been updated since last sincronization" do
+          it "should not get any contacts to subscribe" do
+            sync.get_scope.count.should == 0
+          end
+        end
+        describe "and one or more contacts had changes in between sincronizations" do
+          it "only those contacts should be updated in mailchimp" do
+            cs = Contact.make(first_name: "Beto", last_name: "Alonso")
+            cs.accounts << account
+            cs.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+            @c.last_name = "Falke"
+            sleep(2)
+            cs.save
+            @c.save
+
+            sync.get_scope.count.should == 2
+          end
+        end
+      end
+    end
   end
 
   describe "#get_scope" do
     subject { sync.get_scope }
     describe "when no segments" do
       it { should_not raise_exception }
+    end
+    context "when account does not have unlinked contacts" do
+      before do
+        c = Contact.make(first_name: "Hy Thuong", last_name: "Nguyen", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Samsung", last_name: "Galaxy", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Homer", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Lisa", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :former_student)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Bart", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Maggie", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Marge", last_name: "Simpson", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "pmenos"
+        c.save
+        c = Contact.make(first_name: "Julieta", last_name: "Wertheimer", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        sync.mailchimp_segments << MailchimpSegment.new(statuses: ["prospect"], followed_by: [], coefficients: ["perfil", "pmas"])
+        sync.mailchimp_segments << MailchimpSegment.new(statuses: ["student"], followed_by: [], coefficients: [])
+        sync.api_key = "123123"
+        sync.last_synchronization = "1/1/2000 00:00"
+        sync.filter_method = "segments"
+        sync.save
+      end
+      it "should get correct scope" do
+        sync.get_scope.count.should == 6
+      end
+    end
+    context "when account has unlinked contacts" do
+      before do
+        c = Contact.make(first_name: "Hy Thuong", last_name: "Nguyen", owner_id: account.id)
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Samsung", last_name: "Galaxy")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Homer", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c = Contact.make(first_name: "Bart", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Lisa", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :former_student)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c = Contact.make(first_name: "Marge", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "pmenos"
+        c.save
+        c = Contact.make(first_name: "Julieta", last_name: "Wertheimer")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        # for some bizarre reason only onw unlink is not working, have to do it two times
+        # only in this contact..
+        c.unlink(account)
+        c.unlink(account)
+        c = Contact.make(first_name: "Maggie", last_name: "Simpson")
+        c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.coefficient_for_myaccname = "perfil"
+        c.save
+        c.unlink(account)
+        sync.mailchimp_segments << MailchimpSegment.new(statuses: ["prospect"], followed_by: [], coefficients: ["perfil", "pmas"])
+        sync.mailchimp_segments << MailchimpSegment.new(statuses: ["student"], followed_by: [], coefficients: [])
+        sync.api_key = "123123"
+        sync.last_synchronization = "1/1/2000 00:00"
+        sync.filter_method = "segments"
+        sync.save
+      end
+      it "should not count them" do
+        Contact.where(first_name: "Julieta").first.owner.should be_nil
+        account.contacts.count.should == 6
+        sync.get_scope.count.should == 4
+      end
     end
   end
   describe "#get_system_status" do

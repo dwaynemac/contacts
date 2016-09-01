@@ -26,6 +26,7 @@ class MailchimpSegment
     and_or_or = "$or" if negative
     
     criteria = []
+
     if !statuses.empty?
       criteria << {"local_unique_attributes" => 
         {"$elemMatch" => {
@@ -55,6 +56,48 @@ class MailchimpSegment
     end
     
     query  
+  end
+
+  def self.to_query(statuses, coefficients, gender, account_id, negative = false)
+    query = {}
+    
+    in_or_not_in = "$in"
+    in_or_not_in = "$nin" if negative
+
+    and_or_or = "$and"
+    and_or_or = "$or" if negative
+    
+    criteria = []
+
+    if !statuses.blank?
+      criteria << {"local_unique_attributes" => 
+        {"$elemMatch" => {
+          "_type" => "LocalStatus",
+          "account_id" => account_id,
+          "value" => {in_or_not_in => statuses}
+        }}
+      }
+    end
+
+    if !coefficients.blank?
+      criteria << {"local_unique_attributes" =>
+        {"$elemMatch" => {
+          "_type" => "Coefficient",
+          "account_id" => account_id,
+          "value" => {in_or_not_in => coefficients}
+        }}
+      }
+    end
+    
+    if !gender.blank?
+      criteria << {"gender" => gender}
+    end
+
+    if !criteria.empty?
+      query[and_or_or] = criteria
+    end
+    
+    query
   end
   
   def sync_before_segment_destruction
