@@ -110,7 +110,7 @@ describe MailchimpSynchronizer do
           sync.save
 
           sync.last_synchronization.should be_nil
-          sync.get_scope.count.should == 2
+          sync.get_scope(true).count.should == 2
         end
       end
     end
@@ -128,7 +128,7 @@ describe MailchimpSynchronizer do
         end
         describe "and no contact was has been updated since last sincronization" do
           it "should not get any contacts to subscribe" do
-            sync.get_scope.count.should == 0
+            sync.get_scope(true).count.should == 0
           end
         end
         describe "and one or more contacts had changes in between sincronizations" do
@@ -137,7 +137,7 @@ describe MailchimpSynchronizer do
             sleep(2)
             @c.save
 
-            sync.get_scope.count.should == 1
+            sync.get_scope(true).count.should == 1
           end
         end
       end
@@ -157,7 +157,7 @@ describe MailchimpSynchronizer do
         end
         describe "and no contact was has been updated since last sincronization" do
           it "should not get any contacts to subscribe" do
-            sync.get_scope.count.should == 0
+            sync.get_scope(true).count.should == 0
           end
         end
         describe "and one or more contacts had changes in between sincronizations" do
@@ -170,7 +170,7 @@ describe MailchimpSynchronizer do
             cs.save
             @c.save
 
-            sync.get_scope.count.should == 2
+            sync.get_scope(true).count.should == 2
           end
         end
       end
@@ -178,7 +178,7 @@ describe MailchimpSynchronizer do
   end
 
   describe "#get_scope" do
-    subject { sync.get_scope }
+    subject { sync.get_scope(true) }
     describe "when no segments" do
       it { should_not raise_exception }
     end
@@ -216,7 +216,7 @@ describe MailchimpSynchronizer do
         sync.save
       end
       it "should get correct scope" do
-        sync.get_scope.count.should == 6
+        sync.get_scope(true).count.should == 6
       end
     end
     context "when account has unlinked contacts" do
@@ -262,7 +262,7 @@ describe MailchimpSynchronizer do
       it "should not count them" do
         Contact.where(first_name: "Julieta").first.owner.should be_nil
         account.contacts.count.should == 6
-        sync.get_scope.count.should == 4
+        sync.get_scope(true).count.should == 4
       end
     end
   end
@@ -346,6 +346,161 @@ describe MailchimpSynchronizer do
       ms.account = account
       ms.save
       ms.status.should == :setting_up
+    end
+  end
+
+  describe "#is_in_list" do
+    context "contact is subscribed to list" do
+      before do
+        @ms = MailchimpSynchronizer.new
+        @ms.account = account
+        @ms.save
+        resp = {
+          "success_count"=>1, 
+          "error_count"=>0, 
+          "errors"=>[], 
+          "data"=>[
+            {
+              "email"=>"pedro@gonzalez.com", 
+              "list_id"=>"00000000", 
+              "list_name"=>"development students 1", 
+              "merges"=>{
+                "EMAIL"=>"pedro@gonzalez.com", 
+                "FNAME"=>"", 
+                "LNAME"=>"", 
+                "PHONE"=>"", 
+                "GENDER"=>"", 
+                "STATUS"=>"", 
+                "ADDR"=>"", 
+                "SYSSTATUS"=>"", 
+                "SYSCOEFF"=>"", 
+                "FOLLOWEDBY"=>"", 
+                "GROUPINGS"=>[
+                  {
+                    "id"=>0000, 
+                    "name"=>"Coefficient", 
+                    "form_field"=>"hidden", 
+                    "groups"=>[
+                      {
+                        "name"=>"unknown", 
+                        "interested"=>false
+                      }, 
+                      {
+                        "name"=>"perfil", 
+                        "interested"=>false
+                      }, 
+                      {
+                        "name"=>"pmas", 
+                        "interested"=>false
+                      }, 
+                      {
+                        "name"=>"pmenos", 
+                        "interested"=>false
+                      }, 
+                      {
+                        "name"=>"np", 
+                        "interested"=>false
+                      }
+                    ]
+                  }
+                ]
+              }, 
+              "status"=>"subscribed", 
+              "is_gmonkey"=>false, 
+              "lists"=>[
+                {
+                  "id"=>"0000", 
+                  "status"=>"subscribed"
+                }
+              ], 
+              "geo"=>[], 
+              "clients"=>[], 
+              "static_segments"=>[], 
+              "notes"=>[]
+            }
+          ]
+        }
+        Gibbon::API.any_instance.stub_chain(:lists, :member_info).and_return(resp)
+      end
+      it "should return true" do
+        @ms.is_in_list?("mail@value.com").should be_truthy
+      end
+    end
+    context "contact is unsubscribed or not in list" do
+      before do
+        @ms = MailchimpSynchronizer.new
+        @ms.account = account
+        @ms.save
+        resp = {
+          "success_count"=>1, 
+          "error_count"=>0, 
+          "errors"=>[], 
+          "data"=>[
+            {
+              "email"=>"pedro@gonzalez.com", 
+              "list_id"=>"00000000", 
+              "list_name"=>"development students 1", 
+              "merges"=>{
+                "EMAIL"=>"pedro@gonzalez.com", 
+                "FNAME"=>"", 
+                "LNAME"=>"", 
+                "PHONE"=>"", 
+                "GENDER"=>"", 
+                "STATUS"=>"", 
+                "ADDR"=>"", 
+                "SYSSTATUS"=>"", 
+                "SYSCOEFF"=>"", 
+                "FOLLOWEDBY"=>"", 
+                "GROUPINGS"=>[
+                  {
+                    "id"=>0000, 
+                    "name"=>"Coefficient", 
+                    "form_field"=>"hidden", 
+                    "groups"=>[
+                      {
+                        "name"=>"unknown", 
+                        "interested"=>false
+                      }, 
+                      {
+                        "name"=>"perfil", 
+                        "interested"=>false
+                      }, 
+                      {
+                        "name"=>"pmas", 
+                        "interested"=>false
+                      }, 
+                      {
+                        "name"=>"pmenos", 
+                        "interested"=>false
+                      }, 
+                      {
+                        "name"=>"np", 
+                        "interested"=>false
+                      }
+                    ]
+                  }
+                ]
+              }, 
+              "status"=>"unsubscribed", 
+              "is_gmonkey"=>false, 
+              "lists"=>[
+                {
+                  "id"=>"0000", 
+                  "status"=>"subscribed"
+                }
+              ], 
+              "geo"=>[], 
+              "clients"=>[], 
+              "static_segments"=>[], 
+              "notes"=>[]
+            }
+          ]
+        }
+        Gibbon::API.any_instance.stub_chain(:lists, :member_info).and_return(resp)
+      end
+      it "should return true" do
+        @ms.is_in_list?("mail@value.com").should be_falsey
+      end
     end
   end
 

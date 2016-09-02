@@ -232,6 +232,15 @@ describe Merge do
   describe "#merge" do
     let(:father){Contact.make(first_name: 'dwayne 2', last_name: 'macgowan', status: :student)}
     let(:son){Contact.make(first_name: 'dwayne', last_name: 'macgowan')}
+    before do
+      mailing_merge = MailingMerge.new
+      MailingMerge.should_receive(:new).and_return(mailing_merge)
+      MailingMerge.any_instance.should_receive(:create).and_return(true)
+
+      attendance_merge = AttendanceMerge.new
+      AttendanceMerge.should_receive(:new).and_return(attendance_merge)
+      AttendanceMerge.any_instance.should_receive(:create).and_return(true)
+    end
 
     describe "contacts service" do
       context "when the avatar is being merged" do
@@ -372,7 +381,7 @@ describe Merge do
 
     it "should persist services progress" do
       m = Merge.make(first_contact_id: son.id, second_contact_id: father.id)
-
+      
       activities_merge = ActivityStream::Merge.new
       ActivityStream::Merge.should_receive(:new).with(parent_id: father.id.to_s, son_id: son.id.to_s).and_return(activities_merge)
       ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
@@ -459,6 +468,13 @@ describe Merge do
       CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
       CrmMerge.any_instance.should_receive(:create).and_return(false)
 
+      mailing_merge = MailingMerge.new
+      MailingMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mailing_merge)
+      MailingMerge.any_instance.should_receive(:create).and_return(true)
+
+      attendance_merge = AttendanceMerge.new
+      AttendanceMerge.should_receive(:new).with(father_id: @father.id, son_id: @son.id).and_return(attendance_merge)
+      AttendanceMerge.any_instance.should_receive(:create).and_return(true)
 
       @m = Merge.new(:first_contact_id => @father.id, :second_contact_id => @son.id)
       @m.save

@@ -46,8 +46,30 @@ class MailchimpSynchronizer
     self.delay.subscribe_contacts unless @skip
   end
 
+  def queue_subscribe_contacts(options={})
+    @skip = false
+    from_last_synchronization = options.blank? ? nil : options[:from_last_synchronization]
+
+    unless options[:force]
+      Delayed::Job.all.each do |dj|
+        begin
+          handler = YAML.load(dj.handler)
+          if (handler.method_name == :subscribe_contacts) && (handler.account.name == account.name)
+           # subscribe_contacts is already queued for this account and ready to run
+           @skip = true 
+           break
+          end
+        rescue
+          next
+        end
+      end
+    end
+
+    self.delay.subscribe_contacts(from_last_synchronization) unless @skip
+  end
+
   RETRIES = 10
-  def subscribe_contacts
+  def subscribe_contacts(from_last_synchronization = true)
     return unless status == :ready
     Rails.logger.info "[mailchimp_synchronizer #{self.id}] starting"
     retries = RETRIES
@@ -55,9 +77,9 @@ class MailchimpSynchronizer
     update_attribute(:status, :working)
     set_api
     set_i18n
-    get_scope.page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
+    get_scope(from_last_synchronization).page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
       Rails.logger.info "[mailchimp_synchronizer #{self.id}] batch #{i}"
-      page = get_scope.page(i + 1).per(CONTACTS_BATCH_SIZE)
+      page = get_scope(from_last_synchronization).page(i + 1).per(CONTACTS_BATCH_SIZE)
       begin
         @api.lists.batch_subscribe({
           id: list_id,
@@ -330,7 +352,6 @@ class MailchimpSynchronizer
     return if is_in_scope(contact_id) == false
     retries = RETRIES
 
-    update_attribute(:status, :working)
     c = Contact.find contact_id
     set_api
     set_i18n
@@ -364,10 +385,16 @@ class MailchimpSynchronizer
   handle_asynchronously :subscribe_contact
   
   def update_contact(contact_id, old_mail)
-    return if is_in_scope(contact_id) == false
+    in_scope = is_in_scope(contact_id)
+    in_list = is_in_list?(old_mail)
+    if in_scope == false && in_list
+      unsubscribe_contact(contact_id, old_mail, true)
+    elsif in_scope == true && !in_list
+      subscribe_contact(contact_id)
+    end
+    return if in_scope == false || (in_scope == true && !in_list)
     retries = RETRIES
     
-    update_attribute(:status, :working)
     c = Contact.find contact_id
     set_api
     set_i18n
@@ -400,11 +427,10 @@ class MailchimpSynchronizer
   end
   handle_asynchronously :update_contact
 
-  def unsubscribe_contact(contact_id, email, delete_member = true)
-    return if is_in_scope(contact_id) == false
+  def unsubscribe_contact(contact_id, email, is_in_list = false, delete_member = true)
+    return if !is_in_list && is_in_scope(contact_id) == false
     retries = RETRIES
 
-    update_attribute(:status, :working)
     set_api
     set_i18n
     begin
@@ -434,12 +460,35 @@ class MailchimpSynchronizer
   end
   handle_asynchronously :unsubscribe_contact
 
-  def get_scope
-    return account.contacts.where(:updated_at.gt => last_synchronization || "1/1/2000 00:00") if self.filter_method == 'all'
-    if mailchimp_segments.empty?
-      Contact.any_in( account_ids: [self.account.id] ).where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
+  # Check if a single email is currently subscribed to a list
+  def is_in_list?(email)
+    set_api
+    resp = @api.lists.member_info({
+        id: list_id,
+        emails: [{email: email}]
+      })
+    return !resp.blank? && resp["success_count"] > 0 && resp["data"][0]["status"] == "subscribed"
+  end
+
+  def get_scope(from_last_synchronization)
+    if self.filter_method == "all"
+      if from_last_synchronization
+        account.contacts.where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
+      else
+        account.contacts
+      end
+    elsif mailchimp_segments.empty?
+      if from_last_synchronization
+        Contact.any_in( account_ids: [self.account.id] ).where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
+      else
+        Contact.any_in( account_ids: [self.account.id] )
+      end
     else
-      account.contacts.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
+      if from_last_synchronization
+        account.contacts.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
+      else
+        account.contacts.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
+      end
     end
   end
 
@@ -535,7 +584,7 @@ class MailchimpSynchronizer
   def self.synchronize_all
     self.all.each do |ms|
       Rails.logger.info "MAILCHIMP - synchronizing #{ms.account.name}"
-      ms.queue_subscribe_contacts
+      ms.queue_subscribe_contacts({from_last_synchronization: true})
     end
   end
 
