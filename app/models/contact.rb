@@ -14,7 +14,7 @@ class Contact
 
   include Mongoid::Search
 
-  before_destroy :delete_contact_from_mailchimp
+  #before_destroy :delete_contact_from_mailchimp
   search_in :first_name, :last_name, {:contact_attributes => :value }, {:tags => :name} , {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
 
   embeds_many :attachments, cascade_callbacks: true
@@ -33,14 +33,14 @@ class Contact
 
   has_many :history_entries, as: 'historiable', dependent: :delete
   after_save :keep_history_of_changes
-  after_update :update_contact_in_mailchimp
+  #after_update :update_contact_in_mailchimp
   attr_accessor :skip_history_entries # default: nil
 
   after_save :post_activity_if_level_changed
   attr_accessor :skip_level_change_activity # default: nil
 
   after_create :post_activity_of_creation
-  after_create :add_contact_to_mailchimp
+  #after_create :add_contact_to_mailchimp
 
 
   field :first_name
@@ -363,7 +363,7 @@ class Contact
 
   # @see Account#unlink
   def unlink(account)
-    delete_contact_from_mailchimp
+    #delete_contact_from_mailchimp
     account.unlink(self)
   end
 
