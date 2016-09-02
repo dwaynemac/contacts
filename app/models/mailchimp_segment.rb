@@ -38,6 +38,10 @@ class MailchimpSegment
     end
 
     if !coefficients.empty?
+      if coefficients.include? "np"
+        coefficients.delete("np")
+        coefficients << "fp"
+      end
       criteria << {"local_unique_attributes" =>
         {"$elemMatch" => {
           "_type" => "Coefficient",
@@ -80,6 +84,9 @@ class MailchimpSegment
     end
 
     if !coefficients.blank?
+      if coefficients.include? "np"
+        coefficients << "fp"
+      end
       criteria << {"local_unique_attributes" =>
         {"$elemMatch" => {
           "_type" => "Coefficient",
