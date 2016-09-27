@@ -6,7 +6,7 @@ PADMA_ATTENDANCE_HOST = case Rails.env
   when "staging"
     "padma-attendance-staging.herokuapp.com"
   when "development"
-    "localhost:3004"
+    (ENV['C9_USER'])? "padma-attendance-#{ENV['C9_USER']}.c9users.io" : "localhost:3004"
   when "test"
     "localhost:3004"
 end
@@ -50,7 +50,7 @@ PADMA_ACCOUNTS_HOST = case Rails.env
   when "staging"
     "padma-accounts-staging.herokuapp.com"
   when "development"
-    "localhost:3001"
+    (ENV['C9_USER'])? "padma-accounts-#{ENV['C9_USER']}.c9users.io" : "localhost:3001"
   when "test"
     "localhost:3001"
 end
@@ -61,7 +61,7 @@ PADMA_CRM_HOST = case Rails.env
   when "staging"
     "padma-crm-staging.herokuapp.com"
   when "development"
-    "localhost:3000"
+    (ENV['C9_USER'])? "padma-crm-#{ENV['C9_USER']}.c9users.io" : "localhost:3000"
   when "test"
     "localhost:3000"
 end
@@ -69,11 +69,17 @@ end
 module Accounts
   API_KEY = ENV['accounts_key']
   HYDRA = ::HYDRA
+  if ENV['C9_USER']
+    HOST = PADMA_ACCOUNTS_HOST
+  end
 end
 
 module ActivityStream
   HYDRA = ::HYDRA
   API_KEY = ENV['activity_key']
+  if ENV['C9_USER']
+    HOST = "padma-activity-stream-#{ENV['C9_USER']}.c9users.io"
+  end
 end
 
 module Messaging
