@@ -91,11 +91,18 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
     render json: ms.calculate_scope_count(params[:filter_method], segments)
   end
 
-  def get_status
+  ##
+  # Shows given Synchronizer
+  # @url /v0/mailchimp_synchronizer/:id
+  # @action GET
+  #
+  # @required [String] synchronizer[api_key] Mailchimp API KEY
+  #
+  def show
     ms = MailchimpSynchronizer.where(api_key: params[:api_key]).first
-    
+    ms.status = "working"
     unless ms.blank?
-      render json: ms.status
+      render json: ms.to_json
     end
   end
 
