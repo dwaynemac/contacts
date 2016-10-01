@@ -44,7 +44,7 @@ class MailchimpSynchronizer
       end
     end
 
-    self.delay.subscribe_contacts(from_last_synchronization) unless @skip
+    self.delay(priority: 2).subscribe_contacts(from_last_synchronization) unless @skip
   end
 
   RETRIES = 10
