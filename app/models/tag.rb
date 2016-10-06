@@ -36,6 +36,6 @@ class Tag
         contact.index_keywords!
       end
     end
-    handle_asynchronously :batch_add
+    handle_asynchronously :batch_add, priority: -1
   end
 end
