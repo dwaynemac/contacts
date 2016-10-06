@@ -28,7 +28,7 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
   #
   def show
     ms = MailchimpSynchronizer.where(api_key: params[:api_key]).first
-    #ms.status = "working"
+
     if !ms.blank?
       render json: ms.to_json
     else
