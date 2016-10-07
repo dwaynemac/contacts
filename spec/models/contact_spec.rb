@@ -1260,7 +1260,7 @@ describe Contact do
                         historiable_id: @contact._id
     )
   end
-
+=begin
   describe "after_create" do
     before do
       Delayed::Worker.delay_jobs = false
@@ -1387,4 +1387,5 @@ describe Contact do
       end
     end
   end
+=end
 end
