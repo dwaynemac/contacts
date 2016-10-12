@@ -147,6 +147,8 @@ class MailchimpSegment
     })
     self.mailchimp_id = response['id']
   rescue Gibbon::MailChimpError => e
+    synchro.update_attribute(:status, :failed)
+    synchro.email_admins_about_failure(synchro.account.name, e.message)
     Rails.logger.warn "Couldnt create segment #{self.id} in Mailchimp. Error: #{e.message}"
     return nil
   end
