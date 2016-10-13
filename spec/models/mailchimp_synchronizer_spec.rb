@@ -504,6 +504,40 @@ describe MailchimpSynchronizer do
     end
   end
 
+  describe "#coefficient_group_valid?" do
+    before do
+      @ms = MailchimpSynchronizer.new
+      @ms.account = account
+      @ms.list_id = "5555"
+      @ms.api_key = "123123"
+      @ms.save
+      Gibbon::API.any_instance.stub_chain(:lists, :interest_groupings).and_return([{"id" => "1234", "name" => "Coefficient"}])
+      Gibbon::API.any_instance.stub_chain(:lists, :interest_grouping_add)
+      @ms.stub(:email_admins_about_failure)
+    end
+    context "when coefficient group match" do
+      before do
+        @ms.coefficient_group = "1234"
+      end
+      it "should be valid" do
+        @ms.coefficient_group_valid?.should be_truthy
+      end
+    end
+    context "when coefficient group is nil" do
+      it "should not be valid" do
+        @ms.coefficient_group_valid?.should be_falsey
+      end
+    end
+    context "when coefficient group does not match" do
+      before do
+        @ms.coefficient_group = "123234"
+      end
+      it "should be valid" do
+        @ms.coefficient_group_valid?.should be_falsey
+      end
+    end
+  end
+
 =begin
   describe "on update" do
     before do

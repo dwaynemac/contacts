@@ -19,6 +19,7 @@ class MailchimpSynchronizer
   has_many :mailchimp_segments
   
   before_create :set_default_attributes
+  after_update :find_or_create_coefficients_group
   after_save :finish_setup
   
   before_destroy :destroy_segments
@@ -509,8 +510,37 @@ class MailchimpSynchronizer
     end
   end
 
+  def check_coefficient_group
+    find_or_create_coefficients_group unless coefficient_group_valid?
+  end
+  handle_asynchronously :check_coefficient_group
+
   def initialize_list_groups
     find_or_create_coefficients_group
+  end
+
+  def coefficient_group_valid?
+    return false if coefficient_group.nil?
+    response = false
+
+    set_i18n
+    set_api
+    begin
+      groupings = @api.lists.interest_groupings({
+        id: list_id
+        })
+      groupings.each do |group|
+        if group["id"] == coefficient_group && 
+            group["name"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
+            response = true
+        end
+      end
+    rescue Gibbon::MailChimpError => e
+      update_attribute(:status, :failed)
+      email_admins_about_failure(account.name, e.message)
+      raise
+    end
+    response
   end
   
   def find_or_create_coefficients_group
@@ -541,6 +571,8 @@ class MailchimpSynchronizer
         @has_coefficient_group = true
         retry
       else
+        update_attribute(:status, :failed)
+        email_admins_about_failure(account.name, e.message)
         raise
       end
     end
