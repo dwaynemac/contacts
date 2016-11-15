@@ -513,7 +513,7 @@ class MailchimpSynchronizer
   def check_coefficient_group
     find_or_create_coefficients_group unless coefficient_group_valid?
   end
-  handle_asynchronously :check_coefficient_group
+  handle_asynchronously :check_coefficient_group, priority: 10
 
   def initialize_list_groups
     find_or_create_coefficients_group
@@ -536,7 +536,7 @@ class MailchimpSynchronizer
         end
       end
     rescue Gibbon::MailChimpError => e
-      update_attribute(:status, :failed)
+      set(status: :failed)
       email_admins_about_failure(account.name, e.message)
       raise
     end
@@ -565,13 +565,17 @@ class MailchimpSynchronizer
           groups: ["unknown", "perfil", "pmas", "pmenos", "np"]
           })
       end
-      update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
+      # mongoid atomic operation to avoid callbacks
+      # If changed to AR it should be set to "update_all" or "update_column"
+      set(coefficient_group: mailchimp_coefficient_group['id'])
     rescue Gibbon::MailChimpError => e
       if e.message =~ /already exists/ && !@has_coefficient_group
         @has_coefficient_group = true
         retry
       else
-        update_attribute(:status, :failed)
+        # mongoid atomic operation to avoid callbacks
+        # If changed to AR it should be set to "update_all" or "update_column"
+        set(status: :failed)
         email_admins_about_failure(account.name, e.message)
         raise
       end
