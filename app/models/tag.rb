@@ -32,10 +32,10 @@ class Tag
       
       contacts.each do |contact|
         contact.tags += tags
-        contact.save
+        contact.save(validate: false)
         contact.index_keywords!
       end
     end
-    handle_asynchronously :batch_add, priority: -1
+    #handle_asynchronously :batch_add, priority: -1
   end
 end

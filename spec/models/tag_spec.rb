@@ -65,7 +65,7 @@ describe Tag do
   
   describe ".batch_add (with delay)" do
     it "queues delayed_job task" do
-      expect{ Tag.batch_add([],[]) }.to change{Delayed::Job.count}.by(1)
+      expect{ Tag.delay.batch_add([],[]) }.to change{Delayed::Job.count}.by(1)
     end
   end
   
@@ -80,7 +80,7 @@ describe Tag do
     end
     context "when adding only existing tags to contacts that didnt have those tags" do
       before do
-        Tag.batch_add_without_delay([@first_tag.id, @second_tag.id, @third_tag.id],
+        Tag.batch_add([@first_tag.id, @second_tag.id, @third_tag.id],
                       [@first_contact.id, @second_contact.id]
                      )
         @first_contact.save
@@ -103,7 +103,7 @@ describe Tag do
       before do
         @first_contact.tags << @first_tag
         @second_contact.tags << @third_tag
-        Tag.batch_add_without_delay([@first_tag.id, @second_tag.id, @third_tag.id],
+        Tag.batch_add([@first_tag.id, @second_tag.id, @third_tag.id],
                       [@first_contact.id, @second_contact.id])
         @first_contact.reload
         @second_contact.reload
