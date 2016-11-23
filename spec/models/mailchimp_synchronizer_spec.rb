@@ -266,6 +266,21 @@ describe MailchimpSynchronizer do
       end
     end
   end
+  
+  describe "#get_local_teacher" do
+    subject { sync.get_local_teacher_for(contact) }
+    
+    describe "if contact has local teacher" do
+      let(:contact){ Contact.make(local_teacher_for_myaccname: "dwayne.macgowan") }
+      it { should eq "dwayne.macgowan" }
+    end
+    
+    describe "if contact has no local teacher" do
+      let(:contact){ Contact.make }
+      it { should be_nil }
+    end
+  end
+  
   describe "#get_system_status" do
     subject { sync.get_system_status(contact) }
     describe "for contact with local_status :student" do
