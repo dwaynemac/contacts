@@ -511,11 +511,12 @@ class MailchimpSynchronizer
   end
 
   def check_coefficient_group
-    find_or_create_coefficients_group unless coefficient_group_valid?
+    #find_or_create_coefficients_group unless coefficient_group_valid?
   end
-  handle_asynchronously :check_coefficient_group, priority: 10
+  #handle_asynchronously :check_coefficient_group, priority: 10
 
   def initialize_list_groups
+    debugger
     find_or_create_coefficients_group
   end
 
@@ -544,6 +545,7 @@ class MailchimpSynchronizer
   end
   
   def find_or_create_coefficients_group
+    #debugger
     set_i18n
     set_api
     begin
@@ -567,7 +569,11 @@ class MailchimpSynchronizer
       end
       # mongoid atomic operation to avoid callbacks
       # If changed to AR it should be set to "update_all" or "update_column"
+      puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~44"
+      puts "synchronizer before set: #{self.inspect}"
       set(coefficient_group: mailchimp_coefficient_group['id'])
+      puts "synchronizer after set: #{self.inspect}"
+      puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~44"
     rescue Gibbon::MailChimpError => e
       if e.message =~ /already exists/ && !@has_coefficient_group
         @has_coefficient_group = true
