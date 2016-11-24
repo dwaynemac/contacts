@@ -2,6 +2,7 @@ es:
   local_teacher:
     new_teacher: Pasa a ser alumno de %{teacher_username}
   mailchimp:
+    teacher: Instructor
     phone:
       phone: telefono
     status:

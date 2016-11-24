@@ -255,6 +255,7 @@ class MailchimpSynchronizer
     merge_var_add('SYSSTATUS', 'System Status', 'text', {public: false, show: false}) 
     merge_var_add('SYSCOEFF', 'System Coefficient', 'text', {public: false, show: false}) 
     merge_var_add('FOLLOWEDBY', 'Followed by', 'text', {public: false})
+    merge_var_add('TEACHER', I18n.t('mailchimp.teacher'), 'text', {public: false})
   end
   
   def merge_var_add (tag, name, type, options={})
