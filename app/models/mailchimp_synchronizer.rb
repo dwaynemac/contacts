@@ -48,17 +48,18 @@ class MailchimpSynchronizer
   end
 
   RETRIES = 10
-  def subscribe_contacts(from_last_synchronization = true)
+  def subscribe_contacts(from_last_synchronization = true, batch_size = nil)
     return unless status == :ready
     Rails.logger.info "[mailchimp_synchronizer #{self.id}] starting"
     retries = RETRIES
+    batch_size = CONTACTS_BATCH_SIZE if batch_size.nil?
 
     update_attribute(:status, :working)
     set_api
     set_i18n
-    get_scope(from_last_synchronization).page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
+    get_scope(from_last_synchronization).page(1).per(batch_size).num_pages.times do |i|
       Rails.logger.info "[mailchimp_synchronizer #{self.id}] batch #{i}"
-      page = get_scope(from_last_synchronization).page(i + 1).per(CONTACTS_BATCH_SIZE)
+      page = get_scope(from_last_synchronization).page(i + 1).per(batch_size)
       begin
         @api.lists.batch_subscribe({
           id: list_id,
@@ -78,9 +79,16 @@ class MailchimpSynchronizer
           update_attribute(:status, :failed)
           raise e
         end
-      rescue Timeout::Error 
-        Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp, retrying"
-        retry
+      rescue Timeout::Error => e
+        new_batch_size = batch_size / 2
+        if new_batch_size > 100
+          Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp, retrying with batch_size #{new_batch_size}"
+          update_attribute(:status, :ready)
+          subscribe_contacts(from_last_synchronization,new_batch_size)
+        else
+          Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp. Quitting."
+          raise e
+        end
       end
     end
     update_attribute(:last_synchronization, DateTime.now.to_s)
