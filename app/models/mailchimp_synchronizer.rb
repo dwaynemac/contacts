@@ -50,6 +50,7 @@ class MailchimpSynchronizer
   RETRIES = 10
   def subscribe_contacts(from_last_synchronization = true, batch_size = nil)
     return unless status == :ready
+    return unless account.padma.enabled?
     Rails.logger.info "[mailchimp_synchronizer #{self.id}] starting"
     retries = RETRIES
     batch_size = CONTACTS_BATCH_SIZE if batch_size.nil?
