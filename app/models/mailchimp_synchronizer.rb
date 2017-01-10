@@ -188,7 +188,6 @@ class MailchimpSynchronizer
     end
   end
   
-
   def get_system_coefficient (contact)
     case contact.coefficients.where(account_id: account.id).first.try(:value)
     when 'unknown'
