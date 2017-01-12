@@ -283,6 +283,20 @@ describe V0::ContactsController do
     end
   end
 
+  describe "#search_for_select" do
+    describe "with app_key" do
+      before do
+        get :search_for_select, format: :js, app_key: V0::ApplicationController::APP_KEY
+      end
+      it { should respond_with 200 }
+    end
+    describe "with readonly_key" do
+      before do
+        get :search_for_select, format: :js, app_key: ENV['readonly_key']
+      end
+      it { should respond_with 200 }
+    end
+  end
 
   describe "#show_by_kshema_id" do
     describe "with kshema_id" do
