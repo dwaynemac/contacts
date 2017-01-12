@@ -2,10 +2,10 @@ require "#{Rails.root}/app/controllers/v0/concerns/contacts_scope"
 require 'oj'
 # @restful_api v0
 class V0::ContactsController < V0::ApplicationController
+  include V0::Concerns::ContactsScope
 
   authorize_resource
-
-  include V0::Concerns::ContactsScope
+  skip_authorize_resource only: :search_for_select
 
   before_filter :set_list
   before_filter :set_scope, except: [:create]
@@ -106,6 +106,7 @@ class V0::ContactsController < V0::ApplicationController
   end
 
   def search_for_select
+    authorize! :read, Contact
     @scope = @scope.csearch(params[:full_text]) if params[:full_text].present?
     @scope = @scope.api_where(params[:where], @account.try(:id))   if params[:where].present?
     @scope = @scope.order_by(normalize_criteria(params[:sort].to_a)) if params[:sort].present?

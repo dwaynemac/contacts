@@ -56,7 +56,7 @@ class V0::Ability
 
         end
       when ENV['readonly_key']
-        can %W(read search_for_select), Contact
+        can :read, Contact
       when ENV['office_key']
         # office permitions
         can [:read,:update], Contact
