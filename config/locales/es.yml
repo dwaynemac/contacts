@@ -2,6 +2,7 @@ es:
   local_teacher:
     new_teacher: Pasa a ser alumno de %{teacher_username}
   mailchimp:
+    padma_tags: Tags en PADMA
     teacher: Instructor
     phone:
       phone: telefono
