@@ -160,7 +160,8 @@ class MailchimpSynchronizer
       SYSCOEFF: get_system_coefficient(contact),
       SYSSTATUS: get_system_status(contact),
       FOLLOWEDBY: get_followers_for(contact),
-      TEACHER: get_local_teacher_for(contact)
+      TEACHER: get_local_teacher_for(contact),
+      TAGS: get_tags_for(contact)
     } 
     if contact_attributes
       contact_attributes.split(",").each do |contact_attribute|
@@ -228,6 +229,10 @@ class MailchimpSynchronizer
   
   def get_local_teacher_for(contact)
     contact.local_teachers.where(account_id: account.id).first.try(:value)
+  end
+
+  def get_tags_for(contact)
+    contact.tags.where(account_id: account.id).map(&:name).join(", ")
   end
 
   def get_followers_for(contact)
