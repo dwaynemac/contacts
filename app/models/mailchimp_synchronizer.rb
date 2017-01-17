@@ -161,7 +161,7 @@ class MailchimpSynchronizer
       SYSSTATUS: get_system_status(contact),
       FOLLOWEDBY: get_followers_for(contact),
       TEACHER: get_local_teacher_for(contact),
-      TAGS: get_tags_for(contact)
+      PADMA_TAGS: get_tags_for(contact)
     } 
     if contact_attributes
       contact_attributes.split(",").each do |contact_attribute|
