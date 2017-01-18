@@ -516,8 +516,8 @@ class MailchimpSynchronizer
   #handle_asynchronously :check_coefficient_group, priority: 10
 
   def initialize_list_groups
-    debugger
-    find_or_create_coefficients_group
+    #debugger
+    #find_or_create_coefficients_group
   end
 
   def coefficient_group_valid?
@@ -571,7 +571,9 @@ class MailchimpSynchronizer
       # If changed to AR it should be set to "update_all" or "update_column"
       puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~44"
       puts "synchronizer before set: #{self.inspect}"
-      set(coefficient_group: mailchimp_coefficient_group['id'])
+      MailchimpSynchronizer.skip_callback(:update, :after, :find_or_create_coefficients_group)
+      update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
+      MailchimpSynchronizer.set_callback(:update, :after, :find_or_create_coefficients_group)
       puts "synchronizer after set: #{self.inspect}"
       puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~44"
     rescue Gibbon::MailChimpError => e
