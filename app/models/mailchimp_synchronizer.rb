@@ -47,6 +47,13 @@ class MailchimpSynchronizer
     self.delay(priority: 2).subscribe_contacts(from_last_synchronization) unless @skip
   end
 
+  def complete_sync
+    if filter_method == 'segments'
+      unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})
+    end
+    queue_subscribe_contacts({from_last_synchronization: false})
+  end
+
   RETRIES = 10
   def subscribe_contacts(from_last_synchronization = true, batch_size = nil)
     return unless status == :ready
@@ -336,7 +343,7 @@ class MailchimpSynchronizer
 
     if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
       if filter_method == 'all' && params[:filter_method] == 'segments'
-        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})      
+        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})
       end
       update_attribute(:filter_method, params[:filter_method])
     end
