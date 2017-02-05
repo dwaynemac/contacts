@@ -80,7 +80,7 @@ class Contact
 
   field :in_professional_training, type: Boolean
   
-  field :professional_training_level
+  field :professional_training_level, type: Integer
   # 1 - profu, 2 - comple, 3 - 3rd_module
   VALID_PROFESSIONAL_TRAINING_LEVEL = [1, 2, 3]
 
