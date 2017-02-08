@@ -540,7 +540,7 @@ class MailchimpSynchronizer
   def check_coefficient_group
     find_or_create_coefficients_group unless coefficient_group_valid?
   end
-  handle_asynchronously :check_coefficient_group, priority: 10
+  handle_asynchronously :check_coefficient_group, priority: 1
 
   def initialize_list_groups
     find_or_create_coefficients_group
