@@ -64,13 +64,6 @@ describe MailchimpSynchronizer do
   describe "#subscribe_contacts" do
     describe "if status is not :ready" do
       before do
-        MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
-        MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
-        Gibbon::API.any_instance.stub(:lists).and_raise(Gibbon::MailChimpError)
-        stub_const("MailchimpSynchronizer::RETRIES", 1)
-      end
-      it "re-raises Gibbon::MailChimpError" do
-        expect{sync.subscribe_contacts}.to raise_exception
         contact.accounts << account
         sync.save
         sync.status = :failed
@@ -83,37 +76,6 @@ describe MailchimpSynchronizer do
     end
     describe "if status is :ready" do
       before do
-        MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
-        MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
-        @exception_counts = 2
-        Gibbon::API.any_instance.stub(:lists) do
-          @exception_counts -= 1
-          if @exception_counts <= 0
-            raise Gibbon::MailChimpError
-          else
-            Gibbon::API.new
-          end
-        end
-      end
-      it "catches Gibbon::MailChimpError and retries" do
-        expect{sync.subscribe_contacts}.not_to raise_exception
-      end
-    end
-    context "on the first subscription" do
-      context "all contacts should be send to mailchimp" do
-        it "scopes all contacts" do
-          Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
-          MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
-          MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
-          @c = Contact.make
-          @c.accounts << account
-          @c.save
-          sync.api_key = "123123"
-          sync.filter_method = "all"
-          sync.save
-
-          sync.last_synchronization.should be_nil
-          sync.get_scope(true).count.should == 2
         contact.accounts << account
         sync.save
         sync.status = :ready
@@ -130,20 +92,12 @@ describe MailchimpSynchronizer do
       end
       describe "if accounts is enabled" do
         before do
-          Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
-          MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
-          MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
-          @c = Contact.make
-          @c.accounts << account
-          @c.save
-          sync.api_key = "123123"
-          sync.filter_method = "all"
-          sync.save
-          sync.subscribe_contacts
           PadmaAccount.stub(:find_with_rails_cache).and_return(PadmaAccount.new(enabled: true))
         end
         context "if mailchimp fails consistenly" do
           before do
+            MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
+            MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
             Gibbon::API.any_instance.stub(:lists).and_raise(Gibbon::MailChimpError)
             stub_const("MailchimpSynchronizer::RETRIES", 1)
           end
@@ -157,24 +111,9 @@ describe MailchimpSynchronizer do
             expect(ActionMailer::Base.deliveries.count).to eq (deliveries+1)
           end
         end
-      end
-      context "with filter_method: :segments" do
-        before do
-          Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
-          MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
-          MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
-          Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
-          @c = Contact.make(first_name: "Alex", last_name: "Halcon")
-          @c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
-          @c.accounts << account
-          @c.save
-          sync.mailchimp_segments << MailchimpSegment.new(status: ["student"], followed_by: [])
-          sync.api_key = "123123"
-          sync.filter_method = "segments"
-          sync.save
-          sync.subscribe_contacts
         context "if mailchimp fails erratically" do
           before do
+            MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
             @exception_counts = 2
             Gibbon::API.any_instance.stub(:lists) do
               @exception_counts -= 1
@@ -193,6 +132,7 @@ describe MailchimpSynchronizer do
           context "all contacts should be send to mailchimp" do
             it "scopes all contacts" do
               Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+              MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
               @c = Contact.make
               @c.accounts << account
               @c.save
@@ -209,6 +149,7 @@ describe MailchimpSynchronizer do
           context "with filter_method: :all" do
             before do
               Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+              MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
               @c = Contact.make
               @c.accounts << account
               @c.save
@@ -234,6 +175,7 @@ describe MailchimpSynchronizer do
           end
           context "with filter_method: :segments" do
             before do
+              MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
               Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
               Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
               @c = Contact.make(first_name: "Alex", last_name: "Halcon")
