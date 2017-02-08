@@ -114,6 +114,7 @@ class ContactSerializer
         @json['owner_name'] = @contact.owner_name if serialize?(:owner_name)
         @json['in_active_merge'] = @contact.in_active_merge if serialize?(:in_active_merge)
         @json['in_professional_training'] = @contact.in_professional_training if serialize?(:in_professional_training)
+        @json['professional_training_level'] = @contact.professional_training_level if serialize?(:professional_training_level)
         @json['avatar'] = @contact.avatar.as_json if serialize?(:avatar)
 
         @json['created_at'] = @contact.created_at.to_s if serialize?(:created_at) 

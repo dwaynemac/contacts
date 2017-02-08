@@ -26,7 +26,7 @@ planning_key: secret
 attendance_key: secret
 fnz_key: secret
 mailing_key: secret
-readonly_key: secret
+readonly_key: secret2
 aws_access_key_id: "acsdfasf"
 aws_secret_access_key: "asdfdf"
 aws_bucket: "bucket-name"

@@ -21,6 +21,7 @@ class V0::TagsController < V0::ApplicationController
     else
       @tags = @account.tags
     end
+    @tags = @tags.order_by([:name,:asc])
     respond_to do |type|
       type.json {render :json => { :collection => @tags, :total => @tags.count}}
     end

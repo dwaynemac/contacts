@@ -2,6 +2,8 @@ pt-BR:
   local_teacher:
     new_teacher: O novo instrutor é %{teacher_username}
   mailchimp:
+    teacher: Instrutor
+    padma_tags: Tags em PADMA
     phone:
       phone: telephone
     status:

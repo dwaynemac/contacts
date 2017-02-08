@@ -48,18 +48,27 @@ class MailchimpSynchronizer
     self.delay(priority: 2).subscribe_contacts(from_last_synchronization) unless @skip
   end
 
+  def complete_sync
+    if filter_method == 'segments'
+      unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})
+    end
+    queue_subscribe_contacts({from_last_synchronization: false})
+  end
+
   RETRIES = 10
-  def subscribe_contacts(from_last_synchronization = true)
+  def subscribe_contacts(from_last_synchronization = true, batch_size = nil)
     return unless status == :ready
+    return unless account.padma.enabled?
     Rails.logger.info "[mailchimp_synchronizer #{self.id}] starting"
     retries = RETRIES
+    batch_size = CONTACTS_BATCH_SIZE if batch_size.nil?
 
     update_attribute(:status, :working)
     set_api
     set_i18n
-    get_scope(from_last_synchronization).page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
+    get_scope(from_last_synchronization).page(1).per(batch_size).num_pages.times do |i|
       Rails.logger.info "[mailchimp_synchronizer #{self.id}] batch #{i}"
-      page = get_scope(from_last_synchronization).page(i + 1).per(CONTACTS_BATCH_SIZE)
+      page = get_scope(from_last_synchronization).page(i + 1).per(batch_size)
       begin
         @api.lists.batch_subscribe({
           id: list_id,
@@ -79,9 +88,16 @@ class MailchimpSynchronizer
           update_attribute(:status, :failed)
           raise e
         end
-      rescue Timeout::Error 
-        Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp, retrying"
-        retry
+      rescue Timeout::Error => e
+        new_batch_size = batch_size / 2
+        if new_batch_size > 100
+          Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp, retrying with batch_size #{new_batch_size}"
+          update_attribute(:status, :ready)
+          subscribe_contacts(from_last_synchronization,new_batch_size)
+        else
+          Rails.logger.info "[mailchimp_synchronizer #{self.id}] timeout subscribing contacts to mailchimp. Quitting."
+          raise e
+        end
       end
     end
     update_attribute(:last_synchronization, DateTime.now.to_s)
@@ -152,6 +168,8 @@ class MailchimpSynchronizer
       SYSCOEFF: get_system_coefficient(contact),
       SYSSTATUS: get_system_status(contact),
       FOLLOWEDBY: get_followers_for(contact),
+      TEACHER: get_local_teacher_for(contact),
+      PADMA_TAGS: get_tags_for(contact)
     } 
     if contact_attributes
       contact_attributes.split(",").each do |contact_attribute|
@@ -179,7 +197,6 @@ class MailchimpSynchronizer
     end
   end
   
-
   def get_system_coefficient (contact)
     case contact.coefficients.where(account_id: account.id).first.try(:value)
     when 'unknown'
@@ -217,6 +234,14 @@ class MailchimpSynchronizer
       return coefficient
     end
   end
+  
+  def get_local_teacher_for(contact)
+    contact.local_teachers.where(account_id: account.id).first.try(:value)
+  end
+
+  def get_tags_for(contact)
+    contact.tags.where(account_id: account.id).map(&:name).join(", ")
+  end
 
   def get_followers_for(contact)
     followers = []
@@ -251,6 +276,8 @@ class MailchimpSynchronizer
     merge_var_add('SYSSTATUS', 'System Status', 'text', {public: false, show: false}) 
     merge_var_add('SYSCOEFF', 'System Coefficient', 'text', {public: false, show: false}) 
     merge_var_add('FOLLOWEDBY', 'Followed by', 'text', {public: false})
+    merge_var_add('TEACHER', I18n.t('mailchimp.teacher'), 'text', {public: false})
+    merge_var_add('PADMA_TAGS', I18n.t('mailchimp.padma_tags'), 'text', {public: false})
   end
   
   def merge_var_add (tag, name, type, options={})
@@ -317,7 +344,7 @@ class MailchimpSynchronizer
 
     if !params[:filter_method].nil? && !params[:filter_method].empty? && params[:filter_method] != filter_method
       if filter_method == 'all' && params[:filter_method] == 'segments'
-        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})      
+        unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})
       end
       update_attribute(:filter_method, params[:filter_method])
     end

@@ -62,12 +62,7 @@ describe MailchimpSynchronizer do
   end
   
   describe "#subscribe_contacts" do
-    before do
-      contact.accounts << account
-      sync.save
-      sync.status = :ready
-    end
-    context "if mailchimp fails consistenly" do
+    describe "if status is not :ready" do
       before do
         MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
         MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
@@ -76,15 +71,17 @@ describe MailchimpSynchronizer do
       end
       it "re-raises Gibbon::MailChimpError" do
         expect{sync.subscribe_contacts}.to raise_exception
+        contact.accounts << account
+        sync.save
+        sync.status = :failed
       end
-      it "sends email to padma admins" do
-        deliveries = ActionMailer::Base.deliveries.count
-        expect{sync.subscribe_contacts}.to raise_exception
-        # Action Mailer should have one more mail delivered
-        deliveries.should == ActionMailer::Base.deliveries.count - 1
+      it "should do nothing" do
+        Gibbon::API.any_instance.should_not_receive(:lists)
+        expect{sync.subscribe_contacts}.not_to raise_exception
+        expect(sync.subscribe_contacts).to be_nil
       end
     end
-    context "if mailchimp fails erratically" do
+    describe "if status is :ready" do
       before do
         MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
         MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
@@ -117,11 +114,21 @@ describe MailchimpSynchronizer do
 
           sync.last_synchronization.should be_nil
           sync.get_scope(true).count.should == 2
+        contact.accounts << account
+        sync.save
+        sync.status = :ready
+      end
+      describe "if account is disabled" do
+        before do
+          PadmaAccount.stub(:find_with_rails_cache).and_return(PadmaAccount.new(enabled: false))
+        end
+        it "should do nothing" do
+          Gibbon::API.any_instance.should_not_receive(:lists)
+          expect{sync.subscribe_contacts}.not_to raise_exception
+          expect(sync.subscribe_contacts).to be_nil
         end
       end
-    end
-    context "when subscription has been updated" do
-      context "with filter_method: :all" do
+      describe "if accounts is enabled" do
         before do
           Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
           MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
@@ -133,19 +140,21 @@ describe MailchimpSynchronizer do
           sync.filter_method = "all"
           sync.save
           sync.subscribe_contacts
+          PadmaAccount.stub(:find_with_rails_cache).and_return(PadmaAccount.new(enabled: true))
         end
-        describe "and no contact was has been updated since last sincronization" do
-          it "should not get any contacts to subscribe" do
-            sync.get_scope(true).count.should == 0
+        context "if mailchimp fails consistenly" do
+          before do
+            Gibbon::API.any_instance.stub(:lists).and_raise(Gibbon::MailChimpError)
+            stub_const("MailchimpSynchronizer::RETRIES", 1)
           end
-        end
-        describe "and one or more contacts had changes in between sincronizations" do
-          it "only those contacts should be updated in mailchimp" do
-            @c.last_name = "Falke"
-            sleep(2)
-            @c.save
-
-            sync.get_scope(true).count.should == 1
+          it "re-raises Gibbon::MailChimpError" do
+            expect{sync.subscribe_contacts}.to raise_exception
+          end
+          it "sends email to padma admins" do
+            deliveries = ActionMailer::Base.deliveries.count
+            expect{sync.subscribe_contacts}.to raise_exception
+            # Action Mailer should have one more mail delivered
+            expect(ActionMailer::Base.deliveries.count).to eq (deliveries+1)
           end
         end
       end
@@ -164,23 +173,97 @@ describe MailchimpSynchronizer do
           sync.filter_method = "segments"
           sync.save
           sync.subscribe_contacts
-        end
-        describe "and no contact was has been updated since last sincronization" do
-          it "should not get any contacts to subscribe" do
-            sync.get_scope(true).count.should == 0
+        context "if mailchimp fails erratically" do
+          before do
+            @exception_counts = 2
+            Gibbon::API.any_instance.stub(:lists) do
+              @exception_counts -= 1
+              if @exception_counts <= 0
+                raise Gibbon::MailchimpError
+              else
+                Gibbon::API.new
+              end
+            end
+          end
+          it "catches Gibbon::MailChimpError and retries" do
+            expect{sync.subscribe_contacts}.not_to raise_exception
           end
         end
-        describe "and one or more contacts had changes in between sincronizations" do
-          it "only those contacts should be updated in mailchimp" do
-            cs = Contact.make(first_name: "Beto", last_name: "Alonso")
-            cs.accounts << account
-            cs.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
-            @c.last_name = "Falke"
-            sleep(2)
-            cs.save
-            @c.save
-
-            sync.get_scope(true).count.should == 2
+        context "on the first subscription" do
+          context "all contacts should be send to mailchimp" do
+            it "scopes all contacts" do
+              Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+              @c = Contact.make
+              @c.accounts << account
+              @c.save
+              sync.api_key = "123123"
+              sync.filter_method = "all"
+              sync.save
+    
+              sync.last_synchronization.should be_nil
+              sync.get_scope(true).count.should == 2
+            end
+          end
+        end
+        context "when subscription has been updated" do
+          context "with filter_method: :all" do
+            before do
+              Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+              @c = Contact.make
+              @c.accounts << account
+              @c.save
+              sync.api_key = "123123"
+              sync.filter_method = "all"
+              sync.save
+              sync.subscribe_contacts
+            end
+            describe "and no contact was has been updated since last sincronization" do
+              it "should not get any contacts to subscribe" do
+                sync.get_scope(true).count.should == 0
+              end
+            end
+            describe "and one or more contacts had changes in between sincronizations" do
+              it "only those contacts should be updated in mailchimp" do
+                @c.last_name = "Falke"
+                sleep(2)
+                @c.save
+    
+                sync.get_scope(true).count.should == 1
+              end
+            end
+          end
+          context "with filter_method: :segments" do
+            before do
+              Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+              Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
+              @c = Contact.make(first_name: "Alex", last_name: "Halcon")
+              @c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+              @c.accounts << account
+              @c.save
+              sync.mailchimp_segments << MailchimpSegment.new(status: ["student"], followed_by: [])
+              sync.api_key = "123123"
+              sync.filter_method = "segments"
+              sync.save
+              sync.subscribe_contacts
+            end
+            describe "and no contact was has been updated since last sincronization" do
+              it "should not get any contacts to subscribe" do
+                sync.get_scope(true).count.should == 0
+              end
+            end
+            describe "and one or more contacts had changes in between sincronizations" do
+              it "only those contacts should be updated in mailchimp" do
+                cs = Contact.make(first_name: "Beto", last_name: "Alonso")
+                cs.accounts << account
+                cs.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+                @c.last_name = "Falke"
+                sleep(2)
+                cs.save
+                @c.save
+    
+                sync.get_scope(true).count.should == 2
+              end
+            end
           end
         end
       end
@@ -276,6 +359,21 @@ describe MailchimpSynchronizer do
       end
     end
   end
+  
+  describe "#get_local_teacher" do
+    subject { sync.get_local_teacher_for(contact) }
+    
+    describe "if contact has local teacher" do
+      let(:contact){ Contact.make(local_teacher_for_myaccname: "dwayne.macgowan") }
+      it { should eq "dwayne.macgowan" }
+    end
+    
+    describe "if contact has no local teacher" do
+      let(:contact){ Contact.make }
+      it { should be_nil }
+    end
+  end
+  
   describe "#get_system_status" do
     subject { sync.get_system_status(contact) }
     describe "for contact with local_status :student" do

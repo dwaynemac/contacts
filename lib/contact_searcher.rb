@@ -160,6 +160,12 @@ class ContactSearcher
                 })
               end
             end
+          when 'professional_training_level'
+            if v.is_a? Array
+              andit({:professional_training_level => { '$in' => v.map{|lvl| lvl.to_i }}})
+            else
+              andit({:professional_training_level => v.to_i})
+            end
           when 'level' # convert level name to level number
             if v.is_a? Array
               # ignore filter if all levels are considered
