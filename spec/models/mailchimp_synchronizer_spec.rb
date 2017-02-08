@@ -96,6 +96,8 @@ describe MailchimpSynchronizer do
         end
         context "if mailchimp fails consistenly" do
           before do
+            MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
+            MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
             Gibbon::API.any_instance.stub(:lists).and_raise(Gibbon::MailChimpError)
             stub_const("MailchimpSynchronizer::RETRIES", 1)
           end
@@ -111,6 +113,7 @@ describe MailchimpSynchronizer do
         end
         context "if mailchimp fails erratically" do
           before do
+            MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
             @exception_counts = 2
             Gibbon::API.any_instance.stub(:lists) do
               @exception_counts -= 1
@@ -129,6 +132,7 @@ describe MailchimpSynchronizer do
           context "all contacts should be send to mailchimp" do
             it "scopes all contacts" do
               Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+              MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
               @c = Contact.make
               @c.accounts << account
               @c.save
@@ -145,6 +149,7 @@ describe MailchimpSynchronizer do
           context "with filter_method: :all" do
             before do
               Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+              MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
               @c = Contact.make
               @c.accounts << account
               @c.save
@@ -170,6 +175,7 @@ describe MailchimpSynchronizer do
           end
           context "with filter_method: :segments" do
             before do
+              MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
               Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
               Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
               @c = Contact.make(first_name: "Alex", last_name: "Halcon")
@@ -545,6 +551,61 @@ describe MailchimpSynchronizer do
       it "should return true" do
         @ms.is_in_list?("mail@value.com").should be_falsey
       end
+    end
+  end
+
+  describe "#coefficient_group_valid?" do
+    before do
+      @ms = MailchimpSynchronizer.new
+      @ms.account = account
+      @ms.list_id = "5555"
+      @ms.api_key = "123123"
+      @ms.save
+      Gibbon::API.any_instance.stub_chain(:lists, :interest_groupings).and_return([{"id" => "1234", "name" => "Coefficient"}])
+      Gibbon::API.any_instance.stub_chain(:lists, :interest_grouping_add)
+      @ms.stub(:email_admins_about_failure)
+    end
+    context "when coefficient group match" do
+      before do
+        @ms.coefficient_group = "1234"
+      end
+      it "should be valid" do
+        @ms.coefficient_group_valid?.should be_truthy
+      end
+    end
+    context "when coefficient group is nil" do
+      it "should not be valid" do
+        @ms.coefficient_group_valid?.should be_falsey
+      end
+    end
+    context "when coefficient group does not match" do
+      before do
+        @ms.coefficient_group = "123234"
+      end
+      it "should be valid" do
+        @ms.coefficient_group_valid?.should be_falsey
+      end
+      it "should not call method again on update" do
+        expect(@ms).not_to receive(:check_coefficient_group)
+        @ms.coefficient_group_valid?
+      end
+    end
+  end
+
+  describe "#find_or_create_coefficients_group" do
+    before do
+      @ms = MailchimpSynchronizer.new
+      @ms.account = account
+      @ms.list_id = "5555"
+      @ms.api_key = "123123"
+      @ms.save
+      Gibbon::API.any_instance.stub_chain(:lists, :interest_groupings).and_return([{"id" => "1234", "name" => "Coefficient"}])
+      Gibbon::API.any_instance.stub_chain(:lists, :interest_grouping_add).and_return({"id" => "4444"})
+      @ms.stub(:email_admins_about_failure)
+    end
+    it "should not call callbacks" do
+      expect(@ms).not_to receive(:check_coefficient_group)
+      @ms.find_or_create_coefficients_group
     end
   end
 

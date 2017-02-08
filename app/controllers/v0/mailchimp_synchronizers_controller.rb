@@ -30,6 +30,7 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
     ms = MailchimpSynchronizer.where(api_key: params[:api_key]).first
 
     if !ms.blank?
+      puts "ms: #{ms.inspect}"
       render json: ms.to_json
     else
       render json: 'Synchronizer missing', status: 404
