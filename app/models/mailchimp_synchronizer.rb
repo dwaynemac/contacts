@@ -511,13 +511,12 @@ class MailchimpSynchronizer
   end
 
   def check_coefficient_group
-    #find_or_create_coefficients_group unless coefficient_group_valid?
+    find_or_create_coefficients_group unless coefficient_group_valid?
   end
-  #handle_asynchronously :check_coefficient_group, priority: 10
+  handle_asynchronously :check_coefficient_group, priority: 10
 
   def initialize_list_groups
-    #debugger
-    #find_or_create_coefficients_group
+    find_or_create_coefficients_group
   end
 
   def coefficient_group_valid?
@@ -545,7 +544,6 @@ class MailchimpSynchronizer
   end
   
   def find_or_create_coefficients_group
-    #debugger
     set_i18n
     set_api
     begin
@@ -567,23 +565,21 @@ class MailchimpSynchronizer
           groups: ["unknown", "perfil", "pmas", "pmenos", "np"]
           })
       end
-      # mongoid atomic operation to avoid callbacks
+      # avoid callbacks
       # If changed to AR it should be set to "update_all" or "update_column"
-      puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~44"
-      puts "synchronizer before set: #{self.inspect}"
       MailchimpSynchronizer.skip_callback(:update, :after, :find_or_create_coefficients_group)
       update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
       MailchimpSynchronizer.set_callback(:update, :after, :find_or_create_coefficients_group)
-      puts "synchronizer after set: #{self.inspect}"
-      puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~44"
     rescue Gibbon::MailChimpError => e
       if e.message =~ /already exists/ && !@has_coefficient_group
         @has_coefficient_group = true
         retry
       else
-        # mongoid atomic operation to avoid callbacks
+        # avoid callbacks
         # If changed to AR it should be set to "update_all" or "update_column"
-        set(status: :failed)
+        MailchimpSynchronizer.skip_callback(:update, :after, :find_or_create_coefficients_group)
+        update_attribute(:status, :failed)
+        MailchimpSynchronizer.set_callback(:update, :after, :find_or_create_coefficients_group)
         email_admins_about_failure(account.name, e.message)
         raise
       end
