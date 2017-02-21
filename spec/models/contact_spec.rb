@@ -638,10 +638,12 @@ describe Contact do
   end
 
   describe "#similar" do
+    
+    let(:account){ Account.make }
 
     describe "when Homer Simpson exists" do
       before do
-        contact = Contact.make(first_name: "Homer", last_name: "Simpson")
+        contact = Contact.make(first_name: "Homer", last_name: "Simpson", owner: account)
       end
 
       describe "a new contact named Marge Simpson" do
@@ -667,6 +669,19 @@ describe Contact do
         end
 
         it { @contact.similar.should_not be_empty }
+      end
+      
+      describe "option :only_in_account_name" do
+        it "ignores similar contacts on other accounts" do
+          other_account = Account.make
+          
+          homer = Contact.make(first_name: "Homer Jay", last_name: "Simpson", owner: account)
+          other_account_homer = Contact.make(first_name: "Homer Jay", last_name: "Simpson", owner: other_account)
+          other_account_homer.in?(homer.similar(only_in_account_name: account.name)).should be_falsy
+          other_account_homer.in?(homer.similar).should be_truthy
+          account.link(other_account_homer)
+          other_account_homer.in?(homer.similar(only_in_account_name: account.name)).should be_truthy
+        end
       end
 
       describe "matching should not be case sensitive" do
@@ -702,7 +717,7 @@ describe Contact do
 
         it { @contact.similar.should_not be_empty }
 
-        it { @contacts.in?(@contact.similar).should_not be_truthy }
+        it { @contact.in?(@contact.similar).should_not be_truthy }
       end
     end
 

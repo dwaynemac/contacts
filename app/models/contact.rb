@@ -407,8 +407,12 @@ class Contact
   # @return [Array<Contact>]
   def similar(options = {})
     ActiveSupport::Notifications.instrument("get_similar_contacts") do
-      contacts = Contact.all
-
+      if options[:only_in_account_name]
+        contacts = Account.where(name: options[:only_in_account_name]).first.contacts
+      else
+        contacts = Contact.all
+      end
+      
       unless options[:ignore_name]
         if self.last_name.blank?
           unless self.first_name.blank?
