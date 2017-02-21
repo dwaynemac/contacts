@@ -873,7 +873,7 @@ describe V0::ContactsController do
     end
 
     describe "if duplicates exist" do
-      let(:dup){Contact.make}
+      let(:dup){Contact.make(owner: account)}
       before do
         dup.contact_attributes << Email.make(value: 'ramona@flower.com',
                                              account: account)
