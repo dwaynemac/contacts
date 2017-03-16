@@ -413,16 +413,20 @@ class Contact
         contacts = Contact.all
       end
       
+      @unfiltered = true
+      
       unless options[:ignore_name]
         if self.last_name.blank?
           unless self.first_name.blank?
             self.first_name.split.each do |first_name|
+              @unfiltered = false
               contacts = contacts.any_of(:normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
             end
           end
         else
           self.last_name.split.each do |last_name|
             self.first_name.split.each do |first_name|
+              @unfiltered = false
               contacts = contacts.any_of(:normalized_last_name => {'$regex' => ".*#{last_name.parameterize}.*"},
                                          :normalized_first_name => {'$regex' => ".*#{first_name.parameterize}.*"})
             end
@@ -431,6 +435,7 @@ class Contact
       end
 
       self.emails.map(&:value).each do |email|
+        @unfiltered = false
         contacts = contacts.any_of(contact_attributes: { '$elemMatch' => {
                                                         '_type' => 'Email',
                                                         'value' => email,
@@ -438,19 +443,33 @@ class Contact
       end
 
       self.mobiles.map(&:value).each do |mobile|
+        @unfiltered = false
         contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
           '_type' => 'Telephone',
           'category' => /mobile/i,
           'value' => mobile
         }})
       end
+      
+      self.telephones.select{|t| t.category.blank? }.map(&:value).each do |telephone|
+        @unfiltered = false
+        contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
+          '_type' => 'Telephone',
+          'value' => telephone
+        }})
+      end
 
       self.identifications.each do |identification|
+        @unfiltered = false
         contacts = contacts.any_of(contact_attributes: {'$elemMatch' => {
             _type: 'Identification',
             category: identification.category,
             value: identification.get_normalized_value
         }})
+      end
+      
+      if @unfiltered
+        return []
       end
 
       if self.id.present?
