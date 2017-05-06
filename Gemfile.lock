@@ -217,6 +217,7 @@ GEM
       mongoid (>= 2.0.0)
     multi_json (1.12.1)
     multi_xml (0.5.5)
+    mysql2 (0.4.6)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-ssh (2.9.1)
@@ -399,6 +400,7 @@ DEPENDENCIES
   mongoid (= 2.3.3)
   mongoid-rspec (= 1.4.4)
   mongoid_search
+  mysql2
   oj
   overmind_client (~> 0.0.6)
   rack-cors
@@ -418,3 +420,9 @@ DEPENDENCIES
   workless
   yard (~> 0.8.3)
   yard-restful
+
+RUBY VERSION
+   ruby 1.9.3p551
+
+BUNDLED WITH
+   1.14.6
