@@ -8,11 +8,13 @@ require 'mongoid/criteria'
 # @property [String] last_name
 #
 # @property [String] gender Valid values are '', 'male' and 'female'.
-class Contact
+class MongoContact
   include Mongoid::Document
   include Mongoid::Timestamps
 
   include Mongoid::Search
+
+  store_in collection: 'contacts'
 
   #before_destroy :delete_contact_from_mailchimp
   search_in :first_name, :last_name, {:contact_attributes => :value }, {:tags => :name} , {:ignore_list => Rails.root.join("config", "search_ignore_list.yml"), :match => :all}
