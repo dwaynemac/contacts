@@ -110,3 +110,6 @@ group :test do
   gem "database_cleaner", ">= 0.6.7"
   gem 'coveralls', require: false
 end
+
+
+gem 'objectid_columns'

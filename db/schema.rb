@@ -20,4 +20,6 @@ ActiveRecord::Schema.define(:version => 20170506160230) do
     t.datetime "updated_at"
   end
 
+  add_index "contacts", ["id"], :name => "index_contacts_on_id", :unique => true
+
 end
