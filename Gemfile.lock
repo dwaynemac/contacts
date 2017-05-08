@@ -29,6 +29,8 @@ GEM
       activesupport (= 3.1.0)
       arel (~> 2.2.1)
       tzinfo (~> 0.3.29)
+    activerecord-sqlserver-adapter (3.1.7)
+      activerecord (~> 3.1.0)
     activeresource (3.1.0)
       activemodel (= 3.1.0)
       activesupport (= 3.1.0)
@@ -217,7 +219,7 @@ GEM
       mongoid (>= 2.0.0)
     multi_json (1.12.1)
     multi_xml (0.5.5)
-    mysql2 (0.4.6)
+    mysql2 (0.3.20)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-ssh (2.9.1)
@@ -360,6 +362,7 @@ PLATFORMS
 
 DEPENDENCIES
   accounts_client (>= 0.2.28)
+  activerecord-sqlserver-adapter
   activity_stream_client (~> 0.0.14)
   appsignal (= 0.11.17)
   appsignal-mongo
@@ -400,7 +403,7 @@ DEPENDENCIES
   mongoid (= 2.3.3)
   mongoid-rspec (= 1.4.4)
   mongoid_search
-  mysql2
+  mysql2 (= 0.3.20)
   oj
   overmind_client (~> 0.0.6)
   rack-cors
