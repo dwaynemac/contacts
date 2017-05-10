@@ -3,6 +3,8 @@ require 'rubygems'
 require 'coveralls'
 Coveralls.wear!
 
+require 'database_cleaner'
+
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
@@ -46,8 +48,12 @@ RSpec.configure do |config|
   # Clean up all collections before each spec runs.
   config.before do
     # as classes are not being cached we need to reload blueprints
-    load Rails.root.join('spec/blueprints.rb')
-    Mongoid.purge!
+    load Rails.root.join('spec/ar_blueprints.rb')
+
+
+    DatabaseCleaner.strategy = :transaction
+    # then, whenever you need to clean the DB
+    DatabaseCleaner.clean
 
     padma_account = PadmaAccount.new(:name => "mockedAccount")
     PadmaAccount.stub(:find).and_return(padma_account)

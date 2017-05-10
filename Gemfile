@@ -113,3 +113,4 @@ end
 
 
 gem 'objectid_columns'
+gem 'search_cop'

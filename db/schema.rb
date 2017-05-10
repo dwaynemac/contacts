@@ -11,14 +11,15 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20170510164623) do
+ActiveRecord::Schema.define(:version => 20170510230050) do
 
   create_table "account_contacts", :force => true do |t|
     t.integer  "account_id"
-    t.integer  "contact_id"
+    t.string   "contact_id",             :limit => 24
     t.string   "local_teacher_username"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "local_status"
   end
 
   create_table "accounts", :force => true do |t|
@@ -31,6 +32,7 @@ ActiveRecord::Schema.define(:version => 20170510164623) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "owner_id"
+    t.string   "status"
   end
 
   add_index "contacts", ["id"], :name => "index_contacts_on_id", :unique => true
