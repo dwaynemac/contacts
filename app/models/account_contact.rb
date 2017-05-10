@@ -1,0 +1,8 @@
+# Local version of Padma Account
+# Contacts specific configuration could be stored on this model.
+class AccountContact < ActiveRecord::Base
+  
+  belongs_to :account, :class_name => 'NewAccount'
+  belongs_to :contact, :class_name => 'NewContact'
+
+end
