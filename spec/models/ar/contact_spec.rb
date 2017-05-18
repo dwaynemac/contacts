@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'ar_spec_helper'
 
-describe NewContact, ar: true do
+describe NewContact do
 
   it { should have_many(:accounts).through(:account_contacts) }
   

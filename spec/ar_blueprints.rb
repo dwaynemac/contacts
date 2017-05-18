@@ -12,3 +12,17 @@ NewAccount.blueprint do
   name { Faker::Internet.user_name }
 end
 
+NewContactAttribute.blueprint do
+  account { NewAccount.make }
+  value "any-value"
+end
+
+NewTelephone.blueprint do
+  value  "8765987676"
+  category { "Home" }
+end
+
+NewEmail.blueprint do
+  value { Faker::Internet.email }
+  category { "Homer" }
+end

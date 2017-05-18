@@ -9,6 +9,8 @@ class NewContact < ActiveRecord::Base
   has_many :accounts, through: :account_contacts, foreign_key: :contact_id, class_name: "NewAccount"
   alias_method :linked_accounts, :accounts
 
+  has_many :contact_attributes, foreign_key: :contact_id, class_name: "NewContactAttribute"
+
   belongs_to :owner, class_name: "NewAccount"
 		
   before_save :ensure_linked_to_owner
@@ -22,6 +24,30 @@ class NewContact < ActiveRecord::Base
   validates :first_name, presence: true
 
   attr_accessor :skip_set_status
+
+  # defines Contact#emails/telephones/addresses/custom_attributes/etc
+  # they all return a Criteria scoping to according _type
+  %W(email
+     telephone
+     address
+     custom_attribute
+     date_attribute
+     identification
+     occupation
+     contact_attachment
+     social_network_id
+  ).each do |k|
+    delegate k.pluralize, to: :contact_attributes
+  end
+
+  # @return [Array<Telephone>] mobile telephones embedded in this contact
+  def mobiles
+    self.contact_attributes.telephones.mobiles
+  end
+
+  def birthday
+    self.date_attributes.where(category: 'birthday').first
+  end
 
   def local_statuses
   	self.account_contacts.collect(&:local_status)
@@ -113,6 +139,54 @@ class NewContact < ActiveRecord::Base
     end
   end
 
+
+  def add_contact_to_mailchimp(reference_email = nil)
+    # check whether account is subscribed to mailchimp
+    ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
+    unless ms.empty?
+      ms.first.subscribe_contact(id)
+    end
+  end
+
+  def update_contact_in_mailchimp(reference_email = nil)
+    # check whether account is subscribed to mailchimp
+    ms = MailchimpSynchronizer.where(:account_id.in => linked_accounts.map(&:_id))
+    unless ms.empty?
+      # do not update contact if this is the first time email is set
+      ms.each do |m|
+        reference_email = primary_attribute(
+          Account.find(m.account_id), "Email"
+          ).value if reference_email.nil? && primary_attribute(Account.find(m.account_id), "Email")
+        m.update_contact(id, reference_email) unless reference_email.blank?
+      end
+    end
+  end
+
+  def delete_contact_from_mailchimp(email = nil)
+    # check whether account is subscribed to mailchimp
+    ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)
+    unless ms.empty?
+      email = primary_attribute(owner, "Email").value if email.nil? && primary_attribute(owner, "Email")
+      ms.first.unsubscribe_contact(id, email, false) unless email.blank?
+    end
+  end
+
+  def primary_attribute(account, type)
+    pa = self.contact_attributes.where({
+      account_id: account.id,
+      type: type,
+      primary: true
+    }).first
+  end
+
+  def global_primary_attribute(type)
+    pa = self.contact_attributes.where({
+      type: type,
+      primary: true
+    }).last
+  end
+
+
   protected
 
   def ensure_linked_to_owner
@@ -146,9 +220,9 @@ class NewContact < ActiveRecord::Base
       # Callbacks arent called when mass-assigning nested models.
       # Iterate over the contact_attributes and set the owner.
       # TODO cascade_callbacks should make this un-necessary
-      #contact_attributes.each do |att|
-      #  att.account = owner unless att.account.present?
-      #end
+      contact_attributes.each do |att|
+        att.account = owner unless att.account.present?
+      end
     end
   end
 end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20170510230050) do
+ActiveRecord::Schema.define(:version => 20170516191833) do
 
   create_table "account_contacts", :force => true do |t|
     t.integer  "account_id"
@@ -24,6 +24,22 @@ ActiveRecord::Schema.define(:version => 20170510230050) do
 
   create_table "accounts", :force => true do |t|
     t.string "name"
+  end
+
+  create_table "contact_attributes", :force => true do |t|
+    t.string  "type"
+    t.integer "account_id"
+    t.string  "contact_id",   :limit => 24
+    t.boolean "primary",                    :default => false
+    t.boolean "public",                     :default => false
+    t.string  "category"
+    t.string  "string_value"
+    t.date    "date_value"
+    t.string  "postal_code"
+    t.string  "city"
+    t.string  "state"
+    t.string  "neighborhood"
+    t.string  "country"
   end
 
   create_table "contacts", :force => true do |t|

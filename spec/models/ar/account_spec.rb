@@ -1,6 +1,6 @@
 require 'ar_spec_helper'
 
-describe NewAccount, ar: true do
+describe NewAccount do
   it { should respond_to(:name) }
 
   it { should validate_presence_of(:name) }

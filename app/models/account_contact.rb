@@ -5,4 +5,6 @@ class AccountContact < ActiveRecord::Base
   belongs_to :account, :class_name => 'NewAccount'
   belongs_to :contact, :class_name => 'NewContact'
 
+  has_objectid_columns :contact_id
+
 end
