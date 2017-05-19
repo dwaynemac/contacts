@@ -14,4 +14,43 @@ class NewAccount < ActiveRecord::Base
     PadmaAccount.find_with_rails_cache(name) if name
   end
 
+  # Links contact with account
+  # @param contact [Contact]
+  # @return [TrueClass]
+  def link(contact)
+    contact.accounts << self
+    contact.owner = self if contact.owner.nil?
+    contact.save
+  end
+
+  # Removed this contact from all this accounts lists
+  def unlink(contact)
+    contact.accounts.delete(self)
+    if contact.owner == self
+      contact.owner = nil
+      contact.cached_owner = nil
+    end
+    contact.save
+  end
+
+  def linked_to?(contact)
+    self.id.in?(contact.account_ids)
+  end
+
+  def self.name_for_id(id)
+    begin
+      name = Rails.cache.read(['account_name_by_id',id])
+      if name.nil?
+        name = NewAccount.find(id).try(:name)
+        # using only might use less memory but generates errors
+        # of frozen arrays in some specs
+        # name = Account.only([:_id,:name]).find(id).try(:name)
+        Rails.cache.write(['account_name_by_id',id],name)
+      end
+      return name
+    rescue Mongoid::Errors::DocumentNotFound => e
+     return nil 
+    end
+  end
+
 end

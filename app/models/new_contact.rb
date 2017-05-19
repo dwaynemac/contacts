@@ -71,6 +71,16 @@ class NewContact < ActiveRecord::Base
   def status
   	return self[:status].try(:to_sym)
   end
+  
+  attr_accessor :cached_owner
+  alias_method :orig_owner, :owner
+  def owner
+    #cache account to avoid multiple calls to accounts service
+    if @cached_owner.blank?
+      @cached_owner = orig_owner
+    end
+    @cached_owner
+  end
 
   def set_status
     distinct_statuses = local_statuses.compact.map(&:to_sym)
