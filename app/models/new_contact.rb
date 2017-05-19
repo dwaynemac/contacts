@@ -14,16 +14,27 @@ class NewContact < ActiveRecord::Base
   belongs_to :owner, class_name: "NewAccount"
 		
   before_save :ensure_linked_to_owner
+  before_save :update_normalized_attributes
+  before_save :capitalize_first_and_last_names
+
+  attr_accessor :skip_set_status
   attr_accessor :skip_assign_owner
+  
   after_save :assign_owner, unless: :skip_assign_owner
 
   before_validation :set_status, unless: :skip_set_status
+  before_validation :set_global_teacher
   
   validates_inclusion_of :status, in: VALID_STATUSES, allow_blank: true
 
   validates :first_name, presence: true
 
-  attr_accessor :skip_set_status
+  validates :kshema_id, uniqueness: true, allow_blank: true
+  validates :derose_id, uniqueness: true, allow_blank: true
+
+  validates :estimated_age, numericality: true,  allow_blank: true
+
+  validates_inclusion_of :gender, in: %W(male female), allow_blank: true  
 
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
   # they all return a Criteria scoping to according _type
@@ -53,6 +64,10 @@ class NewContact < ActiveRecord::Base
   	self.account_contacts.collect(&:local_status)
   end
 
+  def local_teachers
+    self.account_contacts.collect(&:local_teacher_username)
+  end
+
   def status
   	return self[:status].try(:to_sym)
   end
@@ -65,6 +80,14 @@ class NewContact < ActiveRecord::Base
         self.status = s
         break
       end
+    end
+  end
+
+  def set_global_teacher
+    return if self.owner.nil?
+    teacher_in_owner_accounts = self.account_contacts.where(account_id: self.owner.id).first
+    if !teacher_in_owner_accounts.nil? && (teacher_in_owner_accounts.local_teacher_username != self.global_teacher_username)
+      self.global_teacher_username = teacher_in_owner_accounts.local_teacher_username
     end
   end
 
@@ -189,10 +212,20 @@ class NewContact < ActiveRecord::Base
 
   protected
 
+  def capitalize_first_and_last_names
+    self.first_name = self.first_name.slice(0,1).capitalize + self.first_name.slice(1..-1) unless self.first_name.blank?
+    self.last_name = self.last_name.slice(0,1).capitalize + self.last_name.slice(1..-1) unless self.last_name.blank?
+  end
+
   def ensure_linked_to_owner
     if self.owner.present? && !self.owner.in?(self.accounts)
       self.accounts << self.owner
     end
+  end
+
+  def update_normalized_attributes
+    self.normalized_first_name = self.first_name.try :parameterize
+    self.normalized_last_name = self.last_name.try :parameterize
   end
 
   def assign_owner

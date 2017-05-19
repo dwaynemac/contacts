@@ -8,10 +8,13 @@ class CreateContactAttributes < ActiveRecord::Migration
 
   		t.boolean :primary, default: false
   		t.boolean :public, default: false
+      t.string :category
 
-  		t.string :category
   		t.string :string_value
-  		t.date :date_value
+
+      t.integer :day
+      t.integer :month
+      t.integer :year
   		t.string :postal_code
   		t.string :city
   		t.string :state

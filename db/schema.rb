@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20170516191833) do
+ActiveRecord::Schema.define(:version => 20170519212548) do
 
   create_table "account_contacts", :force => true do |t|
     t.integer  "account_id"
@@ -20,6 +20,9 @@ ActiveRecord::Schema.define(:version => 20170516191833) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "local_status"
+    t.integer  "coefficient"
+    t.datetime "last_seen_at"
+    t.text     "observation"
   end
 
   create_table "accounts", :force => true do |t|
@@ -34,7 +37,9 @@ ActiveRecord::Schema.define(:version => 20170516191833) do
     t.boolean "public",                     :default => false
     t.string  "category"
     t.string  "string_value"
-    t.date    "date_value"
+    t.integer "day"
+    t.integer "month"
+    t.integer "year"
     t.string  "postal_code"
     t.string  "city"
     t.string  "state"
@@ -49,6 +54,19 @@ ActiveRecord::Schema.define(:version => 20170516191833) do
     t.datetime "updated_at"
     t.integer  "owner_id"
     t.string   "status"
+    t.string   "gender"
+    t.integer  "level"
+    t.boolean  "in_professional_training"
+    t.integer  "professional_training_level"
+    t.date     "first_enrolled_on"
+    t.string   "normalized_first_name"
+    t.string   "normalized_last_name"
+    t.integer  "estimated_age"
+    t.date     "estimated_age_on"
+    t.string   "derose_id"
+    t.integer  "kshema_id"
+    t.boolean  "publish_on_gdp"
+    t.string   "global_teacher_username"
   end
 
   add_index "contacts", ["id"], :name => "index_contacts_on_id", :unique => true

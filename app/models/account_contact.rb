@@ -7,4 +7,7 @@ class AccountContact < ActiveRecord::Base
 
   has_objectid_columns :contact_id
 
+  validates :account, presence: true
+  validates :contact, presence: true
+
 end
