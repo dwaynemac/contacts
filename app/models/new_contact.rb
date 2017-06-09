@@ -258,6 +258,7 @@ class NewContact < ActiveRecord::Base
     if new_owner && new_owner.id != old_owner_id
       self.owner = new_owner
       self.skip_assign_owner = true
+      @cached_owner = new_owner
       self.save(validate: false)
       
       # Callbacks arent called when mass-assigning nested models.
