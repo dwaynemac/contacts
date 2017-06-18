@@ -262,6 +262,28 @@ describe Contact do
       end
     end
   end
+  
+  describe "#new_tag_names=" do
+    before do
+      @account = Account.make(name: "belgrano")
+      @another_account = Account.make
+      @contact = Contact.make(account_name: @account.name)
+      @contact.tags.create(name: "first account", account_id: @account.id)
+      @contact.tags.create(name: "second account", account_id: @another_account.id)
+    end
+
+    context "with request account" do
+      before do
+        @contact.request_account_name = @account.name
+      end
+      it "adds given tags names as tags on account" do
+        @contact.new_tag_names= "tag1, tag2, tag 3"
+        @contact.save
+        @contact.tags.where(account_id: @account.id).map(&:name).should == ["first account","tag1", "tag2", "tag 3"]
+        @contact.reload.tags.map(&:name).should == ["first account","second account","tag1", "tag2", "tag 3"]
+      end
+    end
+  end
 
   describe "#tag_ids_for_request_account" do
     before do
