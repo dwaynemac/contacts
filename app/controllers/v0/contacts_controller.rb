@@ -274,10 +274,11 @@ class V0::ContactsController < V0::ApplicationController
   # @response_code failure 400
   #
   def create
+    new_tag_names = params[:contact].delete(:new_tag_names)
+    
     @contact = Contact.new(params[:contact].merge({
       request_account_name: params[:account_name],
       request_username: params[:username]
-      
     }))
     @contact.owner = @account if @account
     
@@ -304,6 +305,8 @@ class V0::ContactsController < V0::ApplicationController
       #set again check duplicates virtual attribute (lost after reloading)
       @contact.check_duplicates = params[:contact][:check_duplicates]
     end
+    
+    @contact.new_tag_names = new_tag_names
 
     if @contact.save
       @contact.index_keywords!

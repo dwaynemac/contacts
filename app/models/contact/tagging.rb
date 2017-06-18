@@ -6,6 +6,8 @@ class Contact
     # @raise_exception if request_account is nil
     # 
     def new_tag_names=(tag_names_string)
+      return if tag_names_string.blank?
+      
       tag_names= tag_names_string.split(',').map{|name| name.strip }
       tag_names.each do |tag_name|
         
