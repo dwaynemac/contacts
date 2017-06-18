@@ -288,8 +288,7 @@ class V0::ContactsController < V0::ApplicationController
       existing_contact = if params[:id]
         Contact.find(params[:id])
       else
-        duplicates = @contact.similar(ignore_name: true,
-                                      only_in_account_name: params[:account_name])
+        duplicates = @contact.similar(ignore_name: true)
         duplicates.first
       end
 
