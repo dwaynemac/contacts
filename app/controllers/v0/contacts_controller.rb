@@ -274,11 +274,12 @@ class V0::ContactsController < V0::ApplicationController
   # @response_code failure 400
   #
   def create
-    @contact = Contact.new(params[:contact])
+    @contact = Contact.new(params[:contact].merge({
+      request_account_name: params[:account_name],
+      request_username: params[:username]
+      
+    }))
     @contact.owner = @account if @account
-
-    @contact.request_account_name = params[:account_name]
-    @contact.request_username = params[:username]
     
     # This is needed because contact_attributes are first created as ContactAttribute instead of _type!!
     @contact = @contact.reload unless @contact.new_record?
