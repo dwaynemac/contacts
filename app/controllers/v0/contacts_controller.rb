@@ -306,9 +306,16 @@ class V0::ContactsController < V0::ApplicationController
       @contact.check_duplicates = params[:contact][:check_duplicates]
     end
     
-    @contact.new_tag_names = @new_tag_names
-
     if @contact.save
+      
+      if @new_tag_names
+        # weird hack needed because tags are not loaded after find_or_create
+        # seems more mongoid bullshit
+        @contact.reload
+        @contact.new_tag_names = @new_tag_names
+        @contact.save
+      end
+
       @contact.index_keywords!
       render :json => { :id => @contact.id }.to_json, :status => :created
     else
