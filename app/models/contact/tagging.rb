@@ -1,10 +1,11 @@
 class Contact
   module Tagging
     
-    # @param tags_string [String] comma separated list of tag names
     # This will add given tags to contact on request_account
+    #
+    # @param tags_string [String] comma separated list of tag names
+    #
     # @raise_exception if request_account is nil
-    # 
     def new_tag_names=(tag_names_string)
       return if tag_names_string.blank?
       
@@ -21,6 +22,8 @@ class Contact
         
         self.tags << tag
       end
+      
+      self.tags
     end
     
     def tag_ids_for_request_account
