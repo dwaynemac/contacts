@@ -305,16 +305,13 @@ class V0::ContactsController < V0::ApplicationController
       #set again check duplicates virtual attribute (lost after reloading)
       @contact.check_duplicates = params[:contact][:check_duplicates]
     end
+      
+    if @new_tag_names
+      # this change is persisted in the moment
+      @contact.new_tag_names = @new_tag_names
+    end
     
     if @contact.save
-      
-      if @new_tag_names
-        # weird hack needed because tags are not loaded after find_or_create
-        # seems more mongoid bullshit
-        @contact.reload
-        @contact.new_tag_names = @new_tag_names
-        @contact.save
-      end
 
       @contact.index_keywords!
       render :json => { :id => @contact.id }.to_json, :status => :created

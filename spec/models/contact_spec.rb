@@ -278,8 +278,7 @@ describe Contact do
       end
       it "adds given tags names as tags on account" do
         @contact.new_tag_names= "tag1, tag2, tag 3"
-        @contact.save
-        @contact.tags.where(account_id: @account.id).map(&:name).should == ["first account","tag1", "tag2", "tag 3"]
+        @contact.reload.tags.where(account_id: @account.id).map(&:name).should == ["first account","tag1", "tag2", "tag 3"]
         @contact.reload.tags.map(&:name).should == ["first account","second account","tag1", "tag2", "tag 3"]
       end
     end

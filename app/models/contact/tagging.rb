@@ -2,6 +2,7 @@ class Contact
   module Tagging
     
     # This will add given tags to contact on request_account
+    # tags are added on the moment, wont wait for #save call
     #
     # @param tags_string [String] comma separated list of tag names
     #
@@ -10,6 +11,7 @@ class Contact
       return if tag_names_string.blank?
       
       tag_names= tag_names_string.split(',').map{|name| name.strip }
+      @new_tag_ids = []
       tag_names.each do |tag_name|
         
         tag = Tag.where(name: tag_name,
@@ -20,10 +22,10 @@ class Contact
                      name: tag_name)
         end
         
-        self.tags << tag
+        @new_tag_ids << tag.id
       end
       
-      self.tags
+      Tag.batch_add(@new_tag_ids,[self._id])
     end
     
     def tag_ids_for_request_account
