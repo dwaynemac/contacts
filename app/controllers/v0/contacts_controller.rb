@@ -308,7 +308,7 @@ class V0::ContactsController < V0::ApplicationController
       
     if @new_tag_names
       # this change is persisted in the moment
-      @contact.new_tag_names = @new_tag_names
+      @contact.add_tags_by_names @new_tag_names
     end
     
     if @contact.save
