@@ -1,4 +1,10 @@
 namespace :periodic do
+  
+  task :notify_pending_merges => :environment do
+    Merge.where(state: 'pending_confirmation').each do |merge|
+      ContactsMailer.notify_merge_needing_confirmation(merge).deliver
+    end
+  end
 
   desc "removes any tags without associated contacts"
   task :remove_empty_tags => :environment do
