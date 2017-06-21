@@ -11,7 +11,7 @@ class ContactsMailer < ActionMailer::Base
   
   def notify_merge_needing_confirmation(merge)
     mail(
-      to: "padma@derosemethod.org",
+      to: "padma@metododerose.org",
       subject: "Contacts merge pending confirmation",
       body: "Merge #{merge.id} needs confirmation."
     )
