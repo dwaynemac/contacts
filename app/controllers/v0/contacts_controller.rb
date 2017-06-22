@@ -306,12 +306,12 @@ class V0::ContactsController < V0::ApplicationController
       @contact.check_duplicates = params[:contact][:check_duplicates]
     end
       
-    if @new_tag_names
-      # this change is persisted in the moment
-      @contact.add_tags_by_names @new_tag_names
-    end
-    
     if @contact.save
+      
+      if @new_tag_names
+        # this change is persisted in the moment
+        @contact.add_tags_by_names @new_tag_names
+      end
 
       @contact.index_keywords!
       render :json => { :id => @contact.id }.to_json, :status => :created
