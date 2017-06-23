@@ -370,7 +370,7 @@ class Contact
   # Updates global_status (#status) and saves contact
   def update_status!
     self.set_status
-    self.save
+    self.save(validate: false)
   end
 
   # Updates global_teacher_username and saves contact
