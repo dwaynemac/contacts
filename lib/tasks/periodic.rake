@@ -1,5 +1,15 @@
 namespace :periodic do
   
+  task :fix_global_status => :environment do
+    Contact.where(local_unique_attributes: { '$elemMatch' => { _type: 'LocalStatus', value: 'student' }})
+           .where(status: { '$in' => [nil,:prospect,:former_student] })
+           .each{|c| c.update_status! }
+    
+    Contact.where(local_unique_attributes: { '$elemMatch' => { _type: 'LocalStatus', value: { '$nin' => 'student'.to_a} }})
+           .where(status: :student)
+           .each{|c| c.update_status! }
+  end
+  
   task :notify_pending_merges => :environment do
     Merge.where(state: 'pending_confirmation').each do |merge|
       ContactsMailer.notify_merge_needing_confirmation(merge).deliver
