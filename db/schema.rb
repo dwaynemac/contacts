@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20170519212548) do
+ActiveRecord::Schema.define(:version => 20170609151002) do
 
   create_table "account_contacts", :force => true do |t|
     t.integer  "account_id"
@@ -70,5 +70,16 @@ ActiveRecord::Schema.define(:version => 20170519212548) do
   end
 
   add_index "contacts", ["id"], :name => "index_contacts_on_id", :unique => true
+
+  create_table "merges", :force => true do |t|
+    t.string "father_id",         :limit => 24
+    t.string "son_id",            :limit => 24
+    t.string "first_contact_id",  :limit => 24
+    t.string "second_contact_id", :limit => 24
+    t.text   "services"
+    t.text   "warnings"
+    t.text   "messages"
+    t.string "state"
+  end
 
 end

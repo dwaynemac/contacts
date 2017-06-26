@@ -13,7 +13,7 @@ NewAccount.blueprint do
 end
 
 NewContactAttribute.blueprint do
-  account { NewAccount.make }
+  account { contact.owner || NewAccount.make }
   value "any-value"
 end
 
@@ -25,4 +25,15 @@ end
 NewEmail.blueprint do
   value { Faker::Internet.email }
   category { "Homer" }
+end
+
+
+NewIdentification.blueprint do
+  value { Faker::Internet.email }
+  category { "Homer" }
+end
+
+NewMerge.blueprint do
+  first_contact_id { NewContact.make(first_name: 'first_name', last_name: 'last name').id }
+  second_contact_id { NewContact.make(first_name: 'first_name2', last_name: 'last name').id }
 end

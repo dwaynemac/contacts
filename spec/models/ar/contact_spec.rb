@@ -90,7 +90,8 @@ describe NewContact do
 
   context "- merges -" do
     let(:contact){NewContact.make(first_name: 'fn', last_name: 'ln')}
-    let(:merge){ NewMerge.make(first_contact: contact, second_contact: NewContact.make(first_name: 'fn', last_name: 'ln')) }
+    let(:second_contact){NewContact.make(first_name: 'fn', last_name: 'ln')}
+    let(:merge){ NewMerge.make(first_contact_id: contact.id, second_contact_id: second_contact.id) }
 
     describe "#active_merges" do
       subject { contact.active_merges }

@@ -1,3 +1,4 @@
+# encoding: UTF-8
 class NewContact < ActiveRecord::Base
   
   VALID_STATUSES = [:student, :former_student, :prospect] # they are ordered by precedence (first has precedence)
@@ -35,6 +36,29 @@ class NewContact < ActiveRecord::Base
   validates :estimated_age, numericality: true,  allow_blank: true
 
   validates_inclusion_of :gender, in: %W(male female), allow_blank: true  
+
+  # ordered by hierarchy (last is higher)
+  VALID_LEVELS = {
+    "aspirante" => 0,
+    "sádhaka" => 1,
+    "yôgin" => 2,
+    "chêla" => 3,
+    "graduado" => 4,
+    "asistente" => 5,
+    "docente" => 6,
+    "maestro" => 7
+  }
+
+  # @return [String]
+  def level
+    VALID_LEVELS.key(read_attribute(:level))
+  end
+
+  # Setter for level overriden to keep integers values for proper sorting
+  # @param s [String]
+  def level=(s)
+    write_attribute(:level, VALID_LEVELS[s])
+  end
 
   # defines Contact#emails/telephones/addresses/custom_attributes/etc
   # they all return a Criteria scoping to according _type
@@ -131,7 +155,7 @@ class NewContact < ActiveRecord::Base
       if a.nil?
         return nil
       else
-        return local_value_for_account(attr_name,a._id)
+        return local_value_for_account(attr_name,a.id)
       end
     # local_unique_attribute setter for an account_name
     elsif method_sym.to_s =~ /^(.+)_for_(.+)=$/
@@ -183,7 +207,7 @@ class NewContact < ActiveRecord::Base
 
   def update_contact_in_mailchimp(reference_email = nil)
     # check whether account is subscribed to mailchimp
-    ms = MailchimpSynchronizer.where(:account_id.in => linked_accounts.map(&:_id))
+    ms = MailchimpSynchronizer.where(:account_id.in => linked_accounts.map(&:id))
     unless ms.empty?
       # do not update contact if this is the first time email is set
       ms.each do |m|
@@ -219,6 +243,87 @@ class NewContact < ActiveRecord::Base
     }).last
   end
 
+  def active_merges
+    NewMerge.where("state != 'merged' AND (first_contact_id = '#{self.id}' OR second_contact_id = '#{self.id}')")
+  end
+
+  # Checks if contact is currently in a non-finished merge.
+  # @return [TrueClass]
+  def in_active_merge?
+    (active_merges.count > 0)
+  end
+  alias_method :in_active_merge, :in_active_merge? # alias for json. ? is not valid attribute name for client.
+
+  # Returns contacts that are similar to this one.
+  # @return [Array<Contact>]
+  def similar(options = {})
+    ActiveSupport::Notifications.instrument("get_similar_contacts") do
+      if options[:only_in_account_name]
+        contacts = Account.where(name: options[:only_in_account_name]).first.contacts
+      else
+        contacts = NewContact.includes(:contact_attributes)
+      end
+
+      @filters = []
+      
+      unless options[:ignore_name]
+        if self.last_name.blank?
+          unless self.first_name.blank?
+            self.first_name.split.each do |first_name|
+              @filters << "normalized_first_name REGEXP '.*#{first_name.parameterize}.*'"
+            end
+          end
+        else
+          self.last_name.split.each do |last_name|
+            self.first_name.split.each do |first_name|
+              @filters << "normalized_last_name REGEXP '.*#{last_name.parameterize}.*'"
+              @filters << "normalized_first_name REGEXP '.*#{first_name.parameterize}.*'"
+            end
+          end
+        end
+      end
+
+      self.emails.map(&:value).each do |email|
+        @filters << "contact_attributes.type = 'Email' AND contact_attributes.string_value = '#{email}'"
+      end
+
+      self.mobiles.map(&:value).each do |mobile|
+        @filters << "contact_attributes.type = 'Telephone' AND LOWER(contact_attributes.category) = 'mobile' AND contact_attributes.string_value = '#{mobile}'"
+      end
+      
+      self.telephones.select{|t| t.category.blank? }.map(&:value).each do |telephone|
+        @filters << "contact_attributes.type = 'Telephone' AND contact_attributes.string_value = '#{telephone}'"
+      end
+
+      self.identifications.each do |identification|
+        @filters << "contact_attributes.type = 'Identification' AND contact_attributes.category = '#{identification.category}' AND contact_attributes.string_value = '#{identification.get_normalized_value}'"
+      end
+      
+      if @filters.empty?
+        return []
+      else
+        contacts = contacts.any_of(@filters)
+      end
+
+      if self.id.present?
+        contacts = contacts.where("contacts.id != '#{self.id}'")
+      end
+
+      contacts = contacts.to_a
+
+      contacts.delete_if do |c|
+        not_similar = false
+        c.identifications.each do |id|
+          if self.identifications.where(:category => id.category).select{ |id_v|
+              id_v.get_normalized_value != id.get_normalized_value
+            }.length > 0
+            not_similar = true
+          end
+        end
+        not_similar
+      end
+    end
+  end
 
   protected
 
