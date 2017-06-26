@@ -1,3 +1,10 @@
+GIT
+  remote: https://github.com/lperichon/activerecord_any_of.git
+  revision: a313a664ac9e94a8eab7dbb7e1e3115eebc39d7c
+  specs:
+    activerecord_any_of (1.4)
+      activerecord (>= 3.1, < 6)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -368,6 +375,7 @@ PLATFORMS
 DEPENDENCIES
   accounts_client (>= 0.2.28)
   activerecord-sqlserver-adapter
+  activerecord_any_of!
   activity_stream_client (~> 0.0.14)
   appsignal (= 0.11.17)
   appsignal-mongo
@@ -435,4 +443,4 @@ RUBY VERSION
    ruby 1.9.3p551
 
 BUNDLED WITH
-   1.14.6
+   1.15.1

@@ -114,3 +114,4 @@ end
 
 gem 'objectid_columns'
 gem 'search_cop'
+gem 'activerecord_any_of', :git => 'https://github.com/lperichon/activerecord_any_of.git'

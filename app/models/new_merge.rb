@@ -321,7 +321,6 @@ class NewMerge < ActiveRecord::Base
   end
 
   def set_father_by_status
-    debugger
     if first_contact.status.nil? && second_contact.status.present?
       set_father_and_son! :second_contact
     elsif second_contact.status.nil? && first_contact.status.present?
