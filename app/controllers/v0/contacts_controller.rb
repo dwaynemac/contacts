@@ -286,7 +286,6 @@ class V0::ContactsController < V0::ApplicationController
     @contact = @contact.reload unless @contact.new_record?
 
     if params[:find_or_create]
-
       existing_contact = if params[:id]
         Contact.find(params[:id])
       else
@@ -296,7 +295,7 @@ class V0::ContactsController < V0::ApplicationController
 
       if existing_contact
 
-        copy_data_to_existing_contact(@contact,existing_contact)
+        copy_data_to_existing_contact(@contact,existing_contact, params[:contact][:contact_attributes_attributes])
 
         # Work on existing contact
         @contact = existing_contact
@@ -563,21 +562,21 @@ class V0::ContactsController < V0::ApplicationController
     end
   end
 
-  def copy_data_to_existing_contact(contact,existing_contact)
+  def copy_data_to_existing_contact(contact,existing_contact, new_attributes)
     request_account = Account.where(name: params[:account_name]).first
-
+    debugger
     # Copy Contact Attributes
-    contact.contact_attributes.select do |ca|
+    new_attributes.select do |ca|
       # ignore attributes already existing in contact
       existing_contact.contact_attributes
-                       .where(_type: ca._type,
-                              value: ca.value,
+                       .where(_type: ca["_type"],
+                              value: ca["value"],
                               account_id: request_account.id)
                        .empty?
     end.each do |ca|
-      ca.account = request_account
-      existing_contact.contact_attributes << ca.clone
-      existing_contact.contact_attributes.last._type = ca._type # clone wont copy _type
+      ca["account"] = request_account
+      existing_contact.contact_attributes << ContactAttribute.new(ca)
+      existing_contact.contact_attributes.last._type = ca["_type"] # clone wont copy _type
     end
 
 
