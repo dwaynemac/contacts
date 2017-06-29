@@ -935,6 +935,53 @@ describe V0::ContactsController do
                     app_key: V0::ApplicationController::APP_KEY}.to change{Contact.count}.by(1)
       end
     end
+    context "when delegating contact to another account" do
+      describe "when delegating ownership" do
+        it "should delegate ownership to new account" do
+          pending "implement if the owner changes"
+        end
+      end
+      describe "if the contact already has unique identifiers" do
+        before do
+          @new_a = Account.make(name: "second account")
+          @new_contact_attributes = {
+                                    first_name: "ignore",
+                                    owner_name: @new_a.name,
+                                    last_name: "Uzamaki",
+                                    contact_attributes_attributes: [
+                                      {_type: 'Email', value: 'naruto@uzamaki.com'},
+                                      {_type: 'Telephone', value: '1554446666'},
+                                      {_type: 'Identification', value: '1111', category: 'dni'}
+                                    ]
+                                    }
+          @c = Contact.new
+          @c.first_name = "Naruto"
+          @c.owner = account
+          @c.contact_attributes << Email.new(category: "personal", value: "naruto@uzamaki.com")
+          @c.contact_attributes << Identification.new(category: "dni", value: "1111")
+          @c.contact_attributes << Occupation.new(value: "shinobi")
+          @c.contact_attributes << CustomAttribute.new(name: "musica", value: "red hot")
+          @c.contact_attributes << Telephone.new(category: "mobile", value: "1554446666")
+          @c.save
+        end
+        it "should have unique identifiers accessible to the new account" do
+          post :create,
+            contact: @new_contact_attributes,
+            account_name: @new_a.name,
+            find_or_create: true,
+            id: @c.id,
+            dont_save_name: true,
+            app_key: V0::ApplicationController::APP_KEY
+          should respond_with 200
+          @c.owner.name.should == @new_a.name
+        end
+      end
+      describe "if contact already has information" do
+        it "should not duplicate information" do
+          pending "implement if no information is duplicated"
+        end
+      end
+    end
   end
 
   describe "#create" do
@@ -1053,6 +1100,25 @@ describe V0::ContactsController do
       end
     end
     
+    context "if it receives new tags" do
+      it "should create new tags" do
+        expect{post :create,
+                  :contact => Contact.plan(:first_name => "asd", :new_tag_names => "tag1, tag2, tag3"),
+                  :account_name => "belgrano",
+                  :app_key => V0::ApplicationController::APP_KEY }.to change{Tag.count}.by(3)
+      end
+      context "associated with contact" do
+        before do
+          post :create,
+                  :contact => Contact.plan(:first_name => "asdasd", :new_tag_names => "tag1, tag2, tag3"),
+                  :account_name => "belgrano",
+                  :app_key => V0::ApplicationController::APP_KEY
+        end
+        it "should have new tags associated with it" do
+          Contact.last.tags.map(&:name).should == ["tag1", "tag2", "tag3"]
+        end
+      end
+    end
   end
 
   describe "#destroy" do
