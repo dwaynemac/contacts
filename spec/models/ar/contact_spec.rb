@@ -701,7 +701,7 @@ describe NewContact do
     describe "when mobile 1540995071 is registered" do
       before do
         @homer = NewContact.make(first_name: 'Homero', last_name: 'Simpsonsizado')
-        NewTelephone.new(value: '1540995071', category: 'mobile', contact_id: @homer.id)
+        NewTelephone.make(value: '1540995071', category: 'mobile', contact_id: @homer.id)
       end
 
       describe "if ignore_name is set" do

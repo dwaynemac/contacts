@@ -74,24 +74,16 @@ class NewContact < ActiveRecord::Base
     write_attribute(:level, VALID_LEVELS[s])
   end
 
-  # defines Contact#emails/telephones/addresses/custom_attributes/etc
-  # they all return a Criteria scoping to according _type
-  %W(email
-     telephone
-     address
-     custom_attribute
-     date_attribute
-     identification
-     occupation
-     contact_attachment
-     social_network_id
-  ).each do |k|
-    delegate k.pluralize, to: :contact_attributes
-  end
+  TYPES = %W(email telephone address custom_attribute date_attribute identification occupation attachment social_network_id)
 
-  # @return [Array<Telephone>] mobile telephones embedded in this contact
+  TYPES.each do |k|
+    define_method k.pluralize do
+      self.contact_attributes.select {|c| c.type == "New" + k.camelcase }
+    end
+  end
+  
   def mobiles
-    self.contact_attributes.telephones.mobiles
+   self.contact_attributes.select {|c| c.type == "NewTelephone" and  c.category == "mobile" }
   end
 
   def birthday
@@ -273,7 +265,7 @@ class NewContact < ActiveRecord::Base
   def similar(options = {})
     ActiveSupport::Notifications.instrument("get_similar_contacts") do
       if options[:only_in_account_name]
-        contacts = Account.where(name: options[:only_in_account_name]).first.contacts
+        contacts = NewAccount.where(name: options[:only_in_account_name]).first.contacts.includes(:contact_attributes)
       else
         contacts = NewContact.includes(:contact_attributes)
       end
@@ -290,33 +282,32 @@ class NewContact < ActiveRecord::Base
         else
           self.last_name.split.each do |last_name|
             self.first_name.split.each do |first_name|
-              @filters << "normalized_last_name REGEXP '.*#{last_name.parameterize}.*'"
-              @filters << "normalized_first_name REGEXP '.*#{first_name.parameterize}.*'"
+              @filters << "normalized_last_name REGEXP '.*#{last_name.parameterize}.*' AND normalized_first_name REGEXP '.*#{first_name.parameterize}.*'"
             end
           end
         end
       end
 
       self.emails.map(&:value).each do |email|
-        @filters << "contact_attributes.type = 'Email' AND contact_attributes.string_value = '#{email}'"
+        @filters << "contact_attributes.type = 'NewEmail' AND contact_attributes.string_value = '#{email}'"
       end
 
       self.mobiles.map(&:value).each do |mobile|
-        @filters << "contact_attributes.type = 'Telephone' AND LOWER(contact_attributes.category) = 'mobile' AND contact_attributes.string_value = '#{mobile}'"
+        @filters << "contact_attributes.type = 'NewTelephone' AND LOWER(contact_attributes.category) = 'mobile' AND contact_attributes.string_value = '#{mobile}'"
       end
       
       self.telephones.select{|t| t.category.blank? }.map(&:value).each do |telephone|
-        @filters << "contact_attributes.type = 'Telephone' AND contact_attributes.string_value = '#{telephone}'"
+        @filters << "contact_attributes.type = 'NewTelephone' AND contact_attributes.string_value = '#{telephone}'"
       end
 
       self.identifications.each do |identification|
-        @filters << "contact_attributes.type = 'Identification' AND contact_attributes.category = '#{identification.category}' AND contact_attributes.string_value = '#{identification.get_normalized_value}'"
+        @filters << "contact_attributes.type = 'NewIdentification' AND contact_attributes.category = '#{identification.category}' AND contact_attributes.string_value = '#{identification.get_normalized_value}'"
       end
       
       if @filters.empty?
         return []
       else
-        contacts = contacts.any_of(@filters)
+        contacts = contacts.any_of(*@filters)
       end
 
       if self.id.present?
@@ -328,7 +319,7 @@ class NewContact < ActiveRecord::Base
       contacts.delete_if do |c|
         not_similar = false
         c.identifications.each do |id|
-          if self.identifications.where(:category => id.category).select{ |id_v|
+          if self.identifications.select {|i| i.category == id.category}.select{ |id_v|
               id_v.get_normalized_value != id.get_normalized_value
             }.length > 0
             not_similar = true

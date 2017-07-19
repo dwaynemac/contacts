@@ -19,8 +19,7 @@ class NewContactAttribute < ActiveRecord::Base
 
   belongs_to :contact, class_name: "NewContact"
 
-  TYPES = %W(email telephone address custom_attribute date_attribute identification occupation attachment social_network_id)
-
+  
   attr_accessor :value
 
   validates :value, :presence => true
@@ -30,11 +29,6 @@ class NewContactAttribute < ActiveRecord::Base
   # order of call of these two is important!
   before_save :ensure_only_one_primary
   before_save :ensure_at_least_one_primary
-
-  TYPES.each do |k|
-    scope k.pluralize, where( type: "New" + k.camelcase )
-  end
-  scope :mobiles, where(type: 'NewTelephone', category: 'mobile' )
 
   def mask_value!
     self.value = self.masked_value
