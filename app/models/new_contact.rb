@@ -11,17 +11,30 @@ class NewContact < ActiveRecord::Base
   alias_method :linked_accounts, :accounts
 
   has_many :contact_attributes, foreign_key: :contact_id, class_name: "NewContactAttribute"
+  
+  validates_associated :contact_attributes
+  accepts_nested_attributes_for :contact_attributes, :allow_destroy => true
 
   belongs_to :owner, class_name: "NewAccount"
-		
+
+  mount_uploader :avatar, AvatarUploader
+
+  has_many :attachments, foreign_key: :contact_id, class_name: "NewAttachment" #, cascade_callbacks: true
+  accepts_nested_attributes_for :attachments, allow_destroy: true
+ 
   before_save :ensure_linked_to_owner
   before_save :update_normalized_attributes
   before_save :capitalize_first_and_last_names
 
   attr_accessor :skip_set_status
   attr_accessor :skip_assign_owner
-  
+  attr_accessor :skip_level_change_activity # default: nil
+  attr_accessor :check_duplicates # default: false
+  attr_accessor :skip_history_entries # default: nil
+
   after_save :assign_owner, unless: :skip_assign_owner
+  after_save :post_activity_if_level_changed
+  after_save :keep_history_of_changes
 
   before_validation :set_status, unless: :skip_set_status
   before_validation :set_global_teacher
@@ -36,6 +49,7 @@ class NewContact < ActiveRecord::Base
   validates :estimated_age, numericality: true,  allow_blank: true
 
   validates_inclusion_of :gender, in: %W(male female), allow_blank: true  
+  validate :validate_duplicates, :if => :check_duplicates, on: :create
 
   # ordered by hierarchy (last is higher)
   VALID_LEVELS = {
@@ -325,6 +339,29 @@ class NewContact < ActiveRecord::Base
     end
   end
 
+  # @return [Hash] like errors.messages but it specifies error messages for :contact_attributes
+  def deep_error_messages
+    error_messages = self.errors.messages.dup
+
+    # todo include here local_unique_attributes errors
+    [:contact_attributes, :local_unique_attributes].each do |k|
+      if error_messages[k]
+        error_messages[k] = self.send(k).reject(&:valid?).map do |obj|
+          obj.errors.messages.map do |attr,messages|
+            if attr == :value
+              "#{obj.value} #{messages.join(', ')}"
+            elsif attr != :possible_duplicates
+              "#{attr} #{obj.send(attr)} #{messages.join(', ')}"
+            end
+          end.flatten
+        end
+      end
+    end
+
+    error_messages
+  end
+
+
   protected
 
   def capitalize_first_and_last_names
@@ -335,6 +372,14 @@ class NewContact < ActiveRecord::Base
   def ensure_linked_to_owner
     if self.owner.present? && !self.owner.in?(self.accounts)
       self.accounts << self.owner
+    end
+  end
+
+  def validate_duplicates
+    duplicates = self.similar
+    unless duplicates.empty?
+      self.errors[:duplicates] << I18n.t('errors.messages.could_have_duplicates')
+      self.errors[:possible_duplicates] = duplicates.map {|c| c.minimum_representation}
     end
   end
 
@@ -371,6 +416,42 @@ class NewContact < ActiveRecord::Base
       # TODO cascade_callbacks should make this un-necessary
       contact_attributes.each do |att|
         att.account = owner unless att.account.present?
+      end
+    end
+  end
+
+  def keep_history_of_changes
+    unless skip_history_entries
+      # level, global_status and teacher_username
+      %W(level status global_teacher_username in_professional_training professional_training_level).each do |att|
+        if self.send("#{att}_changed?")
+          self.history_entries.create(attribute: att,
+                                      changed_at: Time.zone.now.to_time,
+                                      old_value: self.changes[att][0])
+        end
+      end
+      # local_status changes are tracked in LocalStatus model
+      # local_teacher changes are tracked in LocalTeacher model
+    end
+  end
+
+  def post_activity_if_level_changed
+    unless skip_level_change_activity
+      if level_changed?
+        activity_username = request_username     || global_teacher_username
+        activity_account  = request_account_name || owner_name
+
+        a = ActivityStream::Activity.new(
+            username: activity_username,
+            account_name: activity_account,
+            content: "#{level}",
+            generator: 'contacts',
+            verb: 'updated',
+            target_id: id, target_type: 'Contact',
+            object_id: id, object_type: 'Contact',
+            public: true
+        )
+        a.create(username: activity_username, account_name: activity_account)
       end
     end
   end

@@ -58,4 +58,16 @@ RSpec.configure do |config|
     padma_account = PadmaAccount.new(:name => "mockedAccount")
     PadmaAccount.stub(:find).and_return(padma_account)
   end
+
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.around(:each) do |example|
+    DatabaseCleaner.cleaning do
+      example.run
+    end
+  end
+
 end

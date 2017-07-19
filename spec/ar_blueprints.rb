@@ -37,3 +37,11 @@ NewMerge.blueprint do
   first_contact_id { NewContact.make(first_name: 'first_name', last_name: 'last name').id }
   second_contact_id { NewContact.make(first_name: 'first_name2', last_name: 'last name').id }
 end
+
+NewAttachment.blueprint do
+  name 'atachment-name'
+end
+
+NewImport.blueprint do
+  account {NewAccount.first || Nccount.make}
+end

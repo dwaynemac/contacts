@@ -9,7 +9,6 @@ class NewDateAttribute < NewContactAttribute
   validate :valid_date
 
   before_validation :to_integer
-  before_validation :set_value
 
   def date
     y = year.blank?? 0 : year.to_i
@@ -46,11 +45,10 @@ class NewDateAttribute < NewContactAttribute
     end
   end
 
-  def set_value
-    y = year.blank?? 0 : year.to_i
-    self.value = Date.civil(y.to_i,month.to_i,day.to_i).to_s if Date.valid_civil?(y.to_i,month.to_i,day.to_i)
+  def value
+    self.date
   end
-  
+
   private
 
   def to_integer

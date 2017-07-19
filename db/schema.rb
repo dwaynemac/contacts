@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20170609151002) do
+ActiveRecord::Schema.define(:version => 20170626171511) do
 
   create_table "account_contacts", :force => true do |t|
     t.integer  "account_id"
@@ -27,6 +27,17 @@ ActiveRecord::Schema.define(:version => 20170609151002) do
 
   create_table "accounts", :force => true do |t|
     t.string "name"
+  end
+
+  create_table "attachments", :force => true do |t|
+    t.integer  "account_id"
+    t.string   "contact_id",  :limit => 24
+    t.boolean  "public",                    :default => false
+    t.string   "name"
+    t.text     "description"
+    t.string   "file"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "contact_attributes", :force => true do |t|
@@ -46,6 +57,13 @@ ActiveRecord::Schema.define(:version => 20170609151002) do
     t.string  "neighborhood"
     t.string  "country"
   end
+
+  create_table "contact_imports", :force => true do |t|
+    t.string  "contact_id", :limit => 24
+    t.integer "import_id"
+  end
+
+  add_index "contact_imports", ["contact_id", "import_id"], :name => "index_contact_imports_on_contact_id_and_import_id"
 
   create_table "contacts", :force => true do |t|
     t.string   "first_name"
@@ -67,9 +85,18 @@ ActiveRecord::Schema.define(:version => 20170609151002) do
     t.integer  "kshema_id"
     t.boolean  "publish_on_gdp"
     t.string   "global_teacher_username"
+    t.string   "avatar"
   end
 
   add_index "contacts", ["id"], :name => "index_contacts_on_id", :unique => true
+
+  create_table "imports", :force => true do |t|
+    t.integer "account_id"
+    t.integer "attachment_id"
+    t.string  "status"
+    t.text    "failed_rows"
+    t.text    "headers"
+  end
 
   create_table "merges", :force => true do |t|
     t.string "father_id",         :limit => 24

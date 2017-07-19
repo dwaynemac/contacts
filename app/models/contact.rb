@@ -515,7 +515,7 @@ class Contact
     error_messages = self.errors.messages.dup
 
     # todo include here local_unique_attributes errors
-    [:contact_attributes, :local_unique_attributes].each do |k|
+    [:contact_attributes].each do |k|
       if error_messages[k]
         error_messages[k] = self.send(k).reject(&:valid?).map do |obj|
           obj.errors.messages.map do |attr,messages|
