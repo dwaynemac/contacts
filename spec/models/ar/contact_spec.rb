@@ -399,11 +399,10 @@ describe NewContact do
   describe "#mobiles" do
     before do
       @con = NewContact.make_unsaved
-      @con.contact_attributes << Telephone.make(category: 'mobile')
-      @con.contact_attributes << Telephone.make(category: 'mobile')
-      @con.contact_attributes << Telephone.make(category: 'home')
-      @con.contact_attributes << Email.make
-      @con.save!
+      @con.contact_attributes << NewTelephone.make_unsaved(category: 'mobile')
+      @con.contact_attributes << NewTelephone.make_unsaved(category: 'mobile')
+      @con.contact_attributes << NewTelephone.make_unsaved(category: 'home')
+      @con.contact_attributes << NewEmail.make_unsaved
     end
     it "should return all mobiles" do
       @con.mobiles.count.should == 2
@@ -514,7 +513,7 @@ describe NewContact do
   describe "#create with nested attribute params" do
     before do
       @account = NewAccount.make
-      @contact = NewContact.create(NewContact.plan(:owner => @account, :contact_attributes => [ContactAttribute.plan(:account => nil)]))
+      @contact = NewContact.create(NewContact.plan(:owner => @account, :contact_attributes => [NewContactAttribute.plan(:account => nil)]))
     end
 
     it "should set the owner on new attributes" do
@@ -756,6 +755,7 @@ describe NewContact do
             @new_contact.contact_attributes << NewIdentification.make_unsaved(value: '30366832', category: 'CPF')
           end
           it "should not have possible duplicates" do
+            debugger
             @new_contact.similar.should be_empty
           end
         end

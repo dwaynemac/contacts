@@ -70,4 +70,7 @@ RSpec.configure do |config|
     end
   end
 
+  config.before(:all) do
+    Rails.cache.clear
+  end
 end

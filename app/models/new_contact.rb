@@ -31,6 +31,8 @@ class NewContact < ActiveRecord::Base
   attr_accessor :skip_level_change_activity # default: nil
   attr_accessor :check_duplicates # default: false
   attr_accessor :skip_history_entries # default: nil
+  attr_accessor :request_username
+  attr_accessor :request_account_name
 
   after_save :assign_owner, unless: :skip_assign_owner
   after_save :post_activity_if_level_changed
@@ -87,7 +89,7 @@ class NewContact < ActiveRecord::Base
   end
 
   def birthday
-    self.date_attributes.where(category: 'birthday').first
+    self.date_attributes.select {|c| c.category == "birthday"}.first
   end
 
   def local_statuses
@@ -260,6 +262,21 @@ class NewContact < ActiveRecord::Base
   end
   alias_method :in_active_merge, :in_active_merge? # alias for json. ? is not valid attribute name for client.
 
+  def owner_name
+    ActiveSupport::Notifications.instrument('owner_name.contact') do
+      return nil if self.owner_id.nil?
+      if @owner_name.nil?
+        @owner_name = NewAccount.name_for_id(self.owner_id)
+      end
+      return @owner_name
+    end
+  end
+
+  def owner_name=(name)
+    self.owner = NewAccount.where(:name => name).first
+    @owner_name = self.owner.try(:name)
+  end
+
   # Returns contacts that are similar to this one.
   # @return [Array<Contact>]
   def similar(options = {})
@@ -330,6 +347,16 @@ class NewContact < ActiveRecord::Base
     end
   end
 
+  # @return [Hash] Returns the minimal representation of this contact
+  # A hash including :_id, :first_name and :last_name
+  def minimum_representation
+    {
+        :_id => id,
+        :first_name => first_name,
+        :last_name => last_name
+    }
+  end
+
   # @return [Hash] like errors.messages but it specifies error messages for :contact_attributes
   def deep_error_messages
     error_messages = self.errors.messages.dup
@@ -377,6 +404,14 @@ class NewContact < ActiveRecord::Base
   def update_normalized_attributes
     self.normalized_first_name = self.first_name.try :parameterize
     self.normalized_last_name = self.last_name.try :parameterize
+  end
+
+  def request_account
+    #cache account to avoid multiple calls to accounts service
+    if @cached_request_account.blank?
+      @cached_request_account = Account.where(name: self.request_account_name).first
+    end
+    @cached_request_account  
   end
 
   def assign_owner
