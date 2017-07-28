@@ -100,6 +100,10 @@ class NewContact < ActiveRecord::Base
     self.account_contacts.collect(&:local_teacher_username)
   end
 
+  def coefficients
+    self.account_contacts.collect(&:coefficient)
+  end
+  
   def status
   	return self[:status].try(:to_sym)
   end
@@ -204,6 +208,9 @@ class NewContact < ActiveRecord::Base
     end
   end
 
+  def coefficients_counts
+    Coefficient::VALID_VALUES.map{ |vv| {vv => self.coefficients.count {|c| c == vv}} }.inject(:merge)
+  end
 
   def add_contact_to_mailchimp(reference_email = nil)
     # check whether account is subscribed to mailchimp

@@ -12,6 +12,12 @@ NewAccount.blueprint do
   name { Faker::Internet.user_name }
 end
 
+AccountContact.blueprint do
+  account { NewAccount.first || NewAccount.make }
+  contact { NewContact.make }
+  coefficient 'pmas'
+end
+
 NewContactAttribute.blueprint do
   account { contact.owner || NewAccount.make }
   value "any-value"
