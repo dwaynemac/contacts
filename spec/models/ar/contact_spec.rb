@@ -388,7 +388,7 @@ describe NewContact do
       3.times { AccountContact.make(contact_id: c.id, coefficient: 'fp', account: NewAccount.make) }
       2.times { AccountContact.make(contact_id: c.id, coefficient: 'perfil', account: NewAccount.make) }
       5.times { AccountContact.make(contact_id: c.id, coefficient: 'pmas', account: NewAccount.make) }
-
+      
       c.coefficients_counts['fp'].should == 3
       c.coefficients_counts['pmenos'].should == 0
       c.coefficients_counts['perfil'].should == 2

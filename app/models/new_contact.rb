@@ -2,6 +2,13 @@
 class NewContact < ActiveRecord::Base
   
   VALID_STATUSES = [:student, :former_student, :prospect] # they are ordered by precedence (first has precedence)
+  VALID_COEFFICIENTS = {
+    "unknown" => 0,
+    "fp" => 1,
+    "pmenos" => 2,
+    "perfil" => 3,
+    "pmas" => 4
+  } # Order is important and used.
 
   self.table_name = "contacts"
   has_objectid_primary_key
@@ -209,7 +216,7 @@ class NewContact < ActiveRecord::Base
   end
 
   def coefficients_counts
-    Coefficient::VALID_VALUES.map{ |vv| {vv => self.coefficients.count {|c| c == vv}} }.inject(:merge)
+    VALID_COEFFICIENTS.keys.map{ |vv| {vv => self.coefficients.count {|coeff| coeff == vv}} }.inject(:merge)
   end
 
   def add_contact_to_mailchimp(reference_email = nil)
