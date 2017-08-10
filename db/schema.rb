@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20170626171511) do
+ActiveRecord::Schema.define(:version => 20170803183825) do
 
   create_table "account_contacts", :force => true do |t|
     t.integer  "account_id"
@@ -89,6 +89,14 @@ ActiveRecord::Schema.define(:version => 20170626171511) do
   end
 
   add_index "contacts", ["id"], :name => "index_contacts_on_id", :unique => true
+
+  create_table "history_entries", :force => true do |t|
+    t.string   "historiable_type"
+    t.string   "historiable_id"
+    t.string   "attr"
+    t.string   "old_value"
+    t.datetime "changed_at"
+  end
 
   create_table "imports", :force => true do |t|
     t.integer "account_id"

@@ -29,6 +29,8 @@ class NewContact < ActiveRecord::Base
   has_many :attachments, foreign_key: :contact_id, class_name: "NewAttachment" #, cascade_callbacks: true
   accepts_nested_attributes_for :attachments, allow_destroy: true
  
+  has_many :history_entries, as: :historiable, class_name: "NewHistoryEntry"
+
   before_save :ensure_linked_to_owner
   before_save :update_normalized_attributes
   before_save :capitalize_first_and_last_names
@@ -465,7 +467,7 @@ class NewContact < ActiveRecord::Base
       # level, global_status and teacher_username
       %W(level status global_teacher_username in_professional_training professional_training_level).each do |att|
         if self.send("#{att}_changed?")
-          self.history_entries.create(attribute: att,
+          self.history_entries.create(attr: att,
                                       changed_at: Time.zone.now.to_time,
                                       old_value: self.changes[att][0])
         end
