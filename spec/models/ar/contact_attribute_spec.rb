@@ -147,7 +147,7 @@ describe NewContactAttribute do
       end
       contact.save
       contact.reload
-      contact.emails.where(:primary => true).count.should == 1
+      contact.emails.select {|e| e.primary?}.count.should == 1
     end
     let(:other_account){NewAccount.make}
     specify "The set of attributes that share account and type must have at least one primary element" do
@@ -165,8 +165,8 @@ describe NewContactAttribute do
       end
       contact.reload
       expect(contact.emails.count).to eq 4
-      expect(contact.emails.where(primary: true).count).to eq 2
-      expect(contact.emails.where(account_id: account.id, primary: true).count).to eq 1
+      expect(contact.emails.select {|e| e.primary?}.count).to eq 2
+      expect(contact.emails.select {|e| e.account_id == account.id and e.primary?}.count).to eq 1
     end
   end
 
