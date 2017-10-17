@@ -47,6 +47,7 @@ class Account
   end
 
   def self.name_for_id(id)
+    return nil if id.nil?
     begin
       name = Rails.cache.read(['account_name_by_id',id])
       if name.nil?
