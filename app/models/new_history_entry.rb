@@ -73,16 +73,17 @@ class NewHistoryEntry < ActiveRecord::Base
   
     # use first key of options as attr
     ref_attribute = options.keys.first
+    ref_value = options[options.keys.first]
     ref_date      = options[:at].to_time.end_of_day
     if options[:account_name] && !options[:account]
-      options[:account] = Account.where(name: options.delete(:account_name)).first
+      options[:account] = NewAccount.where(name: options.delete(:account_name)).first
     end
 
     ret = Rails.cache.read(cache_key_for_element_ids_with(options))
     if ret.nil?
 
-      elements_with_history = NewHistoryEntry.where(attr: ref_attribute).where("changed_at >= ?",ref_date)
-
+      elements_with_history = NewHistoryEntry.where(attr: ref_attribute).where("changed_at >= ?",ref_date).order("changed_at asc")
+      
       elements_with_history = elements_with_history.where({historiable_type: options[:class]}) if options[:class]
 
       if options[:account].present? && options[:class].present?
@@ -100,12 +101,15 @@ class NewHistoryEntry < ActiveRecord::Base
           elements_with_history = elements_with_history.where("historiable_id IN (?)", @object_ids)
         end
       end
-
-      elements_with_history = elements_with_history.collect(&:id)
-
-      ret = elements_with_history + elements_without_history(elements_with_history,options)
-
       
+      elements_with_history = elements_with_history.group_by(&:historiable_id).collect{|k,v| v.first}
+
+      unfiltered_elements = elements_with_history.collect(&:historiable_id)
+
+      elements_with_history = elements_with_history.select {|entry| entry.old_value == ref_value}.collect(&:historiable_id)
+
+      ret = elements_with_history + elements_without_history(unfiltered_elements,options)
+
       Rails.cache.write(cache_key_for_element_ids_with(options),ret,{expires_in: 5.minutes})
     end
 
@@ -143,7 +147,7 @@ class NewHistoryEntry < ActiveRecord::Base
       end
 
       attribute_filter = {account_contacts: {
-          ref_attribute => ref_value,
+          "local_#{$1}" => ref_value,
           'account_id' => account.id
       }}
     else
@@ -156,12 +160,17 @@ class NewHistoryEntry < ActiveRecord::Base
     ActiveSupport::Notifications.instrument("query_mongo.#{appsignal_key}") do
       docs = nil
       ActiveSupport::Notifications.instrument("query.query_mongo.#{appsignal_key}") do
+        ids_array.reject! { |item| item.nil? || item == '' }
+        if ids_array.empty? or ids_array == [nil]
+          ids_array=["0"]
+        end
         docs = elems_wout_hist.where(attribute_filter).where("contacts.id NOT IN (?)", ids_array)
       end
       ActiveSupport::Notifications.instrument("map.query_mongo.#{appsignal_key}") do
-        ret = docs.map(&:id)
+        ret = docs.map {|c| c.id.to_s}
       end
     end
+    
     ret
   end
 

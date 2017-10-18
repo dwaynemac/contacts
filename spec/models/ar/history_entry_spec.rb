@@ -68,25 +68,25 @@ describe NewHistoryEntry do
           eids = NewHistoryEntry.element_ids_with(level: NewContact::VALID_LEVELS['aspirante'],
                                         at: 1.year.ago,
                                         class: 'NewContact')
-          contact_without_history.id.in?(eids).should be_truthy
+          contact_without_history.id.to_s.in?(eids).should be_truthy
         end
         it "should not include elements that currently have desired value but didnt on given date" do
           eids = NewHistoryEntry.element_ids_with(level: NewContact::VALID_LEVELS['aspirante'],
                                         at: 1.year.ago,
                                         class: 'NewContact')
-          contact_with_history.id.in?(eids).should be_falsy
+          contact_with_history.id.to_s.in?(eids).should be_falsy
         end
       end
       context "is NOT given" do
         it "should not include elements without history" do
           eids = NewHistoryEntry.element_ids_with(level: NewContact::VALID_LEVELS['aspirante'],
                                         at: 1.year.ago)
-          contact_without_history.id.in?(eids).should be_falsy
+          contact_without_history.id.to_s.in?(eids).should be_falsy
         end
         it "should not include elements that currently have desired value but didnt on given date" do
           eids = NewHistoryEntry.element_ids_with(level: NewContact::VALID_LEVELS['aspirante'],
                                         at: 1.year.ago)
-          contact_with_history.id.in?(eids).should be_falsy
+          contact_with_history.id.to_s.in?(eids).should be_falsy
         end
       end
     end
@@ -97,7 +97,7 @@ describe NewHistoryEntry do
       c.history_entries.create(attr: :level,  old_value: 'student', changed_at: 1.month.ago.to_time)
 
       eids = NewHistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'NewContact')
-      c.id.in?(eids).should be_falsy
+      c.id.to_s.in?(eids).should be_falsy
     end
 
     it "should ignore other class entries" do
@@ -112,25 +112,26 @@ describe NewHistoryEntry do
     end
 
     it "should get value at given date" do
-      s = NewContact.make(status: :student)
-      s.history_entries.create(attr: :status, old_value: :former_student,  changed_at: 1.month.ago.to_time)
-      s.history_entries.create(attr: :status, old_value: :student,         changed_at: 3.weeks.ago.to_time)
-      s.history_entries.create(attr: :status, old_value: :former_student,  changed_at: 1.week.ago.to_time)
+      student = NewContact.make(status: :student)
+      student.history_entries.create(attr: :status, old_value: :former_student,  changed_at: 1.month.ago.to_time)
+      student.history_entries.create(attr: :status, old_value: :student,         changed_at: 3.weeks.ago.to_time)
+      student.history_entries.create(attr: :status, old_value: :former_student,  changed_at: 1.week.ago.to_time)
 
-      fs = NewContact.make(status: :former_student)
-      fs.history_entries.create(attr: :status, old_value: :student,         changed_at: 3.weeks.ago.to_time)
+      former_student = NewContact.make(status: :former_student)
+      former_student.history_entries.create(attr: :status, old_value: :student,         changed_at: 3.weeks.ago.to_time)
 
       res = NewHistoryEntry.element_ids_with(status: 'student', at: 2.months.ago)
-      fs.id.in?(res).should be_truthy
-      s.id.in?(res).should be_falsy
+
+      former_student.id.to_s.in?(res).should be_truthy
+      student.id.to_s.in?(res).should be_falsy
     end
 
     it "should get value at limit dates" do
-      s = NewContact.make(level: 'aspirante')
-      s.history_entries.delete_all
-      s.history_entries.create(attr: 'level', old_value: nil, changed_at: "2015-10-31 14:35".to_time(:utc))
+      contact = NewContact.make(level: 'aspirante')
+      contact.history_entries.delete_all
+      contact.history_entries.create(attr: 'level', old_value: nil, changed_at: "2015-10-31 14:35".to_time(:utc))
       res = NewHistoryEntry.element_ids_with(level: NewContact::VALID_LEVELS['aspirante'], at: "2015-10-31", class: 'NewContact')
-      s.id.in?(res).should be_truthy
+      contact.id.to_s.in?(res).should be_truthy
     end
 
     context "attr: :status" do
@@ -142,7 +143,7 @@ describe NewHistoryEntry do
         cs.history_entries.delete_all
 
         res = NewHistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'NewContact')
-        cs.id.in?(res).should be_truthy
+        cs.id.to_s.in?(res).should be_truthy
       end
     end
     context "with attr :local_status_for_accountName" do
@@ -157,13 +158,13 @@ describe NewHistoryEntry do
         s = NewContact.make
         s.history_entries.create(attr: :local_status_for_accountname, old_value: :student,  changed_at: 1.month.ago.to_time)
 
-        contact.local_unique_attributes << LocalStatus.new(value: 'student', account: NewAccount.make(name: 'accountname'))
+        contact.account_contacts.create(local_status: 'student', account: NewAccount.make(name: 'accountname'))
       end
 
 
       it "returns elements without history entries after specified date that currently match expected attr" do
         res = NewHistoryEntry.element_ids_with(local_status_for_accountname: 'student', at: Date.civil(2012,12,20).to_time, class: 'NewContact')
-        contact.id.in?(res).should be_truthy
+        contact.id.to_s.in?(res).should be_truthy
       end
     end
 
@@ -207,31 +208,31 @@ describe NewHistoryEntry do
       context "with account_name" do
         subject { NewHistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'NewContact', account_name: @account.name) }
         it "includes account's elements with desired value in desired moment" do
-          @fs.id.in?(subject).should be_truthy
+          @fs.id.to_s.in?(subject).should be_truthy
         end
         it "includes account's elements without history with desired value" do
-          @cs.id.in?(subject).should be_truthy
+          @cs.id.to_s.in?(subject).should be_truthy
         end
         it "doesnt include other accounts elements with desired value in desired moment" do
           @ofs.in?(subject).should be_falsy
         end
         it "doesnt include other accounts elements without history with desired value" do
-          @ocs.id.in?(subject).should be_falsy
+          @ocs.id.to_s.in?(subject).should be_falsy
         end
       end
       context "with account" do
         subject { NewHistoryEntry.element_ids_with(status: 'student', at: 2.months.ago, class: 'NewContact', account: @account) }
         it "includes account's elements with desired value in desired moment" do
-          @fs.id.in?(subject).should be_truthy
+          @fs.id.to_s.in?(subject).should be_truthy
         end
         it "includes account's elements without history with desired value" do
-          @cs.id.in?(subject).should be_truthy
+          @cs.id.to_s.in?(subject).should be_truthy
         end
         it "doesnt include other accounts elements with desired value in desired moment" do
           @ofs.in?(subject).should be_falsy
         end
         it "doesnt include other accounts elements without history with desired value" do
-          @ocs.id.in?(subject).should be_falsy
+          @ocs.id.to_s.in?(subject).should be_falsy
         end
       end
     end
