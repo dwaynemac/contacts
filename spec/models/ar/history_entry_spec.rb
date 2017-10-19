@@ -185,7 +185,6 @@ describe NewHistoryEntry do
       before do
         account = NewAccount.make
         cs = NewContact.make(status: :student, owner: account)
-        account.link(cs) # this shouldn't be necessary
         cs.history_entries.delete_all
 
         other_account = NewAccount.make

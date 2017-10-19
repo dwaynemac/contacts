@@ -70,7 +70,7 @@ class NewHistoryEntry < ActiveRecord::Base
 
     raise ArgumentError if options.keys.size < 2
     raise ArgumentError unless options[:at]
-  
+    
     # use first key of options as attr
     ref_attribute = options.keys.first
     ref_value = options[options.keys.first]
@@ -90,13 +90,13 @@ class NewHistoryEntry < ActiveRecord::Base
         ActiveSupport::Notifications.instrument('get_object_ids.attribute_at_given_time.refine_scope.contacts_search') do
           # if Account and Object class where given we can find Objects linked to Account
           accessor = options[:class].underscore.pluralize
-
+          
           if accessor == "new_contacts"
             accessor = "contacts"
           end
 
           @object_ids = Rails.cache.fetch("#{options[:account].name}#{accessor}ids", expires_in: 10.minutes) do 
-            options[:account].send(accessor).map(&:id)
+            options[:account].send(accessor).map {|c| c.id.to_s}
           end
           elements_with_history = elements_with_history.where("historiable_id IN (?)", @object_ids)
         end
