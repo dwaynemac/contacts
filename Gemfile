@@ -1,5 +1,5 @@
 source 'http://rubygems.org'
-ruby '1.9.3'
+ruby '2.0.0'
 
 gem 'rails', '~> 3.1.0'
 
@@ -104,7 +104,7 @@ group :test do
   gem "machinist", '1.0.6'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
   gem 'mongoid-rspec', '1.4.4'
-  gem 'faker', '0.9.4'
+  gem 'faker', '1.6.3'
   gem "database_cleaner", ">= 0.6.7"
   gem 'coveralls', require: false
 end
