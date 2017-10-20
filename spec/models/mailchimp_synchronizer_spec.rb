@@ -5,6 +5,10 @@ describe MailchimpSynchronizer do
   let(:sync){MailchimpSynchronizer.new(account: account)}
   let(:contact){Contact.make}
 
+  before do
+    PadmaAccount.any_instance.stub(:locale).and_return("en")
+  end
+
   describe "unsubscribe_contacts" do
     before do
       contact.accounts << account
