@@ -221,6 +221,36 @@ class NewContact < ActiveRecord::Base
     VALID_COEFFICIENTS.keys.map{ |vv| {vv => self.coefficients.count {|coeff| coeff == vv}} }.inject(:merge)
   end
 
+  # If account_id is specified some addtional attributes are added:
+  #   - linked [TrueClass] whether or not this contact is linked to given account
+  #   - last_local_status [String] last local status on given account
+  #   - local_teacher [String] username of teacher in given account
+  #
+  # @param [Hash] options
+  # @option options [Account] account
+  # @option options [TrueClass] include_masked
+  # @option options [Array] select. List of attribute names to incluse in response.
+  #                                 You can also send attribute name as key, and reference_date as value to know
+  #                                 attribute's value at a given time.
+  #
+  #                         eg: select: [:first_name, :last_name, level: '2012-1-1']
+  def as_json(options = {})
+    attributes = {}
+
+    attributes[:mode] = options[:mode]
+    attributes[:contact] = self
+    attributes[:select] = options[:select].class == Array ? options[:select].reject{|v| v.nil?} : options[:select]
+    attributes[:account] = options[:account]
+    attributes[:include_masked] = options[:include_masked]
+    attributes[:except] = {
+      except_linked: options[:except_linked],
+      except_last_local_status: options[:except_last_local_status]
+    }
+        
+    cs = ContactSerializer.new(attributes)
+    cs.serialize
+  end
+
   def add_contact_to_mailchimp(reference_email = nil)
     # check whether account is subscribed to mailchimp
     ms = owner.nil? ? [] : MailchimpSynchronizer.where(account_id: owner.id)

@@ -309,7 +309,7 @@ describe NewContact do
   describe "#as_json" do
     before do
       @contact= NewContact.make(:owner => NewAccount.make, level: 'chêla')
-      @contact.local_unique_attributes << LocalTeacher.make(account: NewAccount.first)
+      @contact.account_contacts.find_by_account_id(@contact.owner.id).update_attribute(:local_teacher_username, "test")
 
       @contact.reload.history_entries.delete_all
       # 20121121 '' -> 'sádhaka'
@@ -318,6 +318,7 @@ describe NewContact do
       add_level_hchange('',DateTime.civil(2012,11,21,20,34,39).to_time)
       add_level_hchange('sádhaka',DateTime.civil(2012,12,21,20,34,39).to_time)
       add_level_hchange('yôgin',DateTime.civil(2013,11,21,20,34,39).to_time)
+      debugger
       @contact.history_entries.count.should == 3
     end
     it "should not include owner_id" do
@@ -755,7 +756,6 @@ describe NewContact do
             @new_contact.contact_attributes << NewIdentification.make_unsaved(value: '30366832', category: 'CPF')
           end
           it "should not have possible duplicates" do
-            debugger
             @new_contact.similar.should be_empty
           end
         end
@@ -1104,11 +1104,9 @@ describe NewContact do
   end
   
   def add_level_hchange(old_value, time)
-    HistoryEntry.create(attribute: :level,
+    @contact.history_entries.create(attr: :level,
                         old_value: old_value,
-                        changed_at: time,
-                        historiable_type: 'Contact',
-                        historiable_id: @contact._id
+                        changed_at: time
     )
   end
 end 

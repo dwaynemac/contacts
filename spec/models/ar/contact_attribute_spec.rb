@@ -55,63 +55,64 @@ describe NewContactAttribute do
   #   end
   # end
 
-  # describe "#for_account" do
-  #   before do
-  #     @empty_account = Account.make
-  #     @ok_account = Account.make
-  #     @contact = Contact.make(:owner => @ok_account)
-  #     @contact.contact_attributes << ContactAttribute.make(:account => @ok_account)
-  #     @contact.save
-  #   end
+  describe "#for_account" do
+    before do
+      @empty_account = NewAccount.make
+      @ok_account = NewAccount.make
+      @contact = NewContact.make(:owner => @ok_account)
+      @contact.contact_attributes << NewContactAttribute.make(:account => @ok_account)
+      @contact.save
+    end
 
-  #   it "should return the attributes corresponding to the account" do
-  #     @contact.contact_attributes.for_account(@ok_account).should_not be_empty
-  #   end
+    it "should return the attributes corresponding to the account" do
+      @contact.contact_attributes.for_account(@ok_account).should_not be_empty
+    end
 
-  #   it "should return public attributes" do
-  #     @contact.contact_attributes.first.public = true
-  #     @contact.save
-  #     @contact.contact_attributes.for_account(@empty_account).should_not be_empty
-  #   end
+    it "should return public attributes" do
+      @contact.contact_attributes.first.public = true
+      @contact.save
+      @contact.contact_attributes.for_account(@empty_account).should_not be_empty
+    end
 
-  #   it "should filter the attributes corresponding other accounts" do
-  #     @contact.contact_attributes.for_account(@empty_account).should be_empty
-  #   end
+    it "should filter the attributes corresponding other accounts" do
+      @contact.contact_attributes.for_account(@empty_account).should be_empty
+    end
 
-  #   context "with option :include_masked" do
-  #     context "for phone 12345678" do
-  #       before do
-  #         @contact.contact_attributes << Telephone.make(value: "12345678", public: false, account: @ok_account)
-  #         @contact.save
-  #         @contact.reload
-  #       end
+    context "with option :include_masked" do
+      context "for phone 12345678" do
+        before do
+          @contact.contact_attributes << NewTelephone.make(value: "12345678", public: false, account: @ok_account)
+          @contact.save
+          @contact.reload
+        end
 
-  #       it "should return an array" do
-  #         @contact.contact_attributes.for_account(@empty_account, :include_masked => true).should be_a(Array)
-  #       end
-  #       it "should return ####5678 for non-owner accounts" do
-  #         attrs = @contact.contact_attributes.for_account(@empty_account, :include_masked => true)
-  #         attrs.should_not be_empty
-  #         attrs.last.should be_a(ContactAttribute)
-  #         attrs.last.value.should == "####5678"
-  #       end
-  #       it "should return 12345678 for owner account" do
-  #         attrs = @contact.contact_attributes.for_account(@ok_account, :include_masked => true)
-  #         attrs.should_not be_empty
-  #         attrs.last.value.should == "12345678"
-  #       end
+        it "should return an array" do
+          @contact.contact_attributes.for_account(@empty_account, :include_masked => true).should be_a(Array)
+        end
+        it "should return ####5678 for non-owner accounts" do
+          attrs = @contact.contact_attributes.for_account(@empty_account, :include_masked => true)
+          attrs.should_not be_empty
+          attrs.last.should be_a(NewContactAttribute)
+          attrs.last.value.should == "####5678"
+        end
+        it "should return 12345678 for owner account" do
+          attrs = @contact.contact_attributes.for_account(@ok_account, :include_masked => true)
+          attrs.should_not be_empty
+          attrs.last.value.should == "12345678"
+        end
 
-  #       it "should not duplicate values" do
-  #         @contact.contact_attributes << Telephone.make(value: "12345678", public: false, account: @empty_account)
-  #         @contact.save
-  #         @contact.reload
-  #         attrs = @contact.contact_attributes.for_account(@empty_account, :include_masked => true)
-  #         attrs.size.should == 1
-  #         attrs.last.value.should == "12345678"
-  #       end
-  #     end
-  #   end
-  # end
+        it "should not duplicate values" do
+          @contact.contact_attributes << NewTelephone.make(value: "12345678", public: false, account: @empty_account)
+          @contact.save
+          @contact.reload
+          attrs = @contact.contact_attributes.for_account(@empty_account, :include_masked => true)
+          
+          attrs.size.should == 1
+          attrs.last.value.should == "12345678"
+        end
+      end
+    end
+  end
 
   describe "When created" do
     before do
