@@ -112,7 +112,7 @@ class MailchimpSegment
     
     begin
       if !mailchimp_id.nil?
-        api = Gibbon::API.new(synchro.api_key)
+        api = Gibbon::Request.new(api_key: synchro.api_key)
         api.lists.segment_del({
           id: synchro.list_id,
           seg_id: mailchimp_id     
@@ -133,7 +133,7 @@ class MailchimpSegment
   def create_segment_in_mailchimp
     synchro = mailchimp_synchronizer
     synchro.set_i18n
-    api = Gibbon::API.new(synchro.api_key)
+    api = Gibbon::Request.new(api_key: synchro.api_key)
     response = api.lists.segment_add({
       id: synchro.list_id,
       opts: {
