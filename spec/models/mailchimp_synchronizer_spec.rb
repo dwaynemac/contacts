@@ -73,7 +73,7 @@ describe MailchimpSynchronizer do
         sync.status = :failed
       end
       it "should do nothing" do
-        Gibbon::API.any_instance.should_not_receive(:lists)
+        Gibbon::Request.any_instance.should_not_receive(:lists)
         expect{sync.subscribe_contacts}.not_to raise_exception
         expect(sync.subscribe_contacts).to be_nil
       end
@@ -89,7 +89,7 @@ describe MailchimpSynchronizer do
           PadmaAccount.stub(:find_with_rails_cache).and_return(PadmaAccount.new(enabled: false))
         end
         it "should do nothing" do
-          Gibbon::API.any_instance.should_not_receive(:lists)
+          Gibbon::Request.any_instance.should_not_receive(:lists)
           expect{sync.subscribe_contacts}.not_to raise_exception
           expect(sync.subscribe_contacts).to be_nil
         end
@@ -102,7 +102,7 @@ describe MailchimpSynchronizer do
           before do
             MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
             MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
-            Gibbon::API.any_instance.stub(:lists).and_raise(Gibbon::MailChimpError)
+            Gibbon::Request.any_instance.stub(:lists).and_raise(Gibbon::MailChimpError)
             stub_const("MailchimpSynchronizer::RETRIES", 1)
           end
           it "re-raises Gibbon::MailChimpError" do
@@ -119,12 +119,12 @@ describe MailchimpSynchronizer do
           before do
             MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
             @exception_counts = 2
-            Gibbon::API.any_instance.stub(:lists) do
+            Gibbon::Request.any_instance.stub(:lists) do
               @exception_counts -= 1
               if @exception_counts <= 0
                 raise Gibbon::MailchimpError
               else
-                Gibbon::API.new
+                Gibbon::Request.new
               end
             end
           end
@@ -135,7 +135,7 @@ describe MailchimpSynchronizer do
         context "on the first subscription" do
           context "all contacts should be send to mailchimp" do
             it "scopes all contacts" do
-              Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+              Gibbon::Request.any_instance.stub_chain(:lists, :batch_subscribe)
               MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
               @c = Contact.make
               @c.accounts << account
@@ -152,7 +152,7 @@ describe MailchimpSynchronizer do
         context "when subscription has been updated" do
           context "with filter_method: :all" do
             before do
-              Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
+              Gibbon::Request.any_instance.stub_chain(:lists, :batch_subscribe)
               MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
               @c = Contact.make
               @c.accounts << account
@@ -180,8 +180,8 @@ describe MailchimpSynchronizer do
           context "with filter_method: :segments" do
             before do
               MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
-              Gibbon::API.any_instance.stub_chain(:lists, :batch_subscribe)
-              Gibbon::API.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
+              Gibbon::Request.any_instance.stub_chain(:lists, :batch_subscribe)
+              Gibbon::Request.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
               @c = Contact.make(first_name: "Alex", last_name: "Halcon")
               @c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
               @c.accounts << account
@@ -474,7 +474,7 @@ describe MailchimpSynchronizer do
             }
           ]
         }
-        Gibbon::API.any_instance.stub_chain(:lists, :member_info).and_return(resp)
+        Gibbon::Request.any_instance.stub_chain(:lists, :member_info).and_return(resp)
       end
       it "should return true" do
         @ms.is_in_list?("mail@value.com").should be_truthy
@@ -550,7 +550,7 @@ describe MailchimpSynchronizer do
             }
           ]
         }
-        Gibbon::API.any_instance.stub_chain(:lists, :member_info).and_return(resp)
+        Gibbon::Request.any_instance.stub_chain(:lists, :member_info).and_return(resp)
       end
       it "should return true" do
         @ms.is_in_list?("mail@value.com").should be_falsey
@@ -565,8 +565,8 @@ describe MailchimpSynchronizer do
       @ms.list_id = "5555"
       @ms.api_key = "123123"
       @ms.save
-      Gibbon::API.any_instance.stub_chain(:lists, :interest_groupings).and_return([{"id" => "1234", "name" => "Coefficient"}])
-      Gibbon::API.any_instance.stub_chain(:lists, :interest_grouping_add)
+      Gibbon::Request.any_instance.stub_chain(:lists, :interest_groupings).and_return([{"id" => "1234", "name" => "Coefficient"}])
+      Gibbon::Request.any_instance.stub_chain(:lists, :interest_grouping_add)
       @ms.stub(:email_admins_about_failure)
     end
     context "when coefficient group match" do
@@ -603,8 +603,8 @@ describe MailchimpSynchronizer do
       @ms.list_id = "5555"
       @ms.api_key = "123123"
       @ms.save
-      Gibbon::API.any_instance.stub_chain(:lists, :interest_groupings).and_return([{"id" => "1234", "name" => "Coefficient"}])
-      Gibbon::API.any_instance.stub_chain(:lists, :interest_grouping_add).and_return({"id" => "4444"})
+      Gibbon::Request.any_instance.stub_chain(:lists, :interest_groupings).and_return([{"id" => "1234", "name" => "Coefficient"}])
+      Gibbon::Request.any_instance.stub_chain(:lists, :interest_grouping_add).and_return({"id" => "4444"})
       @ms.stub(:email_admins_about_failure)
     end
     it "should not call callbacks" do
