@@ -18,7 +18,7 @@ gem 'overmind_client', '~> 0.0.6'
 gem 'accounts_client', '>= 0.2.28'
 gem 'messaging_client', '0.0.4'
 
-gem 'gibbon'
+gem 'gibbon', '~> 3.1', '>= 3.1.1'
 
 gem 'kaminari', '~> 0.13'
 
