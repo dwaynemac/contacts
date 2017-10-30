@@ -553,12 +553,10 @@ class MailchimpSynchronizer
     set_i18n
     set_api
     begin
-      groupings = @api.lists.interest_groupings({
-        id: list_id
-        })
-      groupings.each do |group|
+      groupings = @api.lists(list_id).interest_categories.retrieve.body
+      groupings["categories"].each do |group|
         if group["id"] == coefficient_group && 
-            group["name"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
+            group["title"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
             response = true
         end
       end
