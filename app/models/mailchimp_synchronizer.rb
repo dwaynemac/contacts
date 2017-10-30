@@ -527,7 +527,7 @@ class MailchimpSynchronizer
   end
   
   def set_api
-    @api = Gibbon::API.new(api_key)
+    @api = Gibbon::Request.new(api_key: api_key)
   end
   
   def set_i18n
@@ -576,21 +576,25 @@ class MailchimpSynchronizer
     begin
       mailchimp_coefficient_group = nil
       if @has_coefficient_group
-        groupings = @api.lists.interest_groupings({
-          id: list_id
-          })
-        groupings.each do |group|
-          if group["name"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
+        groupings = @api.lists(list_id).interest_categories.retrieve.body
+        groupings["categories"].each do |group|
+          if group["title"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
             mailchimp_coefficient_group = group
           end
         end
       else
-        mailchimp_coefficient_group = @api.lists.interest_grouping_add({
-          id: list_id,
-          name: I18n.t('mailchimp.coefficient.coefficient'),
-          type: 'hidden',
-          groups: ["unknown", "perfil", "pmas", "pmenos", "np"]
-          })
+        mailchimp_coefficient_group = @api.lists(list_id).interest_categories.create(
+          body:
+            {
+            title: I18n.t('mailchimp.coefficient.coefficient'),
+            type: 'hidden',
+            }
+        )
+        ["unkonwn", "perfil", "pmas", "pmenos", "np"].each do |interest|
+          @api.lists(list_id).interest_categories(mailchimp_coefficient_group.body["id"]).interests.create(
+            body: { name: interest }
+          )
+        end
       end
       # avoid callbacks
       # If changed to AR it should be set to "update_all" or "update_column"
