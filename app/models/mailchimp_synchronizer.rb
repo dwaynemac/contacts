@@ -470,11 +470,12 @@ class MailchimpSynchronizer
   # Check if a single email is currently subscribed to a list
   def is_in_list?(email)
     set_api
-    resp = @api.lists.member_info({
-        id: list_id,
-        emails: [{email: email}]
-      })
-    return !resp.blank? && resp["success_count"] > 0 && resp["data"][0]["status"] == "subscribed"
+    begin
+      resp = @api.lists(list_id).members(md5_hexdigested_email(email)).retrieve
+      return resp.body["status"] == "subscribed"
+    rescue Gibbon::MailChimpError
+      return false
+    end
   end
 
   def get_scope(from_last_synchronization)
@@ -646,5 +647,9 @@ class MailchimpSynchronizer
     list_id.present? && (
       !mailchimp_segments.empty? || filter_method == 'all'
     )
+  end
+
+  def md5_hexdigested_email(email)
+    Digest::MD5.hexdigest(email.downcase)
   end
 end
