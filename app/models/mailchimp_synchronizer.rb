@@ -363,13 +363,13 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     begin
-      @api.lists.subscribe({
-        id: list_id,
-        email: {email: get_primary_attribute_value(c, 'Email')},
-        merge_vars: merge_vars_for_contact(c),
-        double_optin: false,
-        update_existing: true
-      })
+      @api.lists(list_id).members(subscriber_hash(get_primary_attribute_value(c, "Email"))).upsert(
+        body: {
+          email_address: get_primary_attribute_value(c, "Email"),
+          status: "subscribed",
+          merge_fields: merge_vars_for_contact(c)
+        }
+      )
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_subscribe of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
@@ -437,11 +437,7 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     begin
-      @api.lists.unsubscribe({
-        id: list_id,
-        email: {email: email},
-        delete_member: delete_member
-      })
+      @api.lists(list_id).members(subscriber_hash(email)).delete
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_unsubscribe of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
