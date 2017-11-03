@@ -408,11 +408,7 @@ class MailchimpSynchronizer
     merge_vars = merge_vars_for_contact(c)
     merge_vars['EMAIL'] = get_primary_attribute_value(c, 'Email')
     begin
-      resp = @api.lists.update_member({
-        id: list_id,
-        email: {email: old_mail},
-        merge_vars: merge_vars
-      })
+      @api.lists(list_id).members(subscriber_hash(old_mail)).update(body: {merge_fields: merge_vars})
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_update of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
@@ -471,7 +467,7 @@ class MailchimpSynchronizer
   def is_in_list?(email)
     set_api
     begin
-      resp = @api.lists(list_id).members(md5_hexdigested_email(email)).retrieve
+      resp = @api.lists(list_id).members(subscriber_hash(email)).retrieve
       return resp.body["status"] == "subscribed"
     rescue Gibbon::MailChimpError
       return false
@@ -649,7 +645,8 @@ class MailchimpSynchronizer
     )
   end
 
-  def md5_hexdigested_email(email)
+  # md5 hex digested email
+  def subscriber_hash(email)
     Digest::MD5.hexdigest(email.downcase)
   end
 end
