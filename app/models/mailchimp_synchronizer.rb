@@ -70,11 +70,8 @@ class MailchimpSynchronizer
       Rails.logger.info "[mailchimp_synchronizer #{self.id}] batch #{i}"
       page = get_scope(from_last_synchronization).page(i + 1).per(batch_size)
       begin
-        @api.lists.batch_subscribe({
-          id: list_id,
-          batch: get_batch(page),
-          double_optin: false,
-          update_existing: true
+        @api.batches.create(body: {
+          operations: get_batch(page)
         })
       rescue Gibbon::MailChimpError => e
         Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
@@ -144,11 +141,17 @@ class MailchimpSynchronizer
     page.each do |c|
       struct = {}
       if !unsubscribe
-        struct['email'] = {email: get_primary_attribute_value(c, 'Email')}
-        struct['email_type'] = 'text'
-        struct['merge_vars'] =  merge_vars_for_contact(c)
+        struct['method'] = "PUT"
+        struct['path'] = "lists/#{list_id}/members/#{subscriber_hash(get_primary_attribute_value(c, "Email"))}"
+        struct['body'] = {
+          status_if_new: "subscribed",
+          status: "subscribed",
+          email_address: get_primary_attribute_value(c, "Email"),
+          merge_fields: merge_vars_for_contact(c)
+        }
       else
-        struct['email'] = get_primary_attribute_value(c, 'Email')
+        struct['method'] = "DELETE",
+        struct['path'] = "lists/#{list_id}/members/#{subscriber_hash(get_primary_attribute_value(c, 'Email'))}"
       end
       batch << struct
     end
@@ -366,6 +369,7 @@ class MailchimpSynchronizer
       @api.lists(list_id).members(subscriber_hash(get_primary_attribute_value(c, "Email"))).upsert(
         body: {
           email_address: get_primary_attribute_value(c, "Email"),
+          status_if_new: "subscribed",
           status: "subscribed",
           merge_fields: merge_vars_for_contact(c)
         }
