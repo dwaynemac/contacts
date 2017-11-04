@@ -125,13 +125,9 @@ class MailchimpSynchronizer
 
     contacts_scope.page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
       page = contacts_scope.page(i + 1).per(CONTACTS_BATCH_SIZE)
-      response = @api.lists.batch_unsubscribe({
-        id: list_id,
-        batch: get_batch(page, true), 
-        delete_member: true,
-        send_goodbye: false 
-      })
-    end   
+      @api.batches.create(body: {
+          operations: get_batch(page, true)
+        })
     update_attribute(:status, :ready)
   end
   handle_asynchronously :unsubscribe_contacts
