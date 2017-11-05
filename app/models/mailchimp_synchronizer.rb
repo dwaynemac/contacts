@@ -10,6 +10,7 @@ class MailchimpSynchronizer
   field :coefficient_group
   field :contact_attributes
   field :last_synchronization
+  field :merge_fields
 
   attr_accessor :has_coefficient_group
 
@@ -269,38 +270,43 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     merge_var_add('PHONE', I18n.t('mailchimp.phone.phone'), 'text') 
-    merge_var_add('GENDER', I18n.t('mailchimp.gender.gender'), 'text', {public: false}) 
-    merge_var_add('STATUS', I18n.t('mailchimp.status.status'), 'text', {public: false}) 
+    merge_var_add('GENDER', I18n.t('mailchimp.gender.gender'), 'text', false) 
+    merge_var_add('STATUS', I18n.t('mailchimp.status.status'), 'text', false) 
     merge_var_add('ADDR', I18n.t('mailchimp.address.address'), 'text') 
-    merge_var_add('SYSSTATUS', 'System Status', 'text', {public: false, show: false}) 
-    merge_var_add('SYSCOEFF', 'System Coefficient', 'text', {public: false, show: false}) 
-    merge_var_add('FOLLOWEDBY', 'Followed by', 'text', {public: false})
-    merge_var_add('TEACHER', I18n.t('mailchimp.teacher'), 'text', {public: false})
-    merge_var_add('PADMA_TAGS', I18n.t('mailchimp.padma_tags'), 'text', {public: false})
+    merge_var_add('SYSSTATUS', 'System Status', 'text', false, {show: false}) 
+    merge_var_add('SYSCOEFF', 'System Coefficient', 'text', false, {show: false}) 
+    merge_var_add('FOLLOWEDBY', 'Followed by', 'text', false)
+    merge_var_add('TEACHER', I18n.t('mailchimp.teacher'), 'text', false)
+    merge_var_add('PADMA_TAGS', I18n.t('mailchimp.padma_tags'), 'text', false)
   end
   
-  def merge_var_add (tag, name, type, options={})
-    options = options.merge!({field_type: type})
-    begin
-      @api.lists.merge_var_add({
-        id: list_id,
-        tag: tag,
-        name: name,
-        options: options
-      }) 
-    rescue Gibbon::MailChimpError => e
-      raise unless e.message =~ /already exists/
+  def merge_var_add (tag, name, type, public = true , options={})
+    local_fields = ActiveSupport::JSON.decode(merge_fields)
+    if !local_fields.keys.include?(name)
+      begin
+        resp = @api.lists(list_id).merge_fields( body: {
+          tag: tag,
+          name: name,
+          type: type,
+          public: public,
+          options: options
+        })
+        local_fields[name] = resp.body["merge_id"]
+        update_attribute(:merge_fields, ActiveSupport::JSON.encode(local_fields))
+      rescue Gibbon::MailChimpError => e
+        raise unless e.message =~ /already exists/
+      end
     end
   end
 
   def merge_var_del(tag_name)
-    begin
-      @api.lists.merge_var_del({
-        id: list_id,
-        tag: tag_name
-      }) 
-    rescue Gibbon::MailChimpError => e
-      raise
+    local_fields = ActiveSupport::JSON.decode(merge_fields)
+    if local_fields.keys.include?(tag_name)
+      begin
+        @api.lists(list_id).merge_fields(local_fields[tag_name]).delete
+      rescue Gibbon::MailChimpError
+        raise
+      end
     end
   end
 
@@ -308,7 +314,7 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     contact_attributes.split(",").each do |contact_attribute|
-      merge_var_add(get_tag_for(contact_attribute), contact_attribute.capitalize, 'text', {public: false})
+      merge_var_add(get_tag_for(contact_attribute), contact_attribute.capitalize, 'text', false)
     end
   end
 
@@ -615,6 +621,7 @@ class MailchimpSynchronizer
   def set_default_attributes
     self.status = :setting_up
     self.filter_method = nil
+    self.merge_fields = "{}"
     self.contact_attributes = ""
   end
   
