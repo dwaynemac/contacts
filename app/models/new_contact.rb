@@ -85,6 +85,11 @@ class NewContact < ActiveRecord::Base
     write_attribute(:level, VALID_LEVELS[s])
   end
 
+  # @return [String]
+  def full_name
+    "#{first_name} #{last_name}"
+  end
+
   TYPES = %W(email telephone address custom_attribute date_attribute identification occupation attachment social_network_id)
 
   TYPES.each do |k|
@@ -151,8 +156,7 @@ class NewContact < ActiveRecord::Base
     return self.account_contacts
                .where(account_id: account_id)
                .first
-               .try
-               .send('local_' + attr_name).to_sym
+               .try(attr_name)
   end
 
   # @method xxx_for_yyy=(value)
@@ -295,6 +299,22 @@ class NewContact < ActiveRecord::Base
       type: type,
       primary: true
     }).last
+  end
+
+  # @see Account#link
+  def link(account)
+    account.link(self)
+  end
+
+  # @see Account#unlink
+  def unlink(account)
+    #delete_contact_from_mailchimp
+    account.unlink(self)
+  end
+
+  # @see Account#linked_to?
+  def linked_to?(account)
+    account.id.in?(self.account_ids)
   end
 
   def active_merges

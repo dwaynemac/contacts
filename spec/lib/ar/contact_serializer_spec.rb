@@ -6,7 +6,7 @@ describe ContactSerializer do
   let(:account){NewAccount.make}
   let(:serializer){NewContactSerializer.new(mode: mode, contact: contact, account: account)}
   let(:serialized_keys){serializer.serialize.keys}
-  let(:contact){NewContact.make()}
+  let(:contact){NewContact.make(owner: account)}
 
   describe "with mode: 'all'" do
     let(:mode){ 'all' }
@@ -62,22 +62,18 @@ describe ContactSerializer do
   end
 
   describe "selecting local_statuses" do
-    let(:other_account){ Account.make }
+    let(:other_account){ NewAccount.make }
     let(:mode){ 'select' }
     let(:select){ ['local_statuses'] }
     before do
-      contact.local_unique_attributes << LocalStatus.new(
-                                                    value: 'student',
-                                                    account: account)
-      contact.local_unique_attributes << LocalStatus.new(
-                                                    value: 'former-student',
-                                                    account: other_account)
+      contact.account_contacts.find_or_create_by_account_id(account_id: account.id).update_attribute(:local_status, 'student')
+      contact.account_contacts.find_or_create_by_account_id(account_id: other_account.id).update_attribute(:local_status, 'former_student')
       serializer.select = select
     end 
     it "serializes an array of hashes with keys :account, :local_status" do
       expect(serializer.serialize['local_statuses']).to eq [
         { 'account_name' => account.name, 'local_status' => 'student' },
-        { 'account_name' => other_account.name, 'local_status' => 'former-student' }
+        { 'account_name' => other_account.name, 'local_status' => 'former_student' }
       ]
     end
   end
@@ -86,8 +82,7 @@ describe ContactSerializer do
     let(:mode){ 'select' }
     let(:select){ ['last_seen_at'] }
     before do
-      contact.local_unique_attributes << LastSeenAt.new(value: 1.month.ago.to_time,
-                                                        account: account)
+      contact.account_contacts.find_or_create_by_account_id(account_id: account.id).update_attribute(:last_seen_at, 1.month.ago.to_time)
       serializer.select = select
     end
     it "is serialized as a string" do
