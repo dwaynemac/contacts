@@ -572,6 +572,7 @@ class MailchimpSynchronizer
   def find_or_create_coefficients_group
     set_i18n
     set_api
+    interests = {}
     begin
       mailchimp_coefficient_group = nil
       if @has_coefficient_group
@@ -590,15 +591,17 @@ class MailchimpSynchronizer
             }
         )
         ["unkonwn", "perfil", "pmas", "pmenos", "np"].each do |interest|
-          @api.lists(list_id).interest_categories(mailchimp_coefficient_group.body["id"]).interests.create(
+          resp = @api.lists(list_id).interest_categories(mailchimp_coefficient_group.body["id"]).interests.create(
             body: { name: interest }
           )
+          interests[interest] = resp.body["category_id"]
         end
+        mailchimp_coefficient_group["interests"] = interests
       end
       # avoid callbacks
       # If changed to AR it should be set to "update_all" or "update_column"
       MailchimpSynchronizer.skip_callback(:update, :after, :find_or_create_coefficients_group)
-      update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
+      update_attribute(:coefficient_group, ActiveSupport::JSON.encode(mailchimp_coefficient_group))
       MailchimpSynchronizer.set_callback(:update, :after, :find_or_create_coefficients_group)
     rescue Gibbon::MailChimpError => e
       if e.message =~ /already exists/ && !@has_coefficient_group
