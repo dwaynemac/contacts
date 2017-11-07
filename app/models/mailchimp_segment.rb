@@ -113,10 +113,7 @@ class MailchimpSegment
     begin
       if !mailchimp_id.nil?
         api = Gibbon::Request.new(api_key: synchro.api_key)
-        api.lists.segment_del({
-          id: synchro.list_id,
-          seg_id: mailchimp_id     
-        })
+        api.lists(synchro.list_id).segments(mailchimp_id).delete
       end
     rescue Gibbon::MailChimpError => e
       raise unless e.message =~ /Invalid MailChimp List ID|This account has been deactivated/
@@ -134,17 +131,15 @@ class MailchimpSegment
     synchro = mailchimp_synchronizer
     synchro.set_i18n
     api = Gibbon::Request.new(api_key: synchro.api_key)
-    response = api.lists.segment_add({
-      id: synchro.list_id,
-      opts: {
-        type: 'saved',
+    response = api.lists(synchro.list_id).segments.create(
+      body: {
         name: name,
-        segment_opts: {
+        options: {
           match: 'all',
           conditions: segment_conditions
         }
       }
-    })
+    )
     self.mailchimp_id = response['id']
   rescue Gibbon::MailChimpError => e
     synchro.update_attribute(:status, :failed)
@@ -155,10 +150,26 @@ class MailchimpSegment
   
   def segment_conditions
     conditions = []
-    conditions << status_condition unless statuses.empty?   
-    conditions << coefficient_condition unless coefficients.empty?
-    conditions << gender_condition unless gender.blank?
-    conditions << followed_by_condition unless followed_by.empty?
+    conditions << { 
+      condition_type: "TextMerge",
+      field: 'SYSSTATUS',
+      op: 'contains', 
+      value: status_condition} unless statuses.empty?
+    conditions << {
+      condition_type: "Interests",
+      field: I18n.t('mailchimp.coefficient.coefficient'),
+      op: 'interestcontains',
+      value: coefficient_condition} unless coefficients.empty?
+    conditions << {
+      condition_type: "TextMerge",
+      field: "GENDER",
+      op: "is",
+      value: gender_condition} unless gender.blank?
+    conditions << {
+      condition_type: "TextMerge",
+      field: "FOLLOWEDBY",
+      op: "contains",
+      value: followed_by_condition} unless followed_by.empty?
     conditions
   end
 
@@ -192,11 +203,13 @@ class MailchimpSegment
     #  coefficient = 'pmas'
     #end
     
-    {
-      field: "interests-#{mailchimp_synchronizer.coefficient_group}",
-      op: 'one',
-      value: coefficients.join(",")
-    }
+    #{
+    #  field: "interests-#{mailchimp_synchronizer.coefficient_group}",
+    #  op: 'one',
+    #  value: coefficients.join(",")
+    #}
+    
+    synchro.get_interests_ids(coefficients.join(","))
   end
 
   def followed_by_condition
