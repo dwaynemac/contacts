@@ -129,6 +129,7 @@ class MailchimpSynchronizer
       @api.batches.create(body: {
           operations: get_batch(page, true)
         })
+    end
     update_attribute(:status, :ready)
   end
   handle_asynchronously :unsubscribe_contacts
@@ -223,7 +224,7 @@ class MailchimpSynchronizer
   
   def get_coefficient_translation (contact)
     [
-      {id: coefficient_group, groups: [set_fp_to_np(contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || '')]}
+      {id: ActveSupport::JSON.decode(coefficient_group)["id"], groups: [set_fp_to_np(contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || '')]}
     ]
   end
 
@@ -546,7 +547,8 @@ class MailchimpSynchronizer
   end
 
   def coefficient_group_valid?
-    return false if coefficient_group.nil?
+    group_id = ActiveSupport::JSON.decode(coefficient_group)["id"]
+    return false if group_id.blank?
     response = false
 
     set_i18n
@@ -554,7 +556,7 @@ class MailchimpSynchronizer
     begin
       groupings = @api.lists(list_id).interest_categories.retrieve.body
       groupings["categories"].each do |group|
-        if group["id"] == coefficient_group && 
+        if group["id"] == group_id && 
             group["title"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
             response = true
         end
@@ -621,6 +623,7 @@ class MailchimpSynchronizer
   def set_default_attributes
     self.status = :setting_up
     self.filter_method = nil
+    self.coefficient_group = "{\"id\":\"\",\"interests\":{}}"
     self.merge_fields = "{}"
     self.contact_attributes = ""
   end
@@ -651,5 +654,10 @@ class MailchimpSynchronizer
   # md5 hex digested email
   def subscriber_hash(email)
     Digest::MD5.hexdigest(email.downcase)
+  end
+
+  def get_interests_ids(interest_names)
+    interests = ActiveSupport::JSON.decode(coefficient_group)["interests"]
+    interest_names.map{|i| interests[i]}
   end
 end
