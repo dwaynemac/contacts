@@ -297,6 +297,37 @@ describe V0::ContactsController do
       it { should respond_with 200 }
     end
   end
+  
+  describe "#show_by_slug" do
+    before do
+      ENV['readonly_key'] = 'xxx'
+    end
+    describe "with slug" do
+      describe "if contact doesnot exist" do
+        before do
+          get :show_by_slug, slug: '1234', app_key: ENV['readonly_key']
+        end
+        it { should respond_with 404 }
+      end
+      describe "if contact exists" do
+        before do
+          @contact = Contact.make(slug: '1234')
+          get :show_by_slug, slug: '1234', app_key: ENV['readonly_key']
+        end
+        it { should respond_with(:success)}
+        it "returns contact with given slug" do
+          assigns(:contact).should == @contact
+        end
+      end
+    end
+    describe "without slug" do
+      before do
+        @contact = Contact.make(slug: '1234')
+        get :show_by_slug, app_key: ENV['readonly_key']
+      end
+      it { should respond_with(400)}
+    end
+  end
 
   describe "#show_by_kshema_id" do
     describe "with kshema_id" do

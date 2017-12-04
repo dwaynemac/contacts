@@ -241,6 +241,35 @@ class V0::ContactsController < V0::ApplicationController
       end
     end
   end
+  
+  ##
+  # Returns JSON for a contact finding by slug
+  # @see show
+  #
+  # @url /v0/contacts/by_slug
+  # @action GET
+  #
+  # @required [String] slug
+  # @optional [String] account_name
+  def show_by_slug
+    if params[:slug].blank?
+      render json: 'slug missing', status: 400
+    else
+      @contact = @scope.where(slug: params[:slug]).first
+      if @contact
+        render json: @contact.as_json(select: [:id,
+                                               :full_name,
+                                               :identification,
+                                               :owner_name,
+                                               :status
+                                               ],
+                                      account: @contact.owner)
+      else
+        render json: 'Not Found', status: 404
+      end
+    end
+  end
+
 
 
   ##
