@@ -78,6 +78,10 @@ class Contact
 
   field :kshema_id
   validates_uniqueness_of :kshema_id, allow_blank: true
+  
+  field :slug
+  validates_uniqueness_of :slug, allow_blank: true
+  before_save :set_slug
 
   field :publish_on_gdp
 
@@ -131,6 +135,18 @@ class Contact
 
   attr_accessor :request_username
   attr_accessor :request_account_name
+  
+  def set_slug
+    if self.slug.blank?
+      i = 0
+      sufix = ""
+      begin
+        self.slug = "#{full_name.parameterize}#{sufix}"
+        i += 1
+        sufix = "-#{i}"
+      end while (!Contact.where(slug: self.slug).empty?) 
+    end
+  end
 
   # @return [Mongoid::Criteria]
   def active_merges
@@ -707,7 +723,7 @@ class Contact
     end
     @cached_request_account  
   end
-
+  
   private
 
   def capitalize_first_and_last_names

@@ -16,6 +16,26 @@ describe Contact do
   it { should have_field(:first_enrolled_on).of_type(Date)}
 
   it { should respond_to :occupations }
+  
+  
+  describe "slug" do
+    it "is generated from full_name" do
+      c = Contact.make_unsaved
+      c.save
+      expect(c.slug).to eq c.full_name.parameterize
+    end
+    it "avoid duplication by adding a sufix" do
+      c = Contact.make_unsaved
+      c.save
+      expect(c.slug).to eq c.full_name.parameterize
+      
+      oc = Contact.make_unsaved(first_name: c.first_name,
+                                last_name: c.last_name)
+      oc.save
+      expect(oc.slug).to match oc.full_name.parameterize
+      expect(oc.slug).not_to eq oc.full_name.parameterize
+    end
+  end
 
   describe "capitalizes first word of first and last name" do
     it "only capitalizes first word" do
