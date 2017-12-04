@@ -64,7 +64,7 @@ describe BirthdayNotificator do
   describe "#all_birthdays" do
     it "should get all birthdays" do
       bdays = bn.all_birthdays
-      bdays.to_a.should == [@first_contact, @second_contact]
+      bdays.map(&:id).should == [@first_contact.id, @second_contact.id]
       bn.all_birthdays.count.should == 2
     end
   end
