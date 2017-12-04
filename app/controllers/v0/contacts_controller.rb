@@ -250,7 +250,6 @@ class V0::ContactsController < V0::ApplicationController
   # @action GET
   #
   # @required [String] slug
-  # @optional [String] account_name
   def show_by_slug
     if params[:slug].blank?
       render json: 'slug missing', status: 400
@@ -261,6 +260,7 @@ class V0::ContactsController < V0::ApplicationController
                                                :full_name,
                                                :identification,
                                                :owner_name,
+                                               :avatar,
                                                :status
                                                ],
                                       account: @contact.owner)
