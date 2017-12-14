@@ -145,6 +145,8 @@ class Contact
         i += 1
         sufix = "-#{i}"
       end while (!Contact.where(slug: self.slug).empty?) 
+    elsif self.slug_changed?
+      self.slug = self.slug.parameterize
     end
   end
 
