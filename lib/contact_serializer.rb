@@ -104,6 +104,7 @@ class ContactSerializer
         @json['_id'] = @contact.id.to_s if serialize?(:_id) 
         @json['kshema_id'] = @contact.kshema_id if serialize?(:kshema_id) 
         @json['derose_id'] = @contact.derose_id if serialize?(:derose_id) 
+        @json['slug'] = @contact.slug if serialize?(:slug) 
         @json['first_enrolled_on'] = @contact.first_enrolled_on.to_s if serialize?(:first_enrolled_on) 
         @json['gender'] = @contact.gender if serialize?(:gender) 
         @json['estimated_age'] = @contact.estimated_age if serialize?(:estimated_age) 
