@@ -258,6 +258,7 @@ class V0::ContactsController < V0::ApplicationController
       if @contact
         render json: @contact.as_json(select: [:id,
                                                :full_name,
+                                               :level,
                                                :identification,
                                                :owner_name,
                                                :avatar,
