@@ -91,9 +91,16 @@ class V0::ContactsController < V0::ApplicationController
         if params[:global] = "true"
           as_json_params[:include_masked] = true
         end
-        @collection_hash = @contacts
-        @collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true" # TODO compatible with respect_ids_order ?
-        @collection_hash = @collection_hash.as_json(as_json_params)
+        
+        measure('initialize_collection_hash.build_hash.render_json.index.contacts_controller') do
+          @collection_hash = @contacts
+        end
+        measure('select_columns_collection_hash.build_hash.render_json.index.contacts_controller') do
+          @collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true" # TODO compatible with respect_ids_order ?
+        end
+        measure('as_json_colletion_hash.build_hash.render_json.index.contacts_controller') do
+          @collection_hash = @collection_hash.as_json(as_json_params)
+        end
       end
       measure('serializing.render_json.index.contacts_controller') do
         @json = Oj.dump({ 'collection' => @collection_hash, 'total' => total})
