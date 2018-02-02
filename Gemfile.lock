@@ -104,8 +104,8 @@ GEM
       ffi (~> 1.0.11)
       mime-types (~> 1.18)
     excon (0.39.3)
-    faker (0.9.4)
-      i18n (~> 0.4)
+    faker (1.6.3)
+      i18n (~> 0.5)
     fast-stemmer (1.0.2)
     ffi (1.0.11)
     figaro (0.7.0)
@@ -380,7 +380,7 @@ DEPENDENCIES
   debugger
   delayed_job_mongoid
   ethon (= 0.4.2)
-  faker (= 0.9.4)
+  faker (= 1.6.3)
   figaro
   fog
   gibbon
