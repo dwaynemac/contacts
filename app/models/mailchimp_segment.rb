@@ -8,7 +8,7 @@ class MailchimpSegment
   field :coefficients
   field :followed_by
   field :name
-  field :mailchimp_id
+  field :remote_id
 
   belongs_to :mailchimp_synchronizer
   before_save :set_default_attributes
@@ -111,9 +111,9 @@ class MailchimpSegment
     synchro = mailchimp_synchronizer
     
     begin
-      if !mailchimp_id.nil?
+      if !remote_id.nil?
         api = Gibbon::Request.new(api_key: synchro.api_key)
-        api.lists(synchro.list_id).segments(mailchimp_id).delete
+        api.lists(synchro.list_id).segments(remote_id).delete
       end
     rescue Gibbon::MailChimpError => e
       raise unless e.message =~ /Invalid MailChimp List ID|This account has been deactivated/
@@ -140,7 +140,7 @@ class MailchimpSegment
         }
       }
     )
-    self.mailchimp_id = response['id']
+    update_attribute(:remote_id, response.body['id'])
   rescue Gibbon::MailChimpError => e
     synchro.update_attribute(:status, :failed)
     synchro.email_admins_about_failure(synchro.account.name, e.message)
@@ -157,7 +157,7 @@ class MailchimpSegment
       value: status_condition} unless statuses.empty?
     conditions << {
       condition_type: "Interests",
-      field: I18n.t('mailchimp.coefficient.coefficient'),
+      field: "interests-#{ActiveSupport::JSON.decode(mailchimp_synchronizer.coefficient_group)["id"]}",
       op: 'interestcontains',
       value: coefficient_condition} unless coefficients.empty?
     conditions << {
@@ -180,44 +180,19 @@ class MailchimpSegment
     value << 's' if statuses.include?('student')
     value << 'f' if statuses.include?('former_student')
     value << '|'
-    {
-      field: 'SYSSTATUS',
-      op: 'like',
-      value: value
-    }
+    value
   end
   
   def gender_condition
-    {
-      field: 'GENDER',
-      op: 'eq',
-      value: I18n.t("mailchimp.gender.#{gender}")
-    }
+    I18n.t("mailchimp.gender.#{gender}")
   end
   
   def coefficient_condition
-    #coefficient = 'fp'
-    #if coefficients.include?('perfil')
-    #  coefficient = 'perfil'
-    #elsif coefficients.include?('pmas')
-    #  coefficient = 'pmas'
-    #end
-    
-    #{
-    #  field: "interests-#{mailchimp_synchronizer.coefficient_group}",
-    #  op: 'one',
-    #  value: coefficients.join(",")
-    #}
-    
-    synchro.get_interests_ids(coefficients.join(","))
+    mailchimp_synchronizer.get_interests_ids(coefficients.join(","))
   end
 
   def followed_by_condition
-    {
-      field: 'FOLLOWEDBY',
-      op: 'like',
-      value: followed_by
-    }
+    followed_by
   end
 
   private 
