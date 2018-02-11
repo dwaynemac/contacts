@@ -44,11 +44,20 @@ GEM
       appsignal (> 0.7)
       mongo
     arel (2.2.3)
+    aws-partitions (1.57.0)
+    aws-sdk-core (3.14.0)
+      aws-partitions (~> 1.0)
+      aws-sigv4 (~> 1.0)
+      jmespath (~> 1.0)
+    aws-sdk-sns (1.1.0)
+      aws-sdk-core (~> 3)
+      aws-sigv4 (~> 1.0)
     aws-ses (0.6.0)
       builder
       mail (> 2.2.5)
       mime-types
       xml-simple
+    aws-sigv4 (1.0.2)
     bcrypt-ruby (3.0.1)
     bson (1.4.0)
     bson_ext (1.4.0)
@@ -167,7 +176,8 @@ GEM
     i18n (0.6.11)
     inflecto (0.0.2)
     ipaddress (0.8.0)
-    json (1.8.3)
+    jmespath (1.3.1)
+    json (1.8.6)
     kaminari (0.13.0)
       actionpack (>= 3.0.0)
       activesupport (>= 3.0.0)
@@ -180,7 +190,7 @@ GEM
       rb-fsevent (>= 0.9.3)
       rb-inotify (>= 0.9)
       rb-kqueue (>= 0.2)
-    logical_model (0.6.4)
+    logical_model (0.6.5)
       activemodel
       activesupport
       ethon (= 0.4.2)
@@ -195,7 +205,8 @@ GEM
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     memcachier (0.0.2)
-    messaging_client (0.0.4)
+    messaging_client (0.1.8)
+      aws-sdk-sns (~> 1)
       logical_model (>= 0.5.0)
       railties (>= 3.1)
     method_source (0.8.2)
@@ -215,7 +226,7 @@ GEM
       bson_ext (>= 1.2)
       fast-stemmer (~> 1.0.0)
       mongoid (>= 2.0.0)
-    multi_json (1.12.1)
+    multi_json (1.13.1)
     multi_xml (0.5.5)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
@@ -267,7 +278,7 @@ GEM
       rdoc (~> 3.4)
       thor (~> 0.14.6)
     raindrops (0.13.0)
-    rake (11.2.2)
+    rake (12.3.0)
     rb-fsevent (0.9.4)
     rb-inotify (0.9.5)
       ffi (>= 0.5.0)
@@ -394,7 +405,7 @@ DEPENDENCIES
   machinist (= 1.0.6)
   machinist_mongo (= 1.2.0)
   memcachier
-  messaging_client (= 0.0.4)
+  messaging_client (~> 0.1)
   minitest
   mongoid (= 2.3.3)
   mongoid-rspec (= 1.4.4)
@@ -418,3 +429,9 @@ DEPENDENCIES
   workless
   yard (~> 0.8.3)
   yard-restful
+
+RUBY VERSION
+   ruby 2.0.0p353
+
+BUNDLED WITH
+   1.16.1
