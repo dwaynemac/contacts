@@ -10,6 +10,46 @@ describe V0::ContactsController do
       Contact.make
     end
   end
+  
+  it "should not stack level too deep" do
+    pms = {
+      "username" => "aline.daher",
+      "account_name" => "vila_mariana",
+      "global" => "true",
+      "except_last_local_status" => "true",
+      "except_linked" => "true",
+      "select" => {
+        "0" => "full_name",
+        "1" => "relevant_status",
+        "2" => "email",
+        "3" => "telephone",
+        "4" => "identification",
+        "5" => "contact_attributes",
+        "6" => "local_status",
+        "7" => "status",
+        "8" => "local_statuses",
+        "9" => "level",
+        "10" => "global_level",
+        "11" => "coefficient",
+        "12" => "owner_name"
+      },
+      "ids" => {
+        "0" => "552751de92a0c4153b005347",
+        "1" => "58deac288cad060ed9000008"
+      },
+      "sort" => {
+        "first_name" => "asc",
+        "last_name" => "asc"
+      },
+      "page" => "1",
+      "per_page" => "100",
+      "app_key" => V0::ApplicationController::APP_KEY,
+      "action" => "index",
+      "controller" => "v0/contacts"
+    }
+    
+    expect{post :index, pms}.not_to raise_exception
+  end
 
   describe "#similar" do
     def do_request(params)
