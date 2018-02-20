@@ -280,14 +280,14 @@ class MailchimpSynchronizer
     merge_var_add('GENDER', I18n.t('mailchimp.gender.gender'), 'text', false) 
     merge_var_add('STATUS', I18n.t('mailchimp.status.status'), 'text', false) 
     merge_var_add('ADDR', I18n.t('mailchimp.address.address'), 'text') 
-    merge_var_add('SYSSTATUS', 'System Status', 'text', false, {show: false}) 
-    merge_var_add('SYSCOEFF', 'System Coefficient', 'text', false, {show: false}) 
+    merge_var_add('SYSSTATUS', 'System Status', 'text', false) 
+    merge_var_add('SYSCOEFF', 'System Coefficient', 'text', false) 
     merge_var_add('FOLLOWEDBY', 'Followed by', 'text', false)
     merge_var_add('TEACHER', I18n.t('mailchimp.teacher'), 'text', false)
     merge_var_add('PADMA_TAGS', I18n.t('mailchimp.padma_tags'), 'text', false)
   end
   
-  def merge_var_add (tag, name, type, public = true , options={})
+  def merge_var_add (tag, name, type, ispublic = true , options={})
     local_fields = decode(merge_fields)
     if !local_fields.keys.include?(name)
       begin
@@ -295,7 +295,7 @@ class MailchimpSynchronizer
           tag: tag,
           name: name,
           type: type,
-          public: public,
+          public: ispublic,
           options: options
         })
         local_fields[name] = resp.body["merge_id"]
@@ -380,7 +380,8 @@ class MailchimpSynchronizer
           email_address: get_primary_attribute_value(c, "Email"),
           status_if_new: "subscribed",
           status: "subscribed",
-          merge_fields: merge_vars_for_contact(c)
+          merge_fields: merge_vars_for_contact(c),
+          interests: { "#{decode(coefficient_group)["interests"][get_coefficient_translation(c)]}" => true}
         }
       )
     rescue Gibbon::MailChimpError => e
@@ -421,7 +422,10 @@ class MailchimpSynchronizer
     merge_vars = merge_vars_for_contact(c)
     merge_vars['EMAIL'] = get_primary_attribute_value(c, 'Email')
     begin
-      @api.lists(list_id).members(subscriber_hash(old_mail)).update(body: {merge_fields: merge_vars})
+      @api.lists(list_id).members(subscriber_hash(old_mail)).update(body: {
+        merge_fields: merge_vars,
+        interests: { "#{decode(coefficient_group)["interests"][get_coefficient_translation(c)]}" => true} #TODO check if this works and put interest in single create and update
+      })
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_update of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
@@ -608,12 +612,16 @@ class MailchimpSynchronizer
       case batch_status(id)
       when "finished"
         current_batches.delete(id)
-      when "failed"
       else
         current_batches[id] = batch_status(id)
       end
     end
     update_attribute(:batch_statuses, encode(current_batches))
+  end
+
+  def is_synchronizing?
+    update_batch_statuses
+    !decode(batch_statuses).blank?
   end
 
   def email_admins_about_failure(account_name, error_message)
