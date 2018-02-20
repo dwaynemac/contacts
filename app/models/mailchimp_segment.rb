@@ -16,7 +16,7 @@ class MailchimpSegment
   before_destroy :sync_before_segment_destruction 
   before_create :create_segment_in_mailchimp
   
-  def to_query (negative = false)
+  def to_query(negative = false)
     query = {}
     
     in_or_not_in = "$in"
@@ -116,7 +116,7 @@ class MailchimpSegment
         api.lists(synchro.list_id).segments(remote_id).delete
       end
     rescue Gibbon::MailChimpError => e
-      raise unless e.message =~ /Invalid MailChimp List ID|This account has been deactivated/
+      raise unless e.message =~ /Invalid MailChimp List ID|This account has been deactivated|Resource Not Found/
     end
 
     if synchro.filter_method == 'segments'
@@ -130,21 +130,23 @@ class MailchimpSegment
   def create_segment_in_mailchimp
     synchro = mailchimp_synchronizer
     synchro.set_i18n
-    api = Gibbon::Request.new(api_key: synchro.api_key)
-    response = api.lists(synchro.list_id).segments.create(
-      body: {
-        name: name,
-        options: {
-          match: 'all',
-          conditions: segment_conditions
+    begin
+      api = Gibbon::Request.new(api_key: synchro.api_key)
+      response = api.lists(synchro.list_id).segments.create(
+        body: {
+          name: name,
+          options: {
+            match: 'all',
+            conditions: segment_conditions
+          }
         }
-      }
-    )
-    update_attribute(:remote_id, response.body['id'])
-  rescue Gibbon::MailChimpError => e
-    synchro.update_attribute(:status, :failed)
-    synchro.email_admins_about_failure(synchro.account.name, e.message)
-    Rails.logger.warn "Couldnt create segment #{self.id} in Mailchimp. Error: #{e.message}"
+      )
+      self.remote_id = response.body['id']
+    rescue Gibbon::MailChimpError => e
+      synchro.update_attribute(:status, :failed)
+      synchro.email_admins_about_failure(synchro.account.name, e.message)
+      Rails.logger.warn "Couldnt create segment #{self.id} in Mailchimp. Error: #{e.message}"
+    end
     return nil
   end
   
