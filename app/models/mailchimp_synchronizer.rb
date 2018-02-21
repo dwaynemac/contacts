@@ -51,6 +51,7 @@ class MailchimpSynchronizer
   end
 
   def complete_sync
+    update_batch_statuses
     if filter_method == 'segments'
       unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})
     end
