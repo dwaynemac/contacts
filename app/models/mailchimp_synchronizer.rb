@@ -231,7 +231,7 @@ class MailchimpSynchronizer
   end
   
   def get_coefficient_translation (contact)
-    set_fp_to_np(contact.coefficients.where(account_id: account.id)).first.try(:value).try(:to_s)
+    set_fp_to_np(contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s))
   end
 
   def set_fp_to_np(coefficient)
