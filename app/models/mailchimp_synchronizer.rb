@@ -119,7 +119,7 @@ class MailchimpSynchronizer
   end
   handle_asynchronously :wait_and_set_ready, run_at: Proc.new { 5.minutes.from_now }
   
-  def unsubscribe_contacts (querys = [])
+  def unsubscribe_contacts(querys = [])
     update_attribute(:status, :working)
     set_api
     
@@ -143,7 +143,7 @@ class MailchimpSynchronizer
   end
   handle_asynchronously :unsubscribe_contacts
  
-  def get_batch (page, unsubscribe = false)
+  def get_batch(page, unsubscribe = false)
     batch = []
     page.each do |c|
       struct = {}
@@ -166,7 +166,7 @@ class MailchimpSynchronizer
     batch
   end
   
-  def merge_vars_for_contact (contact)
+  def merge_vars_for_contact(contact)
     response = 
     {
       FNAME: contact.first_name || "",
@@ -194,7 +194,7 @@ class MailchimpSynchronizer
     response
   end
 
-  def get_system_status (contact)
+  def get_system_status(contact)
     case contact.local_statuses.where(account_id: account.id).first.try(:value).try(:to_sym)
     when :prospect
       '|p||ps||pf|'
@@ -207,7 +207,7 @@ class MailchimpSynchronizer
     end
   end
   
-  def get_system_coefficient (contact)
+  def get_system_coefficient(contact)
     case contact.coefficients.where(account_id: account.id).first.try(:value)
     when 'unknown'
       'unknown'
@@ -222,16 +222,16 @@ class MailchimpSynchronizer
     end
   end    
   
-  def get_status_translation (contact)
+  def get_status_translation(contact)
     ls = contact.local_statuses.where(account_id: account.id).first.try(:value).try(:to_s)
     ls.nil?? '' : I18n.t("mailchimp.status.#{ls}")
   end
   
-  def get_gender_translation (contact)
+  def get_gender_translation(contact)
     (contact.gender)? I18n.t("mailchimp.gender.#{contact.gender}") : ''
   end
   
-  def get_coefficient_translation (contact)
+  def get_coefficient_translation(contact)
     set_fp_to_np(contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s))
   end
 
@@ -288,7 +288,7 @@ class MailchimpSynchronizer
     merge_var_add('PADMA_TAGS', I18n.t('mailchimp.padma_tags'), 'text', false)
   end
   
-  def merge_var_add (tag, name, type, ispublic = true , options={})
+  def merge_var_add(tag, name, type, ispublic = true , options={})
     local_fields = decode(merge_fields)
     if !local_fields.keys.include?(name)
       begin
@@ -340,7 +340,7 @@ class MailchimpSynchronizer
     Digest::SHA1.hexdigest(contact_attribute)[0..9].upcase
   end
   
-  def update_sync_options (params)
+  def update_sync_options(params)
     if !params[:list_id].nil? && params[:list_id] != list_id
       update_attribute(:list_id, params[:list_id])
       update_fields_in_mailchimp
@@ -513,7 +513,7 @@ class MailchimpSynchronizer
   def calculate_scope_count(filter_method, segments)
     return account.contacts.count if filter_method == 'all'
     if segments.blank?
-      Contact.any_in( account_ids: [self.account.id] ).reject{|c| c.primary_attribute(account, "Email").nil?}count
+      Contact.any_in( account_ids: [self.account.id] ).reject{|c| c.primary_attribute(account, "Email").nil?}.count
     else
       account.contacts.where( 
         "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
@@ -532,7 +532,7 @@ class MailchimpSynchronizer
     return Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query}).and(_id: contact_id).count > 0 ? true : false
   end
   
-  def get_primary_attribute_value (contact, type)
+  def get_primary_attribute_value(contact, type)
     attr = contact.primary_attribute(account, type)
     attr.try :value
   end
