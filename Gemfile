@@ -106,5 +106,4 @@ group :test do
   gem 'mongoid-rspec', '1.4.4'
   gem 'faker', '0.9.4'
   gem "database_cleaner", ">= 0.6.7"
-  gem 'coveralls', require: false
 end
