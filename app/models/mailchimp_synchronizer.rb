@@ -523,7 +523,7 @@ class MailchimpSynchronizer
           account.id
           )
         }
-      ).count
+                            ).reject{|c| c.primary_attribute(account, "Email").nil?}.count
     end
   end
 
