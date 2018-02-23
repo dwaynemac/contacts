@@ -91,9 +91,16 @@ class V0::ContactsController < V0::ApplicationController
         if params[:global] = "true"
           as_json_params[:include_masked] = true
         end
-        @collection_hash = @contacts
-        @collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true" # TODO compatible with respect_ids_order ?
-        @collection_hash = @collection_hash.as_json(as_json_params)
+        
+        measure('initialize_collection_hash.build_hash.render_json.index.contacts_controller') do
+          @collection_hash = @contacts
+        end
+        measure('select_columns_collection_hash.build_hash.render_json.index.contacts_controller') do
+          @collection_hash = @collection_hash.only(select_columns(params[:select])) unless params[:global] == "true" # TODO compatible with respect_ids_order ?
+        end
+        measure('as_json_colletion_hash.build_hash.render_json.index.contacts_controller') do
+          @collection_hash = @collection_hash.as_json(as_json_params)
+        end
       end
       measure('serializing.render_json.index.contacts_controller') do
         @json = Oj.dump({ 'collection' => @collection_hash, 'total' => total})
@@ -241,6 +248,36 @@ class V0::ContactsController < V0::ApplicationController
       end
     end
   end
+  
+  ##
+  # Returns JSON for a contact finding by slug
+  # @see show
+  #
+  # @url /v0/contacts/by_slug
+  # @action GET
+  #
+  # @required [String] slug
+  def show_by_slug
+    if params[:slug].blank?
+      render json: 'slug missing', status: 400
+    else
+      @contact = @scope.where(slug: params[:slug]).first
+      if @contact
+        render json: @contact.as_json(select: [:id,
+                                               :full_name,
+                                               :level,
+                                               :identification,
+                                               :owner_name,
+                                               :avatar,
+                                               :status
+                                               ],
+                                      account: @contact.owner)
+      else
+        render json: 'Not Found', status: 404
+      end
+    end
+  end
+
 
 
   ##
