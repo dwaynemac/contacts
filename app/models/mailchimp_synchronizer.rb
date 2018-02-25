@@ -491,15 +491,21 @@ class MailchimpSynchronizer
   def get_scope(from_last_synchronization)
     if self.filter_method == "all"
       if from_last_synchronization
-        account.contacts.where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
-      else
         account.contacts
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
+          .where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
+      else
+        account.contacts.
+          where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
       end
     elsif mailchimp_segments.empty?
       if from_last_synchronization
-        Contact.any_in( account_ids: [self.account.id] ).where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
+        Contact.any_in( account_ids: [account.id] )
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
+          .where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
       else
-        Contact.any_in( account_ids: [self.account.id] )
+        Contact.any_in( account_ids: [account.id] )
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
       end
     else
       if from_last_synchronization
@@ -512,7 +518,8 @@ class MailchimpSynchronizer
 
   def calculate_scope_count(filter_method, segments)
     if filter_method == "all" || segments.blank?
-      Contact.where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id).count
+      Contact.any_in(account_ids: [account.id])
+        .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id).count
     else
       account.contacts.where( 
         "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
