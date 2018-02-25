@@ -511,9 +511,8 @@ class MailchimpSynchronizer
   end
 
   def calculate_scope_count(filter_method, segments)
-    return account.contacts.count if filter_method == 'all'
-    if segments.blank?
-      Contact.any_in( account_ids: [self.account.id] ).reject{|c| c.primary_attribute(account, "Email").nil?}.count
+    if filter_method == "all" || segments.blank?
+      Contact.where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id).count
     else
       account.contacts.where( 
         "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
@@ -522,8 +521,7 @@ class MailchimpSynchronizer
           (seg.key?("gender") ? seg["gender"] : ""), 
           account.id
           )
-        }
-                            ).reject{|c| c.primary_attribute(account, "Email").nil?}.count
+        }).where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id).count
     end
   end
 
