@@ -6,7 +6,7 @@ set :rails_env, 'production'
 
 set :bundle_without, 'development:test:heroku:deploying'
 
-set :web_host, '34.203.190.175'
+set :web_host, '54.167.128.20'
 # set :worker_host, '54.211.11.34'
 
 set :user, 'ec2-user'
