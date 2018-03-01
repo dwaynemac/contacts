@@ -105,7 +105,11 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
     ms = MailchimpSynchronizer.where(api_key: params[:api_key]).first
     segments = params[:mailchimp_segments] if params[:filter_method] == "segments"
     
-    render json: ms.calculate_scope_count(params[:filter_method], segments)
+    if params["preview"] == "true"
+      render json: ms.calculate_scope_count(params[:filter_method], segments)
+    else
+      render json: ms.get_scope(false).count
+    end
   end
 
 
