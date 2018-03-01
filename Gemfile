@@ -40,7 +40,7 @@ gem 'daemons'
 
 gem 'figaro' # for environment variables managment
 
-gem 'rake', '12.3.0'
+gem 'rake', '< 11'
 
 gem 'i18n', '~> 0.6.6'
 
