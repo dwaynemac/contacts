@@ -1,5 +1,5 @@
 source 'http://rubygems.org'
-ruby '1.9.3'
+ruby '2.0.0'
 
 gem 'rails', '~> 3.1.0'
 
@@ -16,7 +16,7 @@ gem "logical_model", '~> 0.6.4'
 gem 'activity_stream_client', '~> 0.0.14'
 gem 'overmind_client', '~> 0.0.6'
 gem 'accounts_client', '>= 0.2.28'
-gem 'messaging_client', '0.0.4'
+gem 'messaging_client', '~> 0.1'
 
 gem 'gibbon'
 
@@ -104,6 +104,6 @@ group :test do
   gem "machinist", '1.0.6'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
   gem 'mongoid-rspec', '1.4.4'
-  gem 'faker', '0.9.4'
+  gem 'faker', '1.6.3'
   gem "database_cleaner", ">= 0.6.7"
 end

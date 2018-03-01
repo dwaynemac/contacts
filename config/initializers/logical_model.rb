@@ -84,7 +84,9 @@ end
 
 module Messaging
   HYDRA = ::HYDRA
-  API_KEY = ENV['messaging_key']
+  KEY = ENV['messaging_key']
+  SNS_KEY_ID = ENV['office_aws_access_key_id']
+  SNS_SECRET_ACCESS_KEY = ENV['office_aws_secret_access_key']
 end
 
 class LogicalModel
