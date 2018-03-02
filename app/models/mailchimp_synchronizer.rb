@@ -10,6 +10,7 @@ class MailchimpSynchronizer
   field :coefficient_group
   field :contact_attributes
   field :last_synchronization
+  field :merge_fields
 
   attr_accessor :has_coefficient_group
 
@@ -70,11 +71,8 @@ class MailchimpSynchronizer
       Rails.logger.info "[mailchimp_synchronizer #{self.id}] batch #{i}"
       page = get_scope(from_last_synchronization).page(i + 1).per(batch_size)
       begin
-        @api.lists.batch_subscribe({
-          id: list_id,
-          batch: get_batch(page),
-          double_optin: false,
-          update_existing: true
+        @api.batches.create(body: {
+          operations: get_batch(page)
         })
       rescue Gibbon::MailChimpError => e
         Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
@@ -128,13 +126,10 @@ class MailchimpSynchronizer
 
     contacts_scope.page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
       page = contacts_scope.page(i + 1).per(CONTACTS_BATCH_SIZE)
-      response = @api.lists.batch_unsubscribe({
-        id: list_id,
-        batch: get_batch(page, true), 
-        delete_member: true,
-        send_goodbye: false 
-      })
-    end   
+      @api.batches.create(body: {
+          operations: get_batch(page, true)
+        })
+    end
     update_attribute(:status, :ready)
   end
   handle_asynchronously :unsubscribe_contacts
@@ -144,11 +139,17 @@ class MailchimpSynchronizer
     page.each do |c|
       struct = {}
       if !unsubscribe
-        struct['email'] = {email: get_primary_attribute_value(c, 'Email')}
-        struct['email_type'] = 'text'
-        struct['merge_vars'] =  merge_vars_for_contact(c)
+        struct['method'] = "PUT"
+        struct['path'] = "lists/#{list_id}/members/#{subscriber_hash(get_primary_attribute_value(c, "Email"))}"
+        struct['body'] = {
+          status_if_new: "subscribed",
+          status: "subscribed",
+          email_address: get_primary_attribute_value(c, "Email"),
+          merge_fields: merge_vars_for_contact(c)
+        }
       else
-        struct['email'] = get_primary_attribute_value(c, 'Email')
+        struct['method'] = "DELETE",
+        struct['path'] = "lists/#{list_id}/members/#{subscriber_hash(get_primary_attribute_value(c, 'Email'))}"
       end
       batch << struct
     end
@@ -223,7 +224,7 @@ class MailchimpSynchronizer
   
   def get_coefficient_translation (contact)
     [
-      {id: coefficient_group, groups: [set_fp_to_np(contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || '')]}
+      {id: ActveSupport::JSON.decode(coefficient_group)["id"], groups: [set_fp_to_np(contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || '')]}
     ]
   end
 
@@ -270,38 +271,43 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     merge_var_add('PHONE', I18n.t('mailchimp.phone.phone'), 'text') 
-    merge_var_add('GENDER', I18n.t('mailchimp.gender.gender'), 'text', {public: false}) 
-    merge_var_add('STATUS', I18n.t('mailchimp.status.status'), 'text', {public: false}) 
+    merge_var_add('GENDER', I18n.t('mailchimp.gender.gender'), 'text', false) 
+    merge_var_add('STATUS', I18n.t('mailchimp.status.status'), 'text', false) 
     merge_var_add('ADDR', I18n.t('mailchimp.address.address'), 'text') 
-    merge_var_add('SYSSTATUS', 'System Status', 'text', {public: false, show: false}) 
-    merge_var_add('SYSCOEFF', 'System Coefficient', 'text', {public: false, show: false}) 
-    merge_var_add('FOLLOWEDBY', 'Followed by', 'text', {public: false})
-    merge_var_add('TEACHER', I18n.t('mailchimp.teacher'), 'text', {public: false})
-    merge_var_add('PADMA_TAGS', I18n.t('mailchimp.padma_tags'), 'text', {public: false})
+    merge_var_add('SYSSTATUS', 'System Status', 'text', false, {show: false}) 
+    merge_var_add('SYSCOEFF', 'System Coefficient', 'text', false, {show: false}) 
+    merge_var_add('FOLLOWEDBY', 'Followed by', 'text', false)
+    merge_var_add('TEACHER', I18n.t('mailchimp.teacher'), 'text', false)
+    merge_var_add('PADMA_TAGS', I18n.t('mailchimp.padma_tags'), 'text', false)
   end
   
-  def merge_var_add (tag, name, type, options={})
-    options = options.merge!({field_type: type})
-    begin
-      @api.lists.merge_var_add({
-        id: list_id,
-        tag: tag,
-        name: name,
-        options: options
-      }) 
-    rescue Gibbon::MailChimpError => e
-      raise unless e.message =~ /already exists/
+  def merge_var_add (tag, name, type, public = true , options={})
+    local_fields = ActiveSupport::JSON.decode(merge_fields)
+    if !local_fields.keys.include?(name)
+      begin
+        resp = @api.lists(list_id).merge_fields( body: {
+          tag: tag,
+          name: name,
+          type: type,
+          public: public,
+          options: options
+        })
+        local_fields[name] = resp.body["merge_id"]
+        update_attribute(:merge_fields, ActiveSupport::JSON.encode(local_fields))
+      rescue Gibbon::MailChimpError => e
+        raise unless e.message =~ /already exists/
+      end
     end
   end
 
   def merge_var_del(tag_name)
-    begin
-      @api.lists.merge_var_del({
-        id: list_id,
-        tag: tag_name
-      }) 
-    rescue Gibbon::MailChimpError => e
-      raise
+    local_fields = ActiveSupport::JSON.decode(merge_fields)
+    if local_fields.keys.include?(tag_name)
+      begin
+        @api.lists(list_id).merge_fields(local_fields[tag_name]).delete
+      rescue Gibbon::MailChimpError
+        raise
+      end
     end
   end
 
@@ -309,7 +315,7 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     contact_attributes.split(",").each do |contact_attribute|
-      merge_var_add(get_tag_for(contact_attribute), contact_attribute.capitalize, 'text', {public: false})
+      merge_var_add(get_tag_for(contact_attribute), contact_attribute.capitalize, 'text', false)
     end
   end
 
@@ -363,13 +369,14 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     begin
-      @api.lists.subscribe({
-        id: list_id,
-        email: {email: get_primary_attribute_value(c, 'Email')},
-        merge_vars: merge_vars_for_contact(c),
-        double_optin: false,
-        update_existing: true
-      })
+      @api.lists(list_id).members(subscriber_hash(get_primary_attribute_value(c, "Email"))).upsert(
+        body: {
+          email_address: get_primary_attribute_value(c, "Email"),
+          status_if_new: "subscribed",
+          status: "subscribed",
+          merge_fields: merge_vars_for_contact(c)
+        }
+      )
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_subscribe of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
@@ -408,11 +415,7 @@ class MailchimpSynchronizer
     merge_vars = merge_vars_for_contact(c)
     merge_vars['EMAIL'] = get_primary_attribute_value(c, 'Email')
     begin
-      resp = @api.lists.update_member({
-        id: list_id,
-        email: {email: old_mail},
-        merge_vars: merge_vars
-      })
+      @api.lists(list_id).members(subscriber_hash(old_mail)).update(body: {merge_fields: merge_vars})
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_update of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
@@ -441,11 +444,7 @@ class MailchimpSynchronizer
     set_api
     set_i18n
     begin
-      @api.lists.unsubscribe({
-        id: list_id,
-        email: {email: email},
-        delete_member: delete_member
-      })
+      @api.lists(list_id).members(subscriber_hash(email)).delete
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_unsubscribe of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
@@ -470,11 +469,12 @@ class MailchimpSynchronizer
   # Check if a single email is currently subscribed to a list
   def is_in_list?(email)
     set_api
-    resp = @api.lists.member_info({
-        id: list_id,
-        emails: [{email: email}]
-      })
-    return !resp.blank? && resp["success_count"] > 0 && resp["data"][0]["status"] == "subscribed"
+    begin
+      resp = @api.lists(list_id).members(subscriber_hash(email)).retrieve
+      return resp.body["status"] == "subscribed"
+    rescue Gibbon::MailChimpError
+      return false
+    end
   end
 
   def get_scope(from_last_synchronization)
@@ -527,7 +527,7 @@ class MailchimpSynchronizer
   end
   
   def set_api
-    @api = Gibbon::API.new(api_key)
+    @api = Gibbon::Request.new(api_key: api_key)
   end
   
   def set_i18n
@@ -547,18 +547,17 @@ class MailchimpSynchronizer
   end
 
   def coefficient_group_valid?
-    return false if coefficient_group.nil?
+    group_id = ActiveSupport::JSON.decode(coefficient_group)["id"]
+    return false if group_id.blank?
     response = false
 
     set_i18n
     set_api
     begin
-      groupings = @api.lists.interest_groupings({
-        id: list_id
-        })
-      groupings.each do |group|
-        if group["id"] == coefficient_group && 
-            group["name"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
+      groupings = @api.lists(list_id).interest_categories.retrieve.body
+      groupings["categories"].each do |group|
+        if group["id"] == group_id && 
+            group["title"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
             response = true
         end
       end
@@ -573,29 +572,36 @@ class MailchimpSynchronizer
   def find_or_create_coefficients_group
     set_i18n
     set_api
+    interests = {}
     begin
       mailchimp_coefficient_group = nil
       if @has_coefficient_group
-        groupings = @api.lists.interest_groupings({
-          id: list_id
-          })
-        groupings.each do |group|
-          if group["name"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
+        groupings = @api.lists(list_id).interest_categories.retrieve.body
+        groupings["categories"].each do |group|
+          if group["title"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
             mailchimp_coefficient_group = group
           end
         end
       else
-        mailchimp_coefficient_group = @api.lists.interest_grouping_add({
-          id: list_id,
-          name: I18n.t('mailchimp.coefficient.coefficient'),
-          type: 'hidden',
-          groups: ["unknown", "perfil", "pmas", "pmenos", "np"]
-          })
+        mailchimp_coefficient_group = @api.lists(list_id).interest_categories.create(
+          body:
+            {
+            title: I18n.t('mailchimp.coefficient.coefficient'),
+            type: 'hidden',
+            }
+        )
+        ["unkonwn", "perfil", "pmas", "pmenos", "np"].each do |interest|
+          resp = @api.lists(list_id).interest_categories(mailchimp_coefficient_group.body["id"]).interests.create(
+            body: { name: interest }
+          )
+          interests[interest] = resp.body["category_id"]
+        end
+        mailchimp_coefficient_group["interests"] = interests
       end
       # avoid callbacks
       # If changed to AR it should be set to "update_all" or "update_column"
       MailchimpSynchronizer.skip_callback(:update, :after, :find_or_create_coefficients_group)
-      update_attribute(:coefficient_group, mailchimp_coefficient_group['id'])
+      update_attribute(:coefficient_group, ActiveSupport::JSON.encode(mailchimp_coefficient_group))
       MailchimpSynchronizer.set_callback(:update, :after, :find_or_create_coefficients_group)
     rescue Gibbon::MailChimpError => e
       if e.message =~ /already exists/ && !@has_coefficient_group
@@ -620,6 +626,8 @@ class MailchimpSynchronizer
   def set_default_attributes
     self.status = :setting_up
     self.filter_method = nil
+    self.coefficient_group = "{\"id\":\"\",\"interests\":{}}"
+    self.merge_fields = "{}"
     self.contact_attributes = ""
   end
   
@@ -644,5 +652,15 @@ class MailchimpSynchronizer
     list_id.present? && (
       !mailchimp_segments.empty? || filter_method == 'all'
     )
+  end
+
+  # md5 hex digested email
+  def subscriber_hash(email)
+    Digest::MD5.hexdigest(email.downcase)
+  end
+
+  def get_interests_ids(interest_names)
+    interests = ActiveSupport::JSON.decode(coefficient_group)["interests"]
+    interest_names.map{|i| interests[i]}
   end
 end
