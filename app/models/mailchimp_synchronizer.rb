@@ -152,7 +152,7 @@ class MailchimpSynchronizer
         struct['path'] = "lists/#{list_id}/members/#{subscriber_hash(get_primary_attribute_value(c, "Email"))}"
         struct['body'] = encode({
           status_if_new: "subscribed",
-          status: "subscribed",
+          #status: "subscribed",
           email_address: get_primary_attribute_value(c, "Email"),
           merge_fields: merge_vars_for_contact(c),
           interests: { "#{decode(coefficient_group)["interests"][get_coefficient_translation(c)]}" => true} #TODO check if this works and put interest in single create and update
@@ -189,6 +189,7 @@ class MailchimpSynchronizer
         else
           response[get_tag_for(contact_attribute)] = contact.contact_attributes.where(name: contact_attribute).first.try :value
         end
+        response[get_tag_for(contact_attribute)] = "" if response[get_tag_for(contact_attribute)].nil?
       end
     end
     response
@@ -495,8 +496,8 @@ class MailchimpSynchronizer
           .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
           .where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
       else
-        account.contacts.
-          where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
+        account.contacts
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
       end
     elsif mailchimp_segments.empty?
       if from_last_synchronization
@@ -509,9 +510,13 @@ class MailchimpSynchronizer
       end
     else
       if from_last_synchronization
-        account.contacts.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
+        account.contacts
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
+          .where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
       else
-        account.contacts.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
+        account.contacts
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
+          .where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
       end
     end
   end
