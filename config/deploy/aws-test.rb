@@ -2,6 +2,10 @@ set :stage, :production
 
 set :branch, 'aws-test'
 
+set :ruby_version, '/usr/bin/ruby2.0'
+
+set :default_env, -> {{ path: [fetch(:ruby_version), "#{release_path}/bin", "$PATH"].join(":") }}
+
 set :rails_env, 'production'
 
 set :bundle_without, 'development:test:heroku:deploying'
