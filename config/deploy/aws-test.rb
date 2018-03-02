@@ -2,11 +2,13 @@ set :stage, :production
 
 set :branch, 'aws-test'
 
-set :ruby_version, '/usr/bin/ruby2.0'
-
-set :default_env, -> {{ path: [fetch(:ruby_version), "#{release_path}/bin", "$PATH"].join(":") }}
-
 set :rails_env, 'production'
+
+set :rbenv_type, :user 
+set :rbenv_ruby, File.read('.ruby-version').strip
+set :rbenv_prefix, "RBENV_ROOT=#{fetch(:rbenv_path)} RBENV_VERSION=#{fetch(:rbenv_ruby)} #{fetch(:rbenv_path)}/bin/rbenv exec"
+set :rbenv_map_bins, %w{rake gem bundle ruby rails}
+set :rbenv_roles, :all # default value
 
 set :bundle_without, 'development:test:heroku:deploying'
 

@@ -69,7 +69,7 @@ gem 'appsignal-mongo', group: [:production, :development]
 group :development do
   gem 'git-pivotal-tracker-integration'
 
-  gem 'debugger'
+  gem 'debugger2'
   gem 'ruby-mass'
 end
 
@@ -79,6 +79,7 @@ group :deployment do
   gem 'capistrano-rails', '~> 1.1'
   gem 'capistrano-bundler'
   gem 'capistrano3-unicorn'
+  gem 'capistrano-rbenv', '~> 2.1'
 end
 
 group :development, :test do

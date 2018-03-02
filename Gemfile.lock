@@ -75,6 +75,9 @@ GEM
     capistrano-rails (1.1.2)
       capistrano (~> 3.1)
       capistrano-bundler (~> 1.1)
+    capistrano-rbenv (2.1.3)
+      capistrano (~> 3.1)
+      sshkit (~> 1.3)
     capistrano3-unicorn (0.2.1)
       capistrano (~> 3.1, >= 3.1.0)
     carrierwave (0.5.8)
@@ -83,18 +86,16 @@ GEM
       carrierwave (~> 0.5.6)
       mongoid (~> 2.1)
     coderay (1.1.0)
-    columnize (0.8.9)
+    columnize (0.9.0)
     crack (0.4.2)
       safe_yaml (~> 1.0.0)
     daemons (1.1.9)
     dalli (2.7.2)
     database_cleaner (1.3.0)
-    debugger (1.6.8)
+    debugger-linecache (1.2.0)
+    debugger2 (1.0.0.beta2)
       columnize (>= 0.3.1)
       debugger-linecache (~> 1.2.0)
-      debugger-ruby_core_source (~> 1.3.5)
-    debugger-linecache (1.2.0)
-    debugger-ruby_core_source (1.3.5)
     delayed_job (3.0.5)
       activesupport (~> 3.0)
     delayed_job_mongoid (1.0.8)
@@ -369,13 +370,14 @@ DEPENDENCIES
   capistrano-bundler
   capistrano-ext
   capistrano-rails (~> 1.1)
+  capistrano-rbenv (~> 2.1)
   capistrano3-unicorn
   carrierwave
   carrierwave-mongoid
   daemons
   dalli
   database_cleaner (>= 0.6.7)
-  debugger
+  debugger2
   delayed_job_mongoid
   ethon (= 0.4.2)
   faker (= 1.6.3)
