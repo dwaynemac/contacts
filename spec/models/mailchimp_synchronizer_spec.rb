@@ -234,27 +234,35 @@ describe MailchimpSynchronizer do
       before do
         c = Contact.make(first_name: "Hy Thuong", last_name: "Nguyen", owner_id: account.id)
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c.contact_attributes << Email.make(account: account, value: "mail3@mail.com")
         c = Contact.make(first_name: "Samsung", last_name: "Galaxy", owner_id: account.id)
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c.contact_attributes << Email.make(account: account, value: "mail4@mail.com")
         c = Contact.make(first_name: "Homer", last_name: "Simpson", owner_id: account.id)
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+        c.contact_attributes << Email.make(account: account, value: "mail5@mail.com")
         c = Contact.make(first_name: "Lisa", last_name: "Simpson", owner_id: account.id)
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :former_student)
+        c.contact_attributes << Email.make(account: account, value: "mail36@mail.com")
         c.coefficient_for_myaccname = "perfil"
         c.save
         c = Contact.make(first_name: "Bart", last_name: "Simpson", owner_id: account.id)
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.contact_attributes << Email.make(account: account, value: "mail323@mail.com")
         c.coefficient_for_myaccname = "perfil"
         c.save
         c = Contact.make(first_name: "Maggie", last_name: "Simpson", owner_id: account.id)
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.contact_attributes << Email.make(account: account, value: "mail3323@mail.com")
         c.coefficient_for_myaccname = "perfil"
         c.save
         c = Contact.make(first_name: "Marge", last_name: "Simpson", owner_id: account.id)
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.contact_attributes << Email.make(account: account, value: "mail33123@mail.com")
         c.coefficient_for_myaccname = "pmenos"
         c.save
         c = Contact.make(first_name: "Julieta", last_name: "Wertheimer", owner_id: account.id)
+        c.contact_attributes << Email.make(account: account, value: "mail3311@mail.com")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
         sync.mailchimp_segments << MailchimpSegment.new(statuses: ["prospect"], followed_by: [], coefficients: ["perfil", "pmas"])
         sync.mailchimp_segments << MailchimpSegment.new(statuses: ["student"], followed_by: [], coefficients: [])
