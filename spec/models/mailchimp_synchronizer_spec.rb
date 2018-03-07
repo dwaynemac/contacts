@@ -185,12 +185,14 @@ describe MailchimpSynchronizer do
           end
           context "with filter_method: :segments" do
             before do
-              MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
-              Gibbon::Request.any_instance.stub_chain(:lists, :batch_subscribe)
-              Gibbon::Request.any_instance.stub_chain(:lists, :segment_add).and_return({"id" => "1234"})
+              #MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
+              Gibbon::Request.any_instance.stub(:body).and_return({id: "1234"})
+              Gibbon::Request.any_instance.stub_chain(:batches, :create).and_return(Gibbon::Request.new(api_key: "1234"))
+              Gibbon::Request.any_instance.stub_chain(:lists, :segments, :create).and_return(Gibbon::Request.new(api_key: "1234"))
               @c = Contact.make(first_name: "Alex", last_name: "Halcon")
               @c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
               @c.accounts << account
+              @c.contact_attributes << Email.make(account: account, value: "mail2@mail.com")
               @c.save
               sync.mailchimp_segments << MailchimpSegment.new(status: ["student"], followed_by: [])
               sync.api_key = "123123"
@@ -208,6 +210,7 @@ describe MailchimpSynchronizer do
                 cs = Contact.make(first_name: "Beto", last_name: "Alonso")
                 cs.accounts << account
                 cs.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
+                cs.contact_attributes << Email.make(account: account, value: "mail3@mail.com")
                 @c.last_name = "Falke"
                 sleep(2)
                 cs.save
