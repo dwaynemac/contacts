@@ -464,22 +464,37 @@ describe MailchimpSynchronizer do
       @ms.list_id = "5555"
       @ms.api_key = "123123"
       @ms.save
-      Gibbon::Request.any_instance.stub_chain(:lists, :interest_categories, :retrieve, :body).and_return([{"title" => "Coefficient"}])
+      Gibbon::Request.any_instance.stub_chain(:lists, :interest_categories, :retrieve, :body).and_return({"title" => "Coefficient"})
       Gibbon::Request.any_instance.stub_chain(:lists, 
                                               :interest_categories, 
                                               :interests, 
                                               :retrieve, 
                                               :body).and_return(
                                                 {
-                                                  "total_items" => 4,
+                                                  "total_items" => 5,
                                                   "interests" => 
-                                                  {
-                                                    "perfil" => 1,
-                                                    "np" => 2,
-                                                    "pmas" => 3,
-                                                    "pmenos" => 4,
-                                                    "unknown" => 5
-                                                  }
+                                                  [
+                                                    {
+                                                      "name" => "perfil",
+                                                      "id" => 1
+                                                    },
+                                                    {
+                                                      "name" => "np",
+                                                      "id" => 2
+                                                    },
+                                                    {
+                                                      "name" => "pmas",
+                                                      "id" => 3
+                                                    },
+                                                    {
+                                                      "name" => "pmenos",
+                                                      "id" => 4
+                                                    },
+                                                    {
+                                                      "name" => "unknown",
+                                                      "id" => 5
+                                                    }
+                                                  ]
                                                 }
                                               )
       @ms.stub(:email_admins_about_failure)
@@ -488,14 +503,14 @@ describe MailchimpSynchronizer do
       before do
         @ms.coefficient_group = @ms.encode(
           {
-            id: "1234",
-            interests: 
+            "id" => "1234",
+            "interests" => 
             {
-              perfil: 1,
-              np: 2,
-              pmas: 3,
-              pmenos: 4,
-              unknown: 5
+              "perfil" => 1,
+              "np" => 2,
+              "pmas" => 3,
+              "pmenos" => 4,
+              "unknown" => 5
             }
           }
         )
@@ -511,9 +526,20 @@ describe MailchimpSynchronizer do
     end
     context "when coefficient group does not match" do
       before do
-        @ms.coefficient_group = "123234"
+        @ms.coefficient_group = @ms.encode(
+          {
+            "id" => "1234",
+            "interests" => 
+            {
+              "perfil" => 1,
+              "pmas" => 3,
+              "pmenos" => 4,
+              "unknown" => 5
+            }
+          }
+        )
       end
-      it "should be valid" do
+      it "should not be valid" do
         @ms.coefficient_group_valid?.should be_falsey
       end
       it "should not call method again on update" do
@@ -530,8 +556,40 @@ describe MailchimpSynchronizer do
       @ms.list_id = "5555"
       @ms.api_key = "123123"
       @ms.save
-      Gibbon::Request.any_instance.stub_chain(:lists, :interest_groupings).and_return([{"id" => "1234", "name" => "Coefficient"}])
-      Gibbon::Request.any_instance.stub_chain(:lists, :interest_grouping_add).and_return({"id" => "4444"})
+      Gibbon::Request.any_instance.stub_chain(:lists, :interest_categories, :retrieve, :body).and_return({"title" => "Coefficient"})
+      Gibbon::Request.any_instance.stub_chain(:lists, 
+                                              :interest_categories, 
+                                              :interests, 
+                                              :retrieve, 
+                                              :body).and_return(
+                                                {
+                                                  "total_items" => 5,
+                                                  "interests" => 
+                                                  [
+                                                    {
+                                                      "name" => "perfil",
+                                                      "id" => 1
+                                                    },
+                                                    {
+                                                      "name" => "np",
+                                                      "id" => 2
+                                                    },
+                                                    {
+                                                      "name" => "pmas",
+                                                      "id" => 3
+                                                    },
+                                                    {
+                                                      "name" => "pmenos",
+                                                      "id" => 4
+                                                    },
+                                                    {
+                                                      "name" => "unknown",
+                                                      "id" => 5
+                                                    }
+                                                  ]
+                                                }
+                                              )
+      @ms.stub(:email_admins_about_failure)
       @ms.stub(:email_admins_about_failure)
     end
     it "should not call callbacks" do
