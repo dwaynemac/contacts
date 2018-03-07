@@ -278,24 +278,31 @@ describe MailchimpSynchronizer do
     context "when account has unlinked contacts" do
       before do
         c = Contact.make(first_name: "Hy Thuong", last_name: "Nguyen", owner_id: account.id)
+        c.contact_attributes << Email.make(account: account, value: "mail3@mail.com")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
         c = Contact.make(first_name: "Samsung", last_name: "Galaxy")
+        c.contact_attributes << Email.make(account: account, value: "mail3123@mail.com")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
         c = Contact.make(first_name: "Homer", last_name: "Simpson")
+        c.contact_attributes << Email.make(account: account, value: "mail1@mail.com")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
         c = Contact.make(first_name: "Bart", last_name: "Simpson")
+        c.contact_attributes << Email.make(account: account, value: "mail323@mail.com")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
         c.coefficient_for_myaccname = "perfil"
         c.save
         c = Contact.make(first_name: "Lisa", last_name: "Simpson")
+        c.contact_attributes << Email.make(account: account, value: "mailas3@mail.com")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :former_student)
         c.coefficient_for_myaccname = "perfil"
         c.save
         c = Contact.make(first_name: "Marge", last_name: "Simpson")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
+        c.contact_attributes << Email.make(account: account, value: "mail323@mail.com")
         c.coefficient_for_myaccname = "pmenos"
         c.save
         c = Contact.make(first_name: "Julieta", last_name: "Wertheimer")
+        c.contact_attributes << Email.make(account: account, value: "mail3213@mail.com")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :student)
         c.coefficient_for_myaccname = "perfil"
         c.save
@@ -304,6 +311,7 @@ describe MailchimpSynchronizer do
         c.unlink(account)
         c.unlink(account)
         c = Contact.make(first_name: "Maggie", last_name: "Simpson")
+        c.contact_attributes << Email.make(account: account, value: "mail3123@mail.com")
         c.local_unique_attributes << LocalStatus.new(account_id: account.id, value: :prospect)
         c.coefficient_for_myaccname = "perfil"
         c.save
@@ -317,7 +325,8 @@ describe MailchimpSynchronizer do
       end
       it "should not count them" do
         Contact.where(first_name: "Julieta").first.owner.should be_nil
-        account.contacts.count.should == 6
+        Contact.where(first_name: "Maggie").first.owner.should be_nil
+        account.contacts.count.should == 7
         sync.get_scope(true).count.should == 4
       end
     end
@@ -327,7 +336,7 @@ describe MailchimpSynchronizer do
     subject { sync.get_local_teacher_for(contact) }
     
     describe "if contact has local teacher" do
-      let(:contact){ Contact.make(local_teacher_for_myaccname: "dwayne.macgowan") }
+      let(:contact){ Contact.make(local_teacher_for_myaccname: "dwayne.macgowan", owner_id: account.id) }
       it { should eq "dwayne.macgowan" }
     end
     
