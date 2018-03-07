@@ -137,9 +137,11 @@ describe MailchimpSynchronizer do
         context "on the first subscription" do
           context "all contacts should be send to mailchimp" do
             it "scopes all contacts" do
-              Gibbon::Request.any_instance.stub_chain(:lists, :batch_subscribe)
-              MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
+              Gibbon::Request.any_instance.stub(:body).and_return("1234")
+              Gibbon::Request.any_instance.stub(:batches).and_return(Gibbon::Request.new(api_key: "1234"))
+              #MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
               @c = Contact.make
+              @c.contact_attributes << Email.make(account: account, value: "mail2@mail.com")
               @c.accounts << account
               @c.save
               sync.api_key = "123123"
