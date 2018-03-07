@@ -3,10 +3,11 @@ require 'spec_helper'
 describe MailchimpSynchronizer do
   let(:account){Account.make(name: 'myaccname')}
   let(:sync){MailchimpSynchronizer.new(account: account)}
-  let(:contact){Contact.make}
+  let(:contact){Contact.make(owner_id: account.id)}
 
   before do
     PadmaAccount.any_instance.stub(:locale).and_return("en")
+    contact.contact_attributes << Email.make(account: account, value: "mail@mail.com")
   end
 
   describe "unsubscribe_contacts" do
@@ -89,7 +90,7 @@ describe MailchimpSynchronizer do
           PadmaAccount.stub(:find_with_rails_cache).and_return(PadmaAccount.new(enabled: false))
         end
         it "should do nothing" do
-          Gibbon::Request.any_instance.should_not_receive(:lists)
+          Gibbon::Request.any_instance.should_not_receive(:batches)
           expect{sync.subscribe_contacts}.not_to raise_exception
           expect(sync.subscribe_contacts).to be_nil
         end
@@ -100,10 +101,10 @@ describe MailchimpSynchronizer do
         end
         context "if mailchimp fails consistenly" do
           before do
-            MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
-            MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
-            Gibbon::Request.any_instance.stub(:lists).and_raise(Gibbon::MailChimpError)
-            stub_const("MailchimpSynchronizer::RETRIES", 1)
+            #MailchimpSynchronizer.any_instance.stub(:coefficient_group_valid?).and_return(true)
+            #MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group)
+            Gibbon::Request.any_instance.stub(:batches).and_raise(Gibbon::MailChimpError)
+            stub_const("MailchimpSynchronizer::RETRIES", 0)
           end
           it "re-raises Gibbon::MailChimpError" do
             expect{sync.subscribe_contacts}.to raise_exception
@@ -117,14 +118,15 @@ describe MailchimpSynchronizer do
         end
         context "if mailchimp fails erratically" do
           before do
-            MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
-            @exception_counts = 2
-            Gibbon::Request.any_instance.stub(:lists) do
+            #MailchimpSynchronizer.any_instance.stub(:find_or_create_coefficients_group).and_return(nil)
+            @exception_counts = 1
+            Gibbon::Request.any_instance.stub(:body).and_return("1234")
+            Gibbon::Request.any_instance.stub_chain(:batches, :create) do
               @exception_counts -= 1
-              if @exception_counts <= 0
-                raise Gibbon::MailchimpError
+              if @exception_counts >= 0
+                raise Gibbon::MailChimpError
               else
-                Gibbon::Request.new
+                Gibbon::Request.new(api_key: "1234")
               end
             end
           end
