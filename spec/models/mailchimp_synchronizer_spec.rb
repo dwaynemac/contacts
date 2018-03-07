@@ -388,7 +388,7 @@ describe MailchimpSynchronizer do
   describe "#get_coefficient_translation" do
     describe "if contacts has no coefficient" do
       it "return ''" do
-        expect(sync.get_coefficient_translation(contact)).to eq [{id: sync.coefficient_group, groups: [""]}]
+        expect(sync.get_coefficient_translation(contact)).to be_nil
       end
     end
   end
@@ -436,72 +436,8 @@ describe MailchimpSynchronizer do
         @ms = MailchimpSynchronizer.new
         @ms.account = account
         @ms.save
-        resp = {
-          "success_count"=>1, 
-          "error_count"=>0, 
-          "errors"=>[], 
-          "data"=>[
-            {
-              "email"=>"pedro@gonzalez.com", 
-              "list_id"=>"00000000", 
-              "list_name"=>"development students 1", 
-              "merges"=>{
-                "EMAIL"=>"pedro@gonzalez.com", 
-                "FNAME"=>"", 
-                "LNAME"=>"", 
-                "PHONE"=>"", 
-                "GENDER"=>"", 
-                "STATUS"=>"", 
-                "ADDR"=>"", 
-                "SYSSTATUS"=>"", 
-                "SYSCOEFF"=>"", 
-                "FOLLOWEDBY"=>"", 
-                "GROUPINGS"=>[
-                  {
-                    "id"=>0000, 
-                    "name"=>"Coefficient", 
-                    "form_field"=>"hidden", 
-                    "groups"=>[
-                      {
-                        "name"=>"unknown", 
-                        "interested"=>false
-                      }, 
-                      {
-                        "name"=>"perfil", 
-                        "interested"=>false
-                      }, 
-                      {
-                        "name"=>"pmas", 
-                        "interested"=>false
-                      }, 
-                      {
-                        "name"=>"pmenos", 
-                        "interested"=>false
-                      }, 
-                      {
-                        "name"=>"np", 
-                        "interested"=>false
-                      }
-                    ]
-                  }
-                ]
-              }, 
-              "status"=>"subscribed", 
-              "is_gmonkey"=>false, 
-              "lists"=>[
-                {
-                  "id"=>"0000", 
-                  "status"=>"subscribed"
-                }
-              ], 
-              "geo"=>[], 
-              "clients"=>[], 
-              "static_segments"=>[], 
-              "notes"=>[]
-            }
-          ]
-        }
-        Gibbon::Request.any_instance.stub_chain(:lists, :member_info).and_return(resp)
+        Gibbon::Request.any_instance.stub(:body).and_return("subscribed")
+        Gibbon::Request.any_instance.stub_chain(:lists, :members, :retrieve).and_return(Gibbon::Request.new(api_key: "1234"))
       end
       it "should return true" do
         @ms.is_in_list?("mail@value.com").should be_truthy
@@ -512,72 +448,8 @@ describe MailchimpSynchronizer do
         @ms = MailchimpSynchronizer.new
         @ms.account = account
         @ms.save
-        resp = {
-          "success_count"=>1, 
-          "error_count"=>0, 
-          "errors"=>[], 
-          "data"=>[
-            {
-              "email"=>"pedro@gonzalez.com", 
-              "list_id"=>"00000000", 
-              "list_name"=>"development students 1", 
-              "merges"=>{
-                "EMAIL"=>"pedro@gonzalez.com", 
-                "FNAME"=>"", 
-                "LNAME"=>"", 
-                "PHONE"=>"", 
-                "GENDER"=>"", 
-                "STATUS"=>"", 
-                "ADDR"=>"", 
-                "SYSSTATUS"=>"", 
-                "SYSCOEFF"=>"", 
-                "FOLLOWEDBY"=>"", 
-                "GROUPINGS"=>[
-                  {
-                    "id"=>0000, 
-                    "name"=>"Coefficient", 
-                    "form_field"=>"hidden", 
-                    "groups"=>[
-                      {
-                        "name"=>"unknown", 
-                        "interested"=>false
-                      }, 
-                      {
-                        "name"=>"perfil", 
-                        "interested"=>false
-                      }, 
-                      {
-                        "name"=>"pmas", 
-                        "interested"=>false
-                      }, 
-                      {
-                        "name"=>"pmenos", 
-                        "interested"=>false
-                      }, 
-                      {
-                        "name"=>"np", 
-                        "interested"=>false
-                      }
-                    ]
-                  }
-                ]
-              }, 
-              "status"=>"unsubscribed", 
-              "is_gmonkey"=>false, 
-              "lists"=>[
-                {
-                  "id"=>"0000", 
-                  "status"=>"subscribed"
-                }
-              ], 
-              "geo"=>[], 
-              "clients"=>[], 
-              "static_segments"=>[], 
-              "notes"=>[]
-            }
-          ]
-        }
-        Gibbon::Request.any_instance.stub_chain(:lists, :member_info).and_return(resp)
+        Gibbon::Request.any_instance.stub(:body).and_return("unsubscribed")
+        Gibbon::Request.any_instance.stub_chain(:lists, :members, :retrieve).and_return(Gibbon::Request.new(api_key: "1234"))
       end
       it "should return true" do
         @ms.is_in_list?("mail@value.com").should be_falsey
