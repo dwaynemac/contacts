@@ -556,39 +556,12 @@ describe MailchimpSynchronizer do
       @ms.list_id = "5555"
       @ms.api_key = "123123"
       @ms.save
-      Gibbon::Request.any_instance.stub_chain(:lists, :interest_categories, :retrieve, :body).and_return({"title" => "Coefficient"})
+      Gibbon::Request.any_instance.stub(:body).and_return({"id" => "1234"})
+      Gibbon::Request.any_instance.stub_chain(:lists, :interest_categories, :create).and_return(Gibbon::Request.new(api_key: "1234"))
       Gibbon::Request.any_instance.stub_chain(:lists, 
                                               :interest_categories, 
                                               :interests, 
-                                              :retrieve, 
-                                              :body).and_return(
-                                                {
-                                                  "total_items" => 5,
-                                                  "interests" => 
-                                                  [
-                                                    {
-                                                      "name" => "perfil",
-                                                      "id" => 1
-                                                    },
-                                                    {
-                                                      "name" => "np",
-                                                      "id" => 2
-                                                    },
-                                                    {
-                                                      "name" => "pmas",
-                                                      "id" => 3
-                                                    },
-                                                    {
-                                                      "name" => "pmenos",
-                                                      "id" => 4
-                                                    },
-                                                    {
-                                                      "name" => "unknown",
-                                                      "id" => 5
-                                                    }
-                                                  ]
-                                                }
-                                              )
+                                              :create).and_return(Gibbon::Request.new(api_key: "1234"))
       @ms.stub(:email_admins_about_failure)
       @ms.stub(:email_admins_about_failure)
     end
