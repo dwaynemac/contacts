@@ -349,11 +349,11 @@ describe MailchimpSynchronizer do
   describe "#get_system_status" do
     subject { sync.get_system_status(contact) }
     describe "for contact with local_status :student" do
-      let(:contact){ Contact.make(local_status_for_myaccname: :student) }
+      let(:contact){ Contact.make(local_status_for_myaccname: :student, owner_id: account.id) }
       it { should eq '|s||ps||sf|' }
     end
     describe "for contact with local_status 'student'" do
-      let(:contact){ Contact.make(local_status_for_myaccname: "student") }
+      let(:contact){ Contact.make(local_status_for_myaccname: "student", owner_id: account.id) }
       it { should eq '|s||ps||sf|' }
     end
   end
@@ -361,13 +361,14 @@ describe MailchimpSynchronizer do
   describe "#get_primary_attribute_value" do
     describe "if contact has none" do
       it "returns nil" do
-        expect(sync.get_primary_attribute_value(contact,'Email')).to be_nil
+        c = Contact.make(first_name: "Alex")
+        expect(sync.get_primary_attribute_value(c,'Email')).to be_nil
       end
     end
     describe "if contact has" do
       let(:email_value){'dwa@sd.co'}
       before do
-        contact.contact_attributes << Email.make(account: account, value: email_value)
+        contact.contact_attributes << Email.make(account: account, value: email_value, primary: true)
       end
 
       it "returns the value" do 
