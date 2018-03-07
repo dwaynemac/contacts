@@ -436,11 +436,11 @@ describe MailchimpSynchronizer do
         @ms = MailchimpSynchronizer.new
         @ms.account = account
         @ms.save
-        Gibbon::Request.any_instance.stub(:body).and_return("subscribed")
+        Gibbon::Request.any_instance.stub(:body).and_return({"status" => "subscribed"})
         Gibbon::Request.any_instance.stub_chain(:lists, :members, :retrieve).and_return(Gibbon::Request.new(api_key: "1234"))
       end
       it "should return true" do
-        @ms.is_in_list?("mail@value.com").should be_truthy
+        @ms.is_in_list?("mail@mail.com").should be_truthy
       end
     end
     context "contact is unsubscribed or not in list" do
@@ -448,10 +448,10 @@ describe MailchimpSynchronizer do
         @ms = MailchimpSynchronizer.new
         @ms.account = account
         @ms.save
-        Gibbon::Request.any_instance.stub(:body).and_return("unsubscribed")
+        Gibbon::Request.any_instance.stub(:body).and_return({"status" => "unsubscribed"})
         Gibbon::Request.any_instance.stub_chain(:lists, :members, :retrieve).and_return(Gibbon::Request.new(api_key: "1234"))
       end
-      it "should return true" do
+      it "should return false" do
         @ms.is_in_list?("mail@value.com").should be_falsey
       end
     end
@@ -464,13 +464,41 @@ describe MailchimpSynchronizer do
       @ms.list_id = "5555"
       @ms.api_key = "123123"
       @ms.save
-      Gibbon::Request.any_instance.stub_chain(:lists, :interest_groupings).and_return([{"id" => "1234", "name" => "Coefficient"}])
-      Gibbon::Request.any_instance.stub_chain(:lists, :interest_grouping_add)
+      Gibbon::Request.any_instance.stub_chain(:lists, :interest_categories, :retrieve, :body).and_return([{"title" => "Coefficient"}])
+      Gibbon::Request.any_instance.stub_chain(:lists, 
+                                              :interest_categories, 
+                                              :interests, 
+                                              :retrieve, 
+                                              :body).and_return(
+                                                {
+                                                  "total_items" => 4,
+                                                  "interests" => 
+                                                  {
+                                                    "perfil" => 1,
+                                                    "np" => 2,
+                                                    "pmas" => 3,
+                                                    "pmenos" => 4,
+                                                    "unknown" => 5
+                                                  }
+                                                }
+                                              )
       @ms.stub(:email_admins_about_failure)
     end
     context "when coefficient group match" do
       before do
-        @ms.coefficient_group = "1234"
+        @ms.coefficient_group = @ms.encode(
+          {
+            id: "1234",
+            interests: 
+            {
+              perfil: 1,
+              np: 2,
+              pmas: 3,
+              pmenos: 4,
+              unknown: 5
+            }
+          }
+        )
       end
       it "should be valid" do
         @ms.coefficient_group_valid?.should be_truthy
