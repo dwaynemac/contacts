@@ -11,6 +11,7 @@ class MailchimpSynchronizer
   field :contact_attributes
   field :last_synchronization
   field :merge_fields
+  field :batch_statuses
 
   attr_accessor :has_coefficient_group
 
@@ -20,7 +21,7 @@ class MailchimpSynchronizer
   has_many :mailchimp_segments
   
   before_create :set_default_attributes
-  after_update :find_or_create_coefficients_group
+  #after_update :find_or_create_coefficients_group
   after_save :finish_setup
   
   before_destroy :destroy_segments
@@ -50,6 +51,7 @@ class MailchimpSynchronizer
   end
 
   def complete_sync
+    update_batch_statuses
     if filter_method == 'segments'
       unsubscribe_contacts(mailchimp_segments.map {|x| x.to_query(true)})
     end
@@ -71,9 +73,12 @@ class MailchimpSynchronizer
       Rails.logger.info "[mailchimp_synchronizer #{self.id}] batch #{i}"
       page = get_scope(from_last_synchronization).page(i + 1).per(batch_size)
       begin
-        @api.batches.create(body: {
+        resp = @api.batches.create(body: {
           operations: get_batch(page)
         })
+        current_batches = decode(batch_statuses)
+        current_batches[resp.body["id"]] = resp.body["status"]
+        update_attribute(:batch_statuses, encode(current_batches))
       rescue Gibbon::MailChimpError => e
         Rails.logger.info "[mailchimp_synchronizer #{self.id}] retrying: #{e.message}"
         retries -= 1
@@ -113,64 +118,68 @@ class MailchimpSynchronizer
     update_attribute(:status, :ready)
   end
   handle_asynchronously :wait_and_set_ready, run_at: Proc.new { 5.minutes.from_now }
-  
-  def unsubscribe_contacts (querys = [])
+
+  def unsubscribe_contacts(querys = [])
     update_attribute(:status, :working)
     set_api
-    
+
     if !querys.empty?
       contacts_scope = Contact.where("$and" => querys)
     else
+      # TODO chequear que esto este bien
       contacts_scope = Contact.all
     end
 
     contacts_scope.page(1).per(CONTACTS_BATCH_SIZE).num_pages.times do |i|
       page = contacts_scope.page(i + 1).per(CONTACTS_BATCH_SIZE)
-      @api.batches.create(body: {
-          operations: get_batch(page, true)
-        })
+      resp = @api.batches.create(body: {
+        operations: get_batch(page, true)
+      })
+      current_batches = decode(batch_statuses)
+      current_batches[resp.body["id"]] = resp.body["status"]
+      update_attribute(:batch_statuses, encode(current_batches))
     end
     update_attribute(:status, :ready)
   end
   handle_asynchronously :unsubscribe_contacts
- 
-  def get_batch (page, unsubscribe = false)
+
+  def get_batch(page, unsubscribe = false)
     batch = []
     page.each do |c|
       struct = {}
       if !unsubscribe
         struct['method'] = "PUT"
         struct['path'] = "lists/#{list_id}/members/#{subscriber_hash(get_primary_attribute_value(c, "Email"))}"
-        struct['body'] = {
+        struct['body'] = encode({
           status_if_new: "subscribed",
-          status: "subscribed",
+          #status: "subscribed",
           email_address: get_primary_attribute_value(c, "Email"),
-          merge_fields: merge_vars_for_contact(c)
-        }
+          merge_fields: merge_vars_for_contact(c),
+          interests: { "#{decode(coefficient_group)["interests"][get_coefficient_translation(c)]}" => true} #TODO check if this works and put interest in single create and update
+        })
       else
-        struct['method'] = "DELETE",
+        struct['method'] = "DELETE"
         struct['path'] = "lists/#{list_id}/members/#{subscriber_hash(get_primary_attribute_value(c, 'Email'))}"
       end
       batch << struct
     end
     batch
   end
-  
-  def merge_vars_for_contact (contact)
+
+  def merge_vars_for_contact(contact)
     response = 
-    {
-      FNAME: contact.first_name,
-      LNAME: contact.last_name,
-      PHONE: get_primary_attribute_value(contact, 'Telephone'),
-      GENDER: get_gender_translation(contact),
-      STATUS: get_status_translation(contact),
-      groupings: get_coefficient_translation(contact),
-      ADDR: get_primary_attribute_value(contact, 'Address'),
-      SYSCOEFF: get_system_coefficient(contact),
-      SYSSTATUS: get_system_status(contact),
-      FOLLOWEDBY: get_followers_for(contact),
-      TEACHER: get_local_teacher_for(contact),
-      PADMA_TAGS: get_tags_for(contact)
+      {
+        FNAME: contact.first_name || "",
+        LNAME: contact.last_name || "",
+        PHONE: get_primary_attribute_value(contact, 'Telephone') || "",
+        GENDER: get_gender_translation(contact) || "",
+        STATUS: get_status_translation(contact) || "",
+        ADDR: get_primary_attribute_value(contact, 'Address') || "",
+        SYSCOEFF: get_system_coefficient(contact) || "",
+        SYSSTATUS: get_system_status(contact) || "",
+        FOLLOWEDBY: get_followers_for(contact) || "",
+        TEACHER: get_local_teacher_for(contact) || "",
+        PADMA_TAGS: get_tags_for(contact) || ""
     } 
     if contact_attributes
       contact_attributes.split(",").each do |contact_attribute|
@@ -180,12 +189,13 @@ class MailchimpSynchronizer
         else
           response[get_tag_for(contact_attribute)] = contact.contact_attributes.where(name: contact_attribute).first.try :value
         end
+        response[get_tag_for(contact_attribute)] = "" if response[get_tag_for(contact_attribute)].nil?
       end
     end
     response
   end
 
-  def get_system_status (contact)
+  def get_system_status(contact)
     case contact.local_statuses.where(account_id: account.id).first.try(:value).try(:to_sym)
     when :prospect
       '|p||ps||pf|'
@@ -197,8 +207,8 @@ class MailchimpSynchronizer
       ''
     end
   end
-  
-  def get_system_coefficient (contact)
+
+  def get_system_coefficient(contact)
     case contact.coefficients.where(account_id: account.id).first.try(:value)
     when 'unknown'
       'unknown'
@@ -212,20 +222,18 @@ class MailchimpSynchronizer
       ''
     end
   end    
-  
-  def get_status_translation (contact)
+
+  def get_status_translation(contact)
     ls = contact.local_statuses.where(account_id: account.id).first.try(:value).try(:to_s)
     ls.nil?? '' : I18n.t("mailchimp.status.#{ls}")
   end
-  
-  def get_gender_translation (contact)
+
+  def get_gender_translation(contact)
     (contact.gender)? I18n.t("mailchimp.gender.#{contact.gender}") : ''
   end
-  
-  def get_coefficient_translation (contact)
-    [
-      {id: ActveSupport::JSON.decode(coefficient_group)["id"], groups: [set_fp_to_np(contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s) || '')]}
-    ]
+
+  def get_coefficient_translation(contact)
+    set_fp_to_np(contact.coefficients.where(account_id: account.id).first.try(:value).try(:to_s))
   end
 
   def set_fp_to_np(coefficient)
@@ -235,7 +243,7 @@ class MailchimpSynchronizer
       return coefficient
     end
   end
-  
+
   def get_local_teacher_for(contact)
     contact.local_teachers.where(account_id: account.id).first.try(:value)
   end
@@ -249,9 +257,9 @@ class MailchimpSynchronizer
     response = Typhoeus::Request.get(
       PADMA_CRM_HOST + "/api/v0/follows/followed_by",
       params: {  app_key: ENV["crm_key"],
-                  account_name: account.name,
-                  contact_id: contact.id}
-      ) 
+                 account_name: account.name,
+                 contact_id: contact.id}
+    ) 
     if response.code == 200
       followers = JSON.parse(response.body)
     end
@@ -263,7 +271,7 @@ class MailchimpSynchronizer
       return followers.join(",")
     end
   end
-  
+
   #
   # Merge Vars (fields)
   #
@@ -274,26 +282,26 @@ class MailchimpSynchronizer
     merge_var_add('GENDER', I18n.t('mailchimp.gender.gender'), 'text', false) 
     merge_var_add('STATUS', I18n.t('mailchimp.status.status'), 'text', false) 
     merge_var_add('ADDR', I18n.t('mailchimp.address.address'), 'text') 
-    merge_var_add('SYSSTATUS', 'System Status', 'text', false, {show: false}) 
-    merge_var_add('SYSCOEFF', 'System Coefficient', 'text', false, {show: false}) 
+    merge_var_add('SYSSTATUS', 'System Status', 'text', false) 
+    merge_var_add('SYSCOEFF', 'System Coefficient', 'text', false) 
     merge_var_add('FOLLOWEDBY', 'Followed by', 'text', false)
     merge_var_add('TEACHER', I18n.t('mailchimp.teacher'), 'text', false)
     merge_var_add('PADMA_TAGS', I18n.t('mailchimp.padma_tags'), 'text', false)
   end
-  
-  def merge_var_add (tag, name, type, public = true , options={})
-    local_fields = ActiveSupport::JSON.decode(merge_fields)
+
+  def merge_var_add(tag, name, type, ispublic = true , options={})
+    local_fields = decode(merge_fields)
     if !local_fields.keys.include?(name)
       begin
-        resp = @api.lists(list_id).merge_fields( body: {
+        resp = @api.lists(list_id).merge_fields.create( body: {
           tag: tag,
           name: name,
           type: type,
-          public: public,
+          public: ispublic,
           options: options
         })
         local_fields[name] = resp.body["merge_id"]
-        update_attribute(:merge_fields, ActiveSupport::JSON.encode(local_fields))
+        update_attribute(:merge_fields, encode(local_fields))
       rescue Gibbon::MailChimpError => e
         raise unless e.message =~ /already exists/
       end
@@ -301,7 +309,7 @@ class MailchimpSynchronizer
   end
 
   def merge_var_del(tag_name)
-    local_fields = ActiveSupport::JSON.decode(merge_fields)
+    local_fields = decode(merge_fields)
     if local_fields.keys.include?(tag_name)
       begin
         @api.lists(list_id).merge_fields(local_fields[tag_name]).delete
@@ -332,18 +340,18 @@ class MailchimpSynchronizer
   def get_tag_for(contact_attribute)
     Digest::SHA1.hexdigest(contact_attribute)[0..9].upcase
   end
-  
-  def update_sync_options (params)
+
+  def update_sync_options(params)
     if !params[:list_id].nil? && params[:list_id] != list_id
       update_attribute(:list_id, params[:list_id])
       update_fields_in_mailchimp
       initialize_list_groups
     end
-    
+
     unless params[:contact_attributes].nil?
       remove_unused_fields_in_mailchimp(
         contact_attributes.split(",") - params[:contact_attributes].split(",")
-        ) unless contact_attributes.nil?
+      ) unless contact_attributes.nil?
       update_attribute(:contact_attributes, params[:contact_attributes])
       add_custom_fields_in_mailchimp
     end
@@ -354,13 +362,13 @@ class MailchimpSynchronizer
       end
       update_attribute(:filter_method, params[:filter_method])
     end
-    
+
     if !params[:api_key].nil? && params[:api_key] != api_key
       update_attribute(:api_key, params[:api_key])
     end
 
   end
-  
+
   def subscribe_contact(contact_id)
     return if is_in_scope(contact_id) == false
     retries = RETRIES
@@ -374,7 +382,8 @@ class MailchimpSynchronizer
           email_address: get_primary_attribute_value(c, "Email"),
           status_if_new: "subscribed",
           status: "subscribed",
-          merge_fields: merge_vars_for_contact(c)
+          merge_fields: merge_vars_for_contact(c),
+          interests: { "#{decode(coefficient_group)["interests"][get_coefficient_translation(c)]}" => true}
         }
       )
     rescue Gibbon::MailChimpError => e
@@ -397,7 +406,7 @@ class MailchimpSynchronizer
     raise e
   end
   handle_asynchronously :subscribe_contact
-  
+
   def update_contact(contact_id, old_mail)
     in_scope = is_in_scope(contact_id)
     in_list = is_in_list?(old_mail)
@@ -408,14 +417,17 @@ class MailchimpSynchronizer
     end
     return if in_scope == false || (in_scope == true && !in_list)
     retries = RETRIES
-    
+
     c = Contact.find contact_id
     set_api
     set_i18n
     merge_vars = merge_vars_for_contact(c)
     merge_vars['EMAIL'] = get_primary_attribute_value(c, 'Email')
     begin
-      @api.lists(list_id).members(subscriber_hash(old_mail)).update(body: {merge_fields: merge_vars})
+      @api.lists(list_id).members(subscriber_hash(old_mail)).update(body: {
+        merge_fields: merge_vars,
+        interests: { "#{decode(coefficient_group)["interests"][get_coefficient_translation(c)]}" => true} #TODO check if this works and put interest in single create and update
+      })
     rescue Gibbon::MailChimpError => e
       Rails.logger.info "[mailchimp_update of contact #{contact_id}] retrying: #{e.message}"
       retries -= 1
@@ -480,39 +492,48 @@ class MailchimpSynchronizer
   def get_scope(from_last_synchronization)
     if self.filter_method == "all"
       if from_last_synchronization
-        account.contacts.where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
+        account.contacts
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
+          .where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
       else
         account.contacts
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
       end
     elsif mailchimp_segments.empty?
       if from_last_synchronization
-        Contact.any_in( account_ids: [self.account.id] ).where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
+        Contact.any_in( account_ids: [account.id] )
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
+          .where(:updated_at.gt => last_synchronization || "1/1/2000 00:00")
       else
-        Contact.any_in( account_ids: [self.account.id] )
+        Contact.any_in( account_ids: [account.id] )
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
       end
     else
       if from_last_synchronization
-        account.contacts.where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
+        account.contacts
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
+          .where( :updated_at.gt => last_synchronization || "1/1/2000 00:00", "$or" => mailchimp_segments.map {|seg| seg.to_query})
       else
-        account.contacts.where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
+        account.contacts
+          .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id)
+          .where( "$or" => mailchimp_segments.map {|seg| seg.to_query})
       end
     end
   end
 
   def calculate_scope_count(filter_method, segments)
-    return account.contacts.count if filter_method == 'all'
-    if segments.blank?
-      Contact.any_in( account_ids: [self.account.id] ).count
+    if filter_method == "all" || segments.blank?
+      Contact.any_in(account_ids: [account.id])
+        .where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id).count
     else
       account.contacts.where( 
-        "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
-          (seg.key?("student") ? seg["student"] : []), 
-          (seg.key?("coefficient") ? seg["coefficient"] : []), 
-          (seg.key?("gender") ? seg["gender"] : ""), 
-          account.id
-          )
-        }
-      ).count
+                             "$or" => segments.reject{|s| s["_destroy"] == "1"}.map {|seg| MailchimpSegment.to_query(
+                               (seg.key?("student") ? seg["student"] : []), 
+                               (seg.key?("coefficient") ? seg["coefficient"] : []), 
+                               (seg.key?("gender") ? seg["gender"] : ""), 
+                               account.id
+                             )
+                             }).where("contact_attributes._type" => "Email", "contact_attributes.account_id" => account.id).count
     end
   end
 
@@ -520,16 +541,16 @@ class MailchimpSynchronizer
     return true if self.filter_method == 'all' || mailchimp_segments.empty?
     return Contact.where( "$or" => mailchimp_segments.map {|seg| seg.to_query}).and(_id: contact_id).count > 0 ? true : false
   end
-  
-  def get_primary_attribute_value (contact, type)
+
+  def get_primary_attribute_value(contact, type)
     attr = contact.primary_attribute(account, type)
     attr.try :value
   end
-  
+
   def set_api
     @api = Gibbon::Request.new(api_key: api_key)
   end
-  
+
   def set_i18n
     padma_account = PadmaAccount.find(account.name)
     if padma_account
@@ -547,19 +568,21 @@ class MailchimpSynchronizer
   end
 
   def coefficient_group_valid?
-    group_id = ActiveSupport::JSON.decode(coefficient_group)["id"]
-    return false if group_id.blank?
+    group_id = decode(coefficient_group)["id"]
+    local_interests = decode(coefficient_group)["interests"]
+
+    return false if group_id.blank? || local_interests.values.any? {|v| v.blank?}
     response = false
 
     set_i18n
     set_api
     begin
-      groupings = @api.lists(list_id).interest_categories.retrieve.body
-      groupings["categories"].each do |group|
-        if group["id"] == group_id && 
-            group["title"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
-            response = true
-        end
+      group = @api.lists(list_id).interest_categories(group_id).retrieve.body
+      interests = @api.lists(list_id).interest_categories(group_id).interests.retrieve.body
+      if interests["total_items"] == local_interests.count && 
+          interests["interests"].all? { |i| local_interests[i["name"]] == i["id"]} &&
+          group["title"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
+        response = true
       end
     rescue Gibbon::MailChimpError => e
       set(status: :failed)
@@ -568,55 +591,48 @@ class MailchimpSynchronizer
     end
     response
   end
-  
+
   def find_or_create_coefficients_group
     set_i18n
     set_api
-    interests = {}
+
+    create_coefficient_group()
+    if decode(coefficient_group)["id"] == "already exists"
+      retrieve_coefficient_group()
+    end
+
+    if decode(coefficient_group)["id"] == "failed"
+      update_attributes(:stauts, :failed)
+      email_admins_about_failure(account.name, decode(coefficient_group).key?("message") ? decode(coefficient_group)["message"] : "")
+    end
+  end
+
+  def batch_status(batch_id)
+    set_api
     begin
-      mailchimp_coefficient_group = nil
-      if @has_coefficient_group
-        groupings = @api.lists(list_id).interest_categories.retrieve.body
-        groupings["categories"].each do |group|
-          if group["title"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
-            mailchimp_coefficient_group = group
-          end
-        end
+      @api.batches(batch_id).retrieve.body["status"]
+    rescue
+      "failed"
+    end
+  end
+
+  # TODO if rows failed during batch, show it
+  def update_batch_statuses
+    current_batches = decode(batch_statuses)
+    current_batches.each do |id, status|
+      case batch_status(id)
+      when "finished"
+        current_batches.delete(id)
       else
-        mailchimp_coefficient_group = @api.lists(list_id).interest_categories.create(
-          body:
-            {
-            title: I18n.t('mailchimp.coefficient.coefficient'),
-            type: 'hidden',
-            }
-        )
-        ["unkonwn", "perfil", "pmas", "pmenos", "np"].each do |interest|
-          resp = @api.lists(list_id).interest_categories(mailchimp_coefficient_group.body["id"]).interests.create(
-            body: { name: interest }
-          )
-          interests[interest] = resp.body["category_id"]
-        end
-        mailchimp_coefficient_group["interests"] = interests
-      end
-      # avoid callbacks
-      # If changed to AR it should be set to "update_all" or "update_column"
-      MailchimpSynchronizer.skip_callback(:update, :after, :find_or_create_coefficients_group)
-      update_attribute(:coefficient_group, ActiveSupport::JSON.encode(mailchimp_coefficient_group))
-      MailchimpSynchronizer.set_callback(:update, :after, :find_or_create_coefficients_group)
-    rescue Gibbon::MailChimpError => e
-      if e.message =~ /already exists/ && !@has_coefficient_group
-        @has_coefficient_group = true
-        retry
-      else
-        # avoid callbacks
-        # If changed to AR it should be set to "update_all" or "update_column"
-        MailchimpSynchronizer.skip_callback(:update, :after, :find_or_create_coefficients_group)
-        update_attribute(:status, :failed)
-        MailchimpSynchronizer.set_callback(:update, :after, :find_or_create_coefficients_group)
-        email_admins_about_failure(account.name, e.message)
-        raise
+        current_batches[id] = batch_status(id)
       end
     end
+    update_attribute(:batch_statuses, encode(current_batches))
+  end
+
+  def is_synchronizing?
+    update_batch_statuses
+    !decode(batch_statuses).blank?
   end
 
   def email_admins_about_failure(account_name, error_message)
@@ -626,11 +642,13 @@ class MailchimpSynchronizer
   def set_default_attributes
     self.status = :setting_up
     self.filter_method = nil
-    self.coefficient_group = "{\"id\":\"\",\"interests\":{}}"
+    self.coefficient_group = "{\"id\":\"\",\"interests\": "\
+      "{\"unkonwn\":\"\", \"perfil\":\"\", \"pmas\":\"\", \"pmenos\":\"\", \"np\":\"\"}}"
     self.merge_fields = "{}"
     self.contact_attributes = ""
+    self.batch_statuses = "{}"
   end
-  
+
   def destroy_segments
     MailchimpSegment.where(mailchimp_synchronizer_id: self.id).destroy_all
   end
@@ -644,6 +662,7 @@ class MailchimpSynchronizer
 
   def finish_setup
     if (status == :setting_up) && completed_initial_setup?
+      update_fields_in_mailchimp
       update_attribute :status, :ready
     end
   end
@@ -656,11 +675,108 @@ class MailchimpSynchronizer
 
   # md5 hex digested email
   def subscriber_hash(email)
-    Digest::MD5.hexdigest(email.downcase)
+    Digest::MD5.hexdigest(email.downcase) unless email.nil?
   end
 
   def get_interests_ids(interest_names)
-    interests = ActiveSupport::JSON.decode(coefficient_group)["interests"]
-    interest_names.map{|i| interests[i]}
+    interests = decode(coefficient_group)["interests"]
+    interest_names.split(",").map{|i| interests[i]}
+  end
+
+  # Creates coefficient group in MailChimp
+  #
+  # If it creates everything correctly
+  # Returns hash with id of coefficient group and a subhash
+  #   with ids and names of every interest
+  #
+  # If there is an error
+  # Returns hash with the name of the error in the 'id'
+  # and the error message in 'message'
+  #
+
+  def create_coefficient_group
+    set_i18n
+    set_api
+    mailchimp_coefficient_group = {}
+    interests = {}
+
+    retries = 3
+    begin
+      resp = @api.lists(list_id).interest_categories.create(
+        body:
+        {
+          title: I18n.t('mailchimp.coefficient.coefficient'),
+          type: 'hidden'
+        }
+      )
+    rescue Gibbon::MailChimpError => e
+      if e.message =~ /already exists/
+        mailchimp_coefficient_group["id"] = "already exists"
+        update_attribute(:coefficient_group, encode(mailchimp_coefficient_group))
+        retries -= 1
+      elsif retries > 0
+        retry
+      else
+        mailchimp_coefficient_group["id"] = "failed"
+        mailchimp_coefficient_group["message"] = e.message
+      end
+    end
+    if mailchimp_coefficient_group["id"] != "failed" && 
+        mailchimp_coefficient_group["id"] != "already exists"
+      mailchimp_coefficient_group["id"] = resp.body["id"]
+      ["unkonwn", "perfil", "pmas", "pmenos", "np"].each do |interest|
+        retries = 3
+        begin
+          resp = @api.lists(list_id).interest_categories(mailchimp_coefficient_group["id"]).interests.create(
+            body: { name: interest }
+          )
+          interests[interest] = resp.body["id"]
+        rescue Gibbon::MailChimpError => e
+          retries -= 1
+          if retries > 0
+            retry
+          else
+            mailchimp_coefficient_group["id"] = "failed"
+            mailchimp_coefficient_group["message"] = e.message
+          end
+        end
+      end
+      mailchimp_coefficient_group["interests"] = interests
+    end
+    update_attribute(:coefficient_group, encode(mailchimp_coefficient_group))
+  end
+
+  def retrieve_coefficient_group
+    set_i18n
+    set_api
+    mailchimp_coefficient_group = {}
+    interests = {}
+
+    begin
+      groupings = @api.lists(list_id).interest_categories.retrieve.body
+      groupings["categories"].each do |group|
+        if group["title"].try(:upcase) == I18n.t('mailchimp.coefficient.coefficient').try(:upcase)
+          mailchimp_coefficient_group["id"] = group["id"]
+          # get interest groups
+          ints = @api.lists(list_id).interest_categories(group["id"]).interests.retrieve.body
+          ints["interests"].each do |interest|
+            interests[interest["name"]] = interest["id"]
+          end
+          mailchimp_coefficient_group["interests"] = interests
+        end
+      end
+    rescue Gibbon::MailChimpError => e
+      mailchimp_coefficient_group["id"] = "failed"
+      mailchimp_coefficient_group["message"] = e
+    end
+    update_attribute(:coefficient_group, encode(mailchimp_coefficient_group))
+  end
+
+  def encode(string)
+    ActiveSupport::JSON.encode(string)
+  end
+
+  def decode(string)
+    ActiveSupport::JSON.decode(string)
   end
 end

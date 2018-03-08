@@ -332,7 +332,7 @@ GEM
       polyglot (>= 0.3.1)
     typhoeus (0.5.0.alpha)
       ethon (~> 0.4.2)
-    tzinfo (0.3.42)
+    tzinfo (0.3.53)
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.6)
