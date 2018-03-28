@@ -680,7 +680,7 @@ class MailchimpSynchronizer
 
   def get_interests_ids(interest_names)
     interests = decode(coefficient_group)["interests"]
-    interest_names.split(",").map{|i| interests[i]}
+    interest_names.split(",").map{|i| interests[set_fp_to_np(i)]}
   end
 
   # Creates coefficient group in MailChimp
