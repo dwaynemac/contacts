@@ -12,10 +12,8 @@ namespace :delayed_job do
   task :stop do
     on roles(delayed_job_roles) do
       within release_path do    
-        with rails_env: fetch(:rails_env) do
-          with rbenv_ruby: fetch(:rbenv_ruby) do
-            execute :bundle, :exec, :'script/delayed_job', :stop
-          end
+        with rails_env: fetch(:rails_env), rbenv_ruby: fetch(:rbenv_ruby) do
+          execute :bundle, :exec, :'script/delayed_job', :stop
         end
       end
     end
@@ -25,10 +23,8 @@ namespace :delayed_job do
   task :start do
     on roles(delayed_job_roles) do
       within release_path do
-        with rails_env: fetch(:rails_env) do
-          with rbenv_prefix: fetch(:rbenv_prefix)  do
-            execute :bundle, :exec, :'script/delayed_job', args, :start
-          end
+        with rails_env: fetch(:rails_env), rbenv_ruby: fetch(:rbenv_ruby) do
+          execute :bundle, :exec, :'script/delayed_job', args, :start
         end
       end
     end
@@ -38,7 +34,7 @@ namespace :delayed_job do
   task :restart do
     on roles(delayed_job_roles) do
       within release_path do
-        with rails_env: fetch(:rails_env) do
+        with rails_env: fetch(:rails_env), rbenv_ruby: fetch(:rbenv_ruby) do
           execute :bundle, :exec, :'script/delayed_job', args, :restart
         end
       end
