@@ -1,6 +1,6 @@
 set :stage, :production
 
-set :branch, 'production'
+set :branch, 'aws-test'
 
 set :rails_env, 'production'
 
@@ -12,7 +12,7 @@ set :rbenv_roles, :all # default value
 
 set :bundle_without, 'development:test:heroku:deploying'
 
-set :web_host, 'contacts.padm.am'
+set :web_host, '34.239.122.4'
 # set :worker_host, '54.211.11.34'
 
 set :user, 'ec2-user'

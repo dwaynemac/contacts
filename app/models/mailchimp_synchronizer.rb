@@ -643,7 +643,7 @@ class MailchimpSynchronizer
     self.status = :setting_up
     self.filter_method = nil
     self.coefficient_group = "{\"id\":\"\",\"interests\": "\
-      "{\"unkonwn\":\"\", \"perfil\":\"\", \"pmas\":\"\", \"pmenos\":\"\", \"np\":\"\"}}"
+      "{\"unknown\":\"\", \"perfil\":\"\", \"pmas\":\"\", \"pmenos\":\"\", \"np\":\"\"}}"
     self.merge_fields = "{}"
     self.contact_attributes = ""
     self.batch_statuses = "{}"
@@ -680,7 +680,7 @@ class MailchimpSynchronizer
 
   def get_interests_ids(interest_names)
     interests = decode(coefficient_group)["interests"]
-    interest_names.split(",").map{|i| interests[i]}
+    interest_names.split(",").map{|i| interests[set_fp_to_np(i)]}
   end
 
   # Creates coefficient group in MailChimp
@@ -724,7 +724,7 @@ class MailchimpSynchronizer
     if mailchimp_coefficient_group["id"] != "failed" && 
         mailchimp_coefficient_group["id"] != "already exists"
       mailchimp_coefficient_group["id"] = resp.body["id"]
-      ["unkonwn", "perfil", "pmas", "pmenos", "np"].each do |interest|
+      ["unknown", "perfil", "pmas", "pmenos", "np"].each do |interest|
         retries = 3
         begin
           resp = @api.lists(list_id).interest_categories(mailchimp_coefficient_group["id"]).interests.create(
