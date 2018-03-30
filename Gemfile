@@ -16,7 +16,7 @@ gem "logical_model", '~> 0.6.4'
 gem 'activity_stream_client', '~> 0.0.14'
 gem 'overmind_client', '~> 0.0.6'
 gem 'accounts_client', '>= 0.2.28'
-gem 'messaging_client', '~> 0.1'
+gem 'messaging_client', '~> 0.2'
 
 gem 'gibbon', '~> 3.1', '>= 3.1.1'
 

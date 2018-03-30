@@ -44,8 +44,8 @@ GEM
       appsignal (> 0.7)
       mongo
     arel (2.2.3)
-    aws-partitions (1.57.0)
-    aws-sdk-core (3.14.0)
+    aws-partitions (1.73.0)
+    aws-sdk-core (3.17.1)
       aws-partitions (~> 1.0)
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
@@ -198,7 +198,7 @@ GEM
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     memcachier (0.0.2)
-    messaging_client (0.1.8)
+    messaging_client (0.2.0)
       aws-sdk-sns (~> 1)
       logical_model (>= 0.5.0)
       railties (>= 3.1)
@@ -393,7 +393,7 @@ DEPENDENCIES
   machinist (= 1.0.6)
   machinist_mongo (= 1.2.0)
   memcachier
-  messaging_client (~> 0.1)
+  messaging_client (~> 0.2)
   minitest
   mongoid (= 2.3.3)
   mongoid-rspec (= 1.4.4)
