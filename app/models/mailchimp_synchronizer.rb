@@ -239,6 +239,8 @@ class MailchimpSynchronizer
   def set_fp_to_np(coefficient)
     if coefficient == "fp"
       return "np"
+    elsif coefficient.nil?
+      return "unknown"
     else
       return coefficient
     end
