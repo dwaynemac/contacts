@@ -387,8 +387,8 @@ describe MailchimpSynchronizer do
 
   describe "#get_coefficient_translation" do
     describe "if contacts has no coefficient" do
-      it "return ''" do
-        expect(sync.get_coefficient_translation(contact)).to be_nil
+      it "return 'unknown'" do
+        expect(sync.get_coefficient_translation(contact)).to eq "unknown"
       end
     end
   end
