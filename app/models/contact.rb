@@ -139,11 +139,12 @@ class Contact
   def set_slug
     if self.slug.blank?
       i = 0
-      sufix = ""
+      presufix = self._id.to_s.last(3)
+      sufix = presufix
       begin
-        self.slug = "#{full_name.parameterize}#{sufix}"
+        self.slug = "#{full_name.parameterize}-#{sufix}"
         i += 1
-        sufix = "-#{i}"
+        sufix = "#{presufix}#{i}"
       end while (!Contact.where(slug: self.slug).empty?) 
     elsif self.slug_changed?
       self.slug = self.slug.parameterize
