@@ -17,6 +17,7 @@ pt-BR:
       female: mulher
     coefficient:
       coefficient: Coeficiente
+    slug: Identificador publico
   errors:
     mailchimp:
       list_not_found: "Nenhuma lista encontrada"
