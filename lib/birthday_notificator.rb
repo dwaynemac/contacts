@@ -5,12 +5,14 @@ class BirthdayNotificator
   end
 
   def deliver_notifications
+    log("Starting BirthdayNotificator.deliver_notifications")
     all_birthdays.each do |contact|
       log("broadcasting birthday of #{contact.id}")
       unless Messaging::Client.post_message('birthday', json_for(contact))
         warn("bday broadcast for #{contact.id} failed.")
       end
     end
+    log("Ending BirthdayNotificator.deliver_notifications")
   end
 
   def all_birthdays
@@ -50,11 +52,11 @@ class BirthdayNotificator
   private
 
   def log(msg)
-    logger.info("[birthday_notificator] #{msg}")
+    logger.info("#{Date.today} [birthday_notificator] #{msg}")
   end
 
   def warn(msg)
-    logger.warn("[birthday_notificator] #{msg}")
+    logger.warn("#{Date.today} [birthday_notificator] #{msg}")
   end
 
   ##
