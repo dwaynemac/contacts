@@ -657,7 +657,7 @@ class MailchimpSynchronizer
 
   def self.synchronize_all
     self.all.each do |ms|
-      Rails.logger.info "MAILCHIMP - synchronizing #{ms.account.name}"
+      Rails.logger.info "#{Date.today} -- MAILCHIMP - synchronizing #{ms.account.name}"
       ms.queue_subscribe_contacts({from_last_synchronization: true})
     end
   end
