@@ -19,6 +19,7 @@ es:
       address: direccion
     coefficient:
       coefficient: Coeficiente
+    slug: Identificador público
   errors:
     messages:
       invalid_format: "Formato invalido"

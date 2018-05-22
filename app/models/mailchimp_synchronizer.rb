@@ -179,7 +179,8 @@ class MailchimpSynchronizer
         SYSSTATUS: get_system_status(contact) || "",
         FOLLOWEDBY: get_followers_for(contact) || "",
         TEACHER: get_local_teacher_for(contact) || "",
-        PADMA_TAGS: get_tags_for(contact) || ""
+        PADMA_TAGS: get_tags_for(contact) || "",
+        SLUG: contact.slug || ""
     } 
     if contact_attributes
       contact_attributes.split(",").each do |contact_attribute|
@@ -289,6 +290,7 @@ class MailchimpSynchronizer
     merge_var_add('FOLLOWEDBY', 'Followed by', 'text', false)
     merge_var_add('TEACHER', I18n.t('mailchimp.teacher'), 'text', false)
     merge_var_add('PADMA_TAGS', I18n.t('mailchimp.padma_tags'), 'text', false)
+    merge_var_add('SLUG', I18n.t('mailchimp.slug'), 'text', false)
   end
 
   def merge_var_add(tag, name, type, ispublic = true , options={})
