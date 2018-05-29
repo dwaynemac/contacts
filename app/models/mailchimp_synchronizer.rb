@@ -658,6 +658,10 @@ class MailchimpSynchronizer
     update_attribute(:batch_statuses, encode(current_batches))
   end
 
+  def clean_batch_statuses
+    update_attribute(:batch_statuses, "{}")
+  end
+
   def is_synchronizing?
     update_batch_statuses
     !decode(batch_statuses).blank?
