@@ -649,7 +649,7 @@ class MailchimpSynchronizer
   def update_batch_statuses
     current_batches = decode(batch_statuses)
     
-    if current_batckes.keys.count > 20
+    if current_batches.keys.count > 20
       current_batches.keys[0..15].each do |batch_id|
         current_batches.delete(batch_id)
       end
