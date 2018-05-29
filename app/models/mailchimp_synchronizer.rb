@@ -294,6 +294,8 @@ class MailchimpSynchronizer
   end
 
   def merge_var_add(tag, name, type, ispublic = true , options={})
+    set_api
+
     local_fields = decode(merge_fields)
     if !local_fields.keys.include?(name)
       begin
@@ -307,8 +309,30 @@ class MailchimpSynchronizer
         local_fields[name] = resp.body["merge_id"]
         update_attribute(:merge_fields, encode(local_fields))
       rescue Gibbon::MailChimpError => e
-        raise unless e.message =~ /already exists/
+        if e.message =~ /already exists/
+          update_local_merge_var(name)
+        else
+          raise
+        end
       end
+    end
+  end
+
+  def update_local_merge_var(name)
+    set_api
+    set_i18n
+    local_fields = decode(merge_fields)
+
+    begin
+      resp = @api.lists(list_id).merge_fields.retrieve(params: {count: 100}).body["merge_fields"]
+      resp.each do |field|
+        if field["name"] == name
+          local_fields[name] = field["merge_id"]
+          update_attribute(:merge_fields, encode(local_fields))
+        end
+      end
+    rescue Gibbon::MailChimpError
+      raise
     end
   end
 
