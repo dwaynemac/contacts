@@ -76,6 +76,7 @@ class MailchimpSynchronizer
         resp = @api.batches.create(body: {
           operations: get_batch(page)
         })
+        update_batch_statuses
         current_batches = decode(batch_statuses)
         current_batches[resp.body["id"]] = resp.body["status"]
         update_attribute(:batch_statuses, encode(current_batches))
@@ -294,6 +295,8 @@ class MailchimpSynchronizer
   end
 
   def merge_var_add(tag, name, type, ispublic = true , options={})
+    set_api
+
     local_fields = decode(merge_fields)
     if !local_fields.keys.include?(name)
       begin
@@ -307,8 +310,30 @@ class MailchimpSynchronizer
         local_fields[name] = resp.body["merge_id"]
         update_attribute(:merge_fields, encode(local_fields))
       rescue Gibbon::MailChimpError => e
-        raise unless e.message =~ /already exists/
+        if e.message =~ /already exists/
+          update_local_merge_var(name)
+        else
+          raise
+        end
       end
+    end
+  end
+
+  def update_local_merge_var(name)
+    set_api
+    set_i18n
+    local_fields = decode(merge_fields)
+
+    begin
+      resp = @api.lists(list_id).merge_fields.retrieve(params: {count: 100}).body["merge_fields"]
+      resp.each do |field|
+        if field["name"] == name
+          local_fields[name] = field["merge_id"]
+          update_attribute(:merge_fields, encode(local_fields))
+        end
+      end
+    rescue Gibbon::MailChimpError
+      raise
     end
   end
 
@@ -623,6 +648,13 @@ class MailchimpSynchronizer
   # TODO if rows failed during batch, show it
   def update_batch_statuses
     current_batches = decode(batch_statuses)
+    
+    if current_batches.keys.count > 20
+      current_batches.keys[0..15].each do |batch_id|
+        current_batches.delete(batch_id)
+      end
+    end
+
     current_batches.each do |id, status|
       case batch_status(id)
       when "finished"
@@ -632,6 +664,10 @@ class MailchimpSynchronizer
       end
     end
     update_attribute(:batch_statuses, encode(current_batches))
+  end
+
+  def clean_batch_statuses
+    update_attribute(:batch_statuses, "{}")
   end
 
   def is_synchronizing?
