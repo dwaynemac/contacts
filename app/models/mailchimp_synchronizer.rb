@@ -648,6 +648,13 @@ class MailchimpSynchronizer
   # TODO if rows failed during batch, show it
   def update_batch_statuses
     current_batches = decode(batch_statuses)
+    
+    if current_batckes.keys.count > 20
+      current_batches.keys[0..15].each do |batch_id|
+        current_batches.delete(batch_id)
+      end
+    end
+
     current_batches.each do |id, status|
       case batch_status(id)
       when "finished"
