@@ -76,6 +76,7 @@ class MailchimpSynchronizer
         resp = @api.batches.create(body: {
           operations: get_batch(page)
         })
+        update_batch_statuses
         current_batches = decode(batch_statuses)
         current_batches[resp.body["id"]] = resp.body["status"]
         update_attribute(:batch_statuses, encode(current_batches))
