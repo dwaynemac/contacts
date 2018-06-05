@@ -1,5 +1,9 @@
 namespace :periodic do
   
+  task :email_admin_for_debug => :environment do
+    ContactsMailer.message_admin("cron running ok").deliver
+  end
+  
   task :fix_global_status => :environment do
     Contact.where(local_unique_attributes: { '$elemMatch' => { _type: 'LocalStatus', value: 'student' }})
            .where(status: { '$in' => [nil,:prospect,:former_student] })
