@@ -24,6 +24,7 @@ namespace :delayed_job do
     on roles(delayed_job_roles) do
       within release_path do
         with rails_env: fetch(:rails_env), rbenv_ruby: fetch(:rbenv_ruby) do
+          # eexecute "rm tmp/pids/delayed_job.pid" # to FORCE process starting
           execute :bundle, :exec, :'script/delayed_job', args, :start
         end
       end
