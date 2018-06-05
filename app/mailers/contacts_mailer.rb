@@ -1,7 +1,13 @@
 # encoding: utf-8
 class ContactsMailer < ActionMailer::Base
   default from: "padma@metododerose.org"
-
+  
+  def message_admin(message)
+    mail(to: "padma@metododerose.org",
+         subject: message,
+         body: message )
+  end
+  
   def alert_failure(account_name, error_message)
     mail(to: "padma@metododerose.org",
          subject: "Fallo la sincronizacion de MailChimp",
