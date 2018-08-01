@@ -394,7 +394,7 @@ describe MailchimpSynchronizer do
   end
 
   describe "get_gender_translation" do
-    describe "if contact's gender is not set" do
+    describe "if contact's gender is nil" do
       before do
         contact.update_attribute :gender, nil
       end
@@ -402,7 +402,15 @@ describe MailchimpSynchronizer do
         expect(sync.get_gender_translation(contact)).to eq ''
       end
     end
-    describe "if contact's gender is mail" do
+    describe "if contact's gender is not set" do
+      before do
+        contact.update_attribute :gender, ''
+      end
+      it "returns ''" do
+        expect(sync.get_gender_translation(contact)).to eq ''
+      end
+    end
+    describe "if contact's gender is male" do
       before do
         contact.update_attribute :gender, 'male'
       end
