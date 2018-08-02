@@ -231,7 +231,14 @@ class MailchimpSynchronizer
   end
 
   def get_gender_translation(contact)
-    (contact.gender)? I18n.t("mailchimp.gender.#{contact.gender}") : ''
+    case contact.gender
+    when 'male'
+      I18n.t("mailchimp.gender.male")
+    when 'female'
+      I18n.t("mailchimp.gender.female")
+    else
+      ''
+    end
   end
 
   def get_coefficient_translation(contact)
