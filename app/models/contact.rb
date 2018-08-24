@@ -350,6 +350,7 @@ class Contact
 
   def global_primary_attribute(type)
     pa = self.contact_attributes.where({
+      account_id: self.owner_id,
       _type: type,
       primary: true
     }).last
