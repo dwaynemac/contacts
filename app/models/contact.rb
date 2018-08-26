@@ -237,6 +237,22 @@ class Contact
     end
     ls
   end
+  
+  def observation=(new_observations)
+    if self.request_account_name
+      acc = Account.where(name: self.request_account_name).first
+      if acc
+        obs = self.observations.where(account_id: acc.id).first
+        if obs
+          obs.value = new_observations
+        else
+          obs = Observation.new(account_id: acc.id, value: new_observations)
+          self.local_unique_attributes << obs
+        end
+        obs
+      end
+    end
+  end
 
   # @return LocalUniqueAttribute.value 
   def local_value_for_account(attr_name,account_id)
