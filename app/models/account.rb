@@ -38,6 +38,7 @@ class Account
     if contact.owner == self
       contact.owner = nil
       contact.cached_owner = nil
+      contact.skip_assign_owner = true
     end
     contact.save
   end
