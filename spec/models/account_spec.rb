@@ -87,6 +87,18 @@ describe Account do
       it "removes contact from all account's lists" do
         account.lists.each{|l| expect(contact).not_to be_in l.contacts }
       end
+      context "if contact is student" do
+        let(:other_acc){Account.make(name: "tnite")}
+        let(:other_contact){Contact.make(owner: other_acc)}
+        before do
+          other_contact.local_status_for_tnite = "student"
+          other_contact.save
+          other_acc.unlink(other_contact)
+        end
+        it "should unlink contact from account" do
+          other_contact.owner.should be_nil
+        end
+      end
     end
 
     describe "#linked_to?" do
