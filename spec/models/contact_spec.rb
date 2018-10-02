@@ -908,6 +908,31 @@ describe Contact do
         @contact.reload.owner.should be_nil
       end
     end
+    
+    context "when contact has attributes in unlinked account" do
+      let(:first_acc){Account.make(name: "first")}
+      let(:con_with_att){Contact.make(owner: first_acc)}
+      let(:other_acc){Account.make(name: "second")}
+      before do
+        con_with_att.accounts << other_acc
+        con_with_att.local_status_for_second = "former_student"
+        con_with_att.local_status_for_first = "student"
+        con_with_att.contact_attributes << Email.new(value: "new@mail.com", account_id: other_acc.id)
+        con_with_att.contact_attributes << Telephone.new(value: "1134445555", account_id: other_acc.id)
+        con_with_att.contact_attributes << Email.new(value: "old@mail.com", account_id: first_acc.id)
+        con_with_att.contact_attributes << Telephone.new(value: "1142223333", account_id: first_acc.id)
+        con_with_att.save
+        con_with_att.unlink(first_acc)
+      end
+      it "should delete unlinked account attributes" do
+        con_with_att.contact_attributes.where(account_id: first_acc.id).count.should == 0
+        con_with_att.local_unique_attributes.where(account_id: first_acc.id).count.should == 0
+      end
+      it "should not delete another account attributes" do
+        con_with_att.contact_attributes.where(account_id: other_acc.id).count.should == 2
+        con_with_att.local_unique_attributes.where(account_id: other_acc.id).count.should == 1
+      end
+    end
   end
 
   describe "#owner_name" do

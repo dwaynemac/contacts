@@ -380,6 +380,11 @@ class Contact
   # @see Account#unlink
   def unlink(account)
     #delete_contact_from_mailchimp
+
+    self.contact_attributes.where(account_id: account.id).delete_all
+    self.local_unique_attributes.where(account_id: account.id).delete_all
+    self.attachments.where(account_id: account.id).delete_all
+    
     account.unlink(self)
   end
 
