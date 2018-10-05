@@ -748,6 +748,10 @@ class Contact
     end
     @cached_request_account  
   end
+
+  def broadcast_destroy
+    Messaging::Client.post_message('contact_destroy', contact.as_json)
+  end
   
   private
 
