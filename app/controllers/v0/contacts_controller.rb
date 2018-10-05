@@ -442,6 +442,7 @@ class V0::ContactsController < V0::ApplicationController
     if @account && @contact.accounts.count > 1
       @contact.unlink(@account)
     else
+      @contact.broadcast_destroy
       @contact.destroy if can?(:destroy, @contact)
     end
     render :json => "OK"
@@ -463,7 +464,7 @@ class V0::ContactsController < V0::ApplicationController
     else
       @contacts = @scope.any_in('_id' => params[:ids])
       @contacts.each do |c|
-        if @account
+        if @account && @contact.accounts.count > 1
           c.unlink(@account)
         else
           c.destroy if can?(:destroy, c)
