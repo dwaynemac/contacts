@@ -1089,29 +1089,58 @@ describe V0::ContactsController do
   describe "#destroy" do
     before do
       @account = Account.make
+      @other_acc = Account.make
       @contact = Contact.make(owner: @account)
     end
-    describe "as the owner" do
-      let(:params){{:id => @contact.id,
-                    :account_name => @account.name,
-                    :app_key => V0::ApplicationController::APP_KEY}}
-      it "should unlink the contact" do
-        prev = @account.contacts.count
-        delete :destroy, params
-        @account.reload
-        @account.contacts.count.should == prev-1
+    context "if the contact has more than one account" do
+      before do
+        @contact.accounts << @other_acc
       end
-      it "should not destroy the contact" do
-        owner = @contact.owner
-        expect{delete :destroy, params}.not_to change{Contact.count}
+      describe "as the owner" do
+        let(:params){{:id => @contact.id,
+                      :account_name => @account.name,
+                      :app_key => V0::ApplicationController::APP_KEY}}
+        it "should unlink the contact" do
+          prev = @account.contacts.count
+          delete :destroy, params
+          @account.reload
+          @account.contacts.count.should == prev-1
+        end
+        it "should not destroy the contact" do
+          expect{delete :destroy, params}.not_to change{Contact.count}
+        end
+      end
+      describe "as a viewer/editor" do
+        let(:params){{:method => :delete,
+                      :id => @contact.id,
+                      :app_key => V0::ApplicationController::APP_KEY}}
+        it "should not delete the contact" do
+          expect{post :destroy, params}.not_to change{Contact.count}
+        end
       end
     end
-    describe "as a viewer/editor" do
-      let(:params){{:method => :delete,
-                    :id => @contact.id,
-                    :app_key => V0::ApplicationController::APP_KEY}}
-      it "should not delete the contact" do
-        expect{post :destroy, params}.not_to change{Contact.count}
+    context "it the contact has one account only" do
+      describe "as the owner" do
+        let(:params){{:id => @contact.id,
+                      :account_name => @account.name,
+                      :app_key => V0::ApplicationController::APP_KEY}}
+        it "should unlink the contact" do
+          prev = @account.contacts.count
+          delete :destroy, params
+          @account.reload
+          @account.contacts.count.should == prev-1
+        end
+        it "should destroy the contact" do
+          expect{delete :destroy, params}.to change{Contact.count}
+        end
+      end
+      describe "as a viewer/editor" do
+        let(:params){{:method => :delete,
+                      :id => @contact.id,
+                      :app_key => V0::ApplicationController::APP_KEY}}
+        it "should not delete the contact" do
+          expect{post :destroy, params}.not_to change{Contact.count}
+        end
       end
     end
   end

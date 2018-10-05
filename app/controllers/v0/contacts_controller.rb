@@ -427,7 +427,7 @@ class V0::ContactsController < V0::ApplicationController
     end
   end
 
-  # Will destory contact if no account specified or unlink it from specified account
+  # Will destroy contact if no account specified or unlink it from specified account
   #
   # @url /v0/contacts/:id
   # @url /v0/accounts/:account_name/contacts/:id
@@ -439,7 +439,7 @@ class V0::ContactsController < V0::ApplicationController
   # @example_response "OK"
   def destroy
     @contact = @scope.find(params[:id])
-    if @account
+    if @account && @contact.accounts.count > 1
       @contact.unlink(@account)
     else
       @contact.destroy if can?(:destroy, @contact)
