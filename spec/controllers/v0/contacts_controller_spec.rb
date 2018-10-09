@@ -1101,12 +1101,14 @@ describe V0::ContactsController do
                       :account_name => @account.name,
                       :app_key => V0::ApplicationController::APP_KEY}}
         it "should unlink the contact" do
+          expect(Messaging::Client).not_to receive(:post_message)
           prev = @account.contacts.count
           delete :destroy, params
           @account.reload
           @account.contacts.count.should == prev-1
         end
         it "should not destroy the contact" do
+          expect(Messaging::Client).not_to receive(:post_message)
           expect{delete :destroy, params}.not_to change{Contact.count}
         end
       end
@@ -1115,6 +1117,7 @@ describe V0::ContactsController do
                       :id => @contact.id,
                       :app_key => V0::ApplicationController::APP_KEY}}
         it "should not delete the contact" do
+          expect(Messaging::Client).not_to receive(:post_message)
           expect{post :destroy, params}.not_to change{Contact.count}
         end
       end
@@ -1125,12 +1128,14 @@ describe V0::ContactsController do
                       :account_name => @account.name,
                       :app_key => V0::ApplicationController::APP_KEY}}
         it "should unlink the contact" do
+          expect(Messaging::Client).to receive(:post_message).with("contact_destroy", anything).and_return nil
           prev = @account.contacts.count
           delete :destroy, params
           @account.reload
           @account.contacts.count.should == prev-1
         end
         it "should destroy the contact" do
+          expect(Messaging::Client).to receive(:post_message).with("contact_destroy", anything).and_return nil
           expect{delete :destroy, params}.to change{Contact.count}
         end
       end
@@ -1139,6 +1144,7 @@ describe V0::ContactsController do
                       :id => @contact.id,
                       :app_key => V0::ApplicationController::APP_KEY}}
         it "should not delete the contact" do
+          expect(Messaging::Client).not_to receive(:post_message)
           expect{post :destroy, params}.not_to change{Contact.count}
         end
       end

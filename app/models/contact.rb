@@ -622,6 +622,10 @@ class Contact
     end
   end
 
+  def broadcast_destroy
+    Messaging::Client.post_message('contact_destroy', self.as_json)
+  end
+
   protected
 
   def assign_owner
@@ -747,10 +751,6 @@ class Contact
       @cached_request_account = Account.where(name: self.request_account_name).first
     end
     @cached_request_account  
-  end
-
-  def broadcast_destroy
-    Messaging::Client.post_message('contact_destroy', contact.as_json)
   end
   
   private
