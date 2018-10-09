@@ -464,7 +464,7 @@ class V0::ContactsController < V0::ApplicationController
     else
       @contacts = @scope.any_in('_id' => params[:ids])
       @contacts.each do |c|
-        if @account && @contact.accounts.count > 1
+        if @account && c.accounts.count > 1
           c.unlink(@account)
         else
           c.destroy if can?(:destroy, c)
