@@ -35,11 +35,10 @@ class AvatarUploader < CarrierWave::Uploader::Base
   #
   # Process file with auto-rotation
   # this should go before all other process steps
-  process :auto_orient
 
   def auto_orient
     manipulate! do |image|
-      image.tap(&:auto_orient)
+      image.tap(&:auto_orient!)
     end
   end
 
@@ -49,6 +48,7 @@ class AvatarUploader < CarrierWave::Uploader::Base
 
   # Create different versions of your uploaded files:
   version :thumb do
+    process :auto_orient
     process :resize_to_fit => [200, 200]
   end
 
