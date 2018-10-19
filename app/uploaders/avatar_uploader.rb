@@ -41,6 +41,16 @@ class AvatarUploader < CarrierWave::Uploader::Base
       image.tap(&:auto_orient!)
     end
   end
+  
+  # Rotate the image 90 degrees clockwise
+  #
+  
+  def rotate
+    manipulate! do |image|
+      img = image.rotate!(90)
+      img
+    end
+  end
 
   def store_dir
     "uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
@@ -63,5 +73,5 @@ class AvatarUploader < CarrierWave::Uploader::Base
   #def filename
   #  "avatar.jpg" if original_filename
   #end
-
+  
 end
