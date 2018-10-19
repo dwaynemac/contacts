@@ -32,6 +32,35 @@ class V0::AvatarsController < V0::ApplicationController
   end
 
   ##
+  # Updates avatar
+  # update action is required to manipulate image
+  # that action must be reflected as a method in avatar_uploader.rb
+  # @url /v0/contacts/:contact_id/avatar
+  # @action PATCH
+  # @required[String] contact_id
+  # @required[String] update_action
+  # @response_code 201
+  
+  def update
+    authorize! :update, :avatar
+    contact = Contact.find(params[:contact_id])
+    
+    case params[:update_action]
+    when "rotate"
+      contact.avatar.rotate
+    end
+
+    if contact.save validate: false
+      render :json => "OK"
+    else
+      render :json => { 
+        :message => "Sorry, avatar could not be updated",
+        :errors => contact.errors
+      }.to_json, :status => 400
+    end
+  end
+
+  ##
   # Removes contact's avatar
   #
   # @url /v0/contacts/:contact_id/avatar
