@@ -46,11 +46,16 @@ class V0::AvatarsController < V0::ApplicationController
     contact = Contact.find(params[:contact_id])
     
     case params[:update_action]
-    when "rotate"
-      contact.avatar.rotate
+    when "rotateCW"
+      contact.avatar.rotate(90)
+    when "rotateACW"
+      contact.avatar.rotate(-90)
     end
 
     if contact.save validate: false
+      # recreate versions so the thumb matches the rotated image
+      # this reuploads the image, but it is currently the only
+      # way to assure that the thumbnail is updated 
       contact.avatar.recreate_versions!
       render :json => "OK"
     else

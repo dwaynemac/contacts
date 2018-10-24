@@ -68,9 +68,9 @@ class AvatarUploader < CarrierWave::Uploader::Base
   # Rotate the image 90 degrees clockwise
   #
   
-  def rotate
+  def rotate(degrees)
     manipulate! do |image|
-      img = image.rotate!(90)
+      img = image.rotate!(degrees)
       img
     end
   end
