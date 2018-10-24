@@ -14,7 +14,7 @@ Contacts::Application.routes.draw do
         get :search_for_select
         delete :destroy_multiple
       end
-      resource :avatar, :only => [:create, :destroy]
+      resource :avatar, :only => [:create, :destroy, :update]
       resources :history_entries
     end
     scope 'contacts' do

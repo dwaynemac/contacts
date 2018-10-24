@@ -26,6 +26,8 @@ class AvatarUploader < CarrierWave::Uploader::Base
   # end
   #
 
+
+
   # Process files as they are uploaded:
   # process :scale => [200, 300]
   #
@@ -33,12 +35,51 @@ class AvatarUploader < CarrierWave::Uploader::Base
   #   # do something
   # end
   #
+
+  # Process file stripping unnecessary info and
+  # auto orienting if it has exif info
+  # both processes can be done separately but
+  # it is faster to do them in a same method
+  #
+
+  process :process_image
+
+  def process_image
+    manipulate! do |image|
+      if image.get_exif_by_entry.blank?
+        image
+      else
+        image.tap(&:auto_orient!)
+        image.tap(&:strip!)
+      end
+    end
+  end
+
   # Process file with auto-rotation
   # this should go before all other process steps
-
+  #
+  
   def auto_orient
     manipulate! do |image|
       image.tap(&:auto_orient!)
+    end
+  end
+
+  # Rotate the image 90 degrees clockwise
+  #
+  
+  def rotate(degrees)
+    manipulate! do |image|
+      img = image.rotate!(degrees)
+      img
+    end
+  end
+
+  # Remove unnecesary info from image
+  #
+  def strip
+    manipulate! do |image|
+      image.tap(&:strip!)
     end
   end
 
@@ -48,7 +89,6 @@ class AvatarUploader < CarrierWave::Uploader::Base
 
   # Create different versions of your uploaded files:
   version :thumb do
-    process :auto_orient
     process :resize_to_fit => [200, 200]
   end
 
@@ -63,5 +103,4 @@ class AvatarUploader < CarrierWave::Uploader::Base
   #def filename
   #  "avatar.jpg" if original_filename
   #end
-
 end
