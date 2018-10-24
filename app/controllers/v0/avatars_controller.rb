@@ -51,6 +51,7 @@ class V0::AvatarsController < V0::ApplicationController
     end
 
     if contact.save validate: false
+      contact.avatar.recreate_versions!
       render :json => "OK"
     else
       render :json => { 
