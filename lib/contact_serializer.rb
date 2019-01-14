@@ -131,6 +131,15 @@ class ContactSerializer
         end
       end
 
+      if serialize?(:local_teachers)
+        ActiveSupport::Notifications.instrument('local_teachers.build_hash.as_json.contact') do
+          @json['local_teachers'] = @contact.local_teachers.map{ |ls| {
+            'account_name' => ls.account_name.to_s,
+            'local_teacher' => ls.value.to_s
+          } }
+        end
+      end
+
       ActiveSupport::Notifications.instrument('account_attributes.build_hash.as_json.contact') do
       if @account
         if serialize?(:contact_attributes) || serialize?(:date_attribute)
