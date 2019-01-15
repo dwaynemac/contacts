@@ -46,7 +46,7 @@ Contacts::Application.routes.draw do
         put :update_neighborhood_from_kshema, to: 'contact_attributes#update_neighborhood_from_kshema'
       end
     end
-    resource :history_entries
+    resources :history_entries
     resources :attachments
     resources :tags
     resource :avatar, :only => [:create, :destroy]
