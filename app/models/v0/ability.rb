@@ -4,6 +4,7 @@ class V0::Ability
   def initialize(account,app_key)
     cannot(:manage, :all)
     unless app_key.nil?
+      can :read, HistoryEntry
       case app_key
       when V0::ApplicationController::APP_KEY
         if account.nil?
