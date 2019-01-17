@@ -347,7 +347,6 @@ class Contact
     attributes[:select] = options[:select].class == Array ? options[:select].reject{|v| v.nil?} : options[:select]
     attributes[:account] = options[:account]
     attributes[:include_masked] = options[:include_masked]
-    attributes[:include_history] = options[:include_history]
     attributes[:except] = {
       except_linked: options[:except_linked],
       except_last_local_status: options[:except_last_local_status]
