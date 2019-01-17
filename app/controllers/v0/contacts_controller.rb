@@ -77,8 +77,9 @@ class V0::ContactsController < V0::ApplicationController
         as_json_params = {
           select: params[:select],
           account: @account,
-          except_linked:true,
+          except_linked: true,
           except_last_local_status: true,
+          include_history: ( params[:include_history] == "true" )
         }
 
         if params[:only_name].present?
