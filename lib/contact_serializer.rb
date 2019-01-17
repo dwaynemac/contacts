@@ -58,6 +58,7 @@ class ContactSerializer
     @mode = attributes[:mode] || 'select'
     self.account= attributes[:account]
     @include_masked = attributes[:include_masked]
+    @include_history = attributes[:include_history]
     @except = attributes[:except]
   end
 
@@ -128,6 +129,22 @@ class ContactSerializer
             'account_name' => ls.account_name.to_s,
             'local_status' => ls.value.to_s
           } }
+        end
+      end
+
+      # we dont use serialize? because this should be false by default, even for select: :all
+      if @include_history
+        ActiveSupport::Notifications.instrument('include_history.build_hash.as_json.contact') do
+          @json['history_entries'] = @contact.history_entries.map do |he|
+            {
+              "_id" => he._id.to_s,
+              "historiable_id" => he.historiable_id.to_s,
+              "historiable_type" => he.historiable_type,
+              "attribute" => he.attribute.to_s,
+              "changed_at" => he.changed_at.to_s,
+              "old_value" => he.old_value
+            }
+          end
         end
       end
 
