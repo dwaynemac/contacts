@@ -1,5 +1,5 @@
 source 'http://rubygems.org'
-ruby '1.9.3'
+ruby '2.0.0'
 
 gem 'rails', '~> 3.1.0'
 
@@ -16,9 +16,9 @@ gem "logical_model", '~> 0.6.4'
 gem 'activity_stream_client', '~> 0.0.14'
 gem 'overmind_client', '~> 0.0.6'
 gem 'accounts_client', '>= 0.2.28'
-gem 'messaging_client', '0.0.4'
+gem 'messaging_client', '~> 0.2'
 
-gem 'gibbon'
+gem 'gibbon', '~> 3.1', '>= 3.1.1'
 
 gem 'kaminari', '~> 0.13'
 
@@ -40,7 +40,7 @@ gem 'daemons'
 
 gem 'figaro' # for environment variables managment
 
-gem 'rake'
+gem 'rake', '< 11'
 
 gem 'i18n', '~> 0.6.6'
 
@@ -69,7 +69,7 @@ gem 'appsignal-mongo', group: [:production, :development]
 group :development do
   gem 'git-pivotal-tracker-integration'
 
-  gem 'debugger'
+  gem 'debugger2'
   gem 'ruby-mass'
 end
 
@@ -79,6 +79,7 @@ group :deployment do
   gem 'capistrano-rails', '~> 1.1'
   gem 'capistrano-bundler'
   gem 'capistrano3-unicorn'
+  gem 'capistrano-rbenv', '~> 2.1'
 end
 
 group :development, :test do
@@ -104,7 +105,6 @@ group :test do
   gem "machinist", '1.0.6'
   gem 'machinist_mongo', '1.2.0', :require => 'machinist/mongoid'
   gem 'mongoid-rspec', '1.4.4'
-  gem 'faker', '0.9.4'
+  gem 'faker', '1.6.3'
   gem "database_cleaner", ">= 0.6.7"
-  gem 'coveralls', require: false
 end

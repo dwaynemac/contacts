@@ -15,7 +15,7 @@ namespace :rails do
   desc "Open the rails console on app host."
   task :console, [:console_options] do |t, args|
     on roles(:web) do |host|
-      rails_env = fetch(:stage)
+      rails_env = fetch(:stage) 
       execute_interactively "ruby #{current_path}/script/rails console #{rails_env} #{args[:console_options]}", host
     end
   end
@@ -51,6 +51,6 @@ namespace :rails do
  
   def execute_interactively(command,host=nil)
     host = fetch(:domain) if host.nil?
-    exec "ssh #{fetch(:user)}@#{host} -i #{fetch(:key_path)} -t 'cd #{current_path} && #{command}'"
+    exec "ssh #{fetch(:user)}@#{host} -i #{fetch(:key_path)} -t 'cd #{current_path} && #{fetch(:rbenv_prefix)} #{command}'"
   end
 end

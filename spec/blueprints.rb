@@ -2,6 +2,10 @@ require 'faker'
 require 'machinist'
 require 'machinist/mongoid'
 
+HistoryEntry.blueprint do
+
+end
+
 Attachment.blueprint do
   name 'atachment-name'
 end

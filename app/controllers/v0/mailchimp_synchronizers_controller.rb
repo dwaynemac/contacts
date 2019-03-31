@@ -1,4 +1,6 @@
 # @restful_api v0
+#
+PER_PAGE = 100
 class V0::MailchimpSynchronizersController < V0::ApplicationController
   rescue_from Gibbon::MailChimpError, with: :mailchimp_error
   authorize_resource
@@ -30,7 +32,6 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
     ms = MailchimpSynchronizer.where(api_key: params[:api_key]).first
 
     if !ms.blank?
-      puts "ms: #{ms.inspect}"
       render json: ms.to_json
     else
       render json: 'Synchronizer missing', status: 404
@@ -102,11 +103,25 @@ class V0::MailchimpSynchronizersController < V0::ApplicationController
   #
   # @required [String] synchronizer[api_key] Mailchimp API KEY
   #
+  # 
   def get_scope
     ms = MailchimpSynchronizer.where(api_key: params[:api_key]).first
-    segments = params[:mailchimp_segments] if params[:filter_method] == "segments"
     
-    render json: ms.calculate_scope_count(params[:filter_method], segments)
+    if params["preview"] == "true"
+      segments = params[:mailchimp_segments] if params[:filter_method] == "segments"
+      render json: ms.calculate_scope_count(params[:filter_method], segments)
+    else
+      sc = ms.get_scope(false).page(params[:page] || 1).per(params[:per] || PER_PAGE)
+      render json: {
+        count: ms.get_scope(false).count, 
+        contacts: sc.map{|c| {
+          id: c._id.to_s,
+          first_name: c.first_name, 
+          last_name: c.last_name, 
+          email: (c.primary_attribute(ms.account, "Email").try :value)
+        }}
+      }
+    end
   end
 
 

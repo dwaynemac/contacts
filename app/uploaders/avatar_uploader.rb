@@ -24,6 +24,9 @@ class AvatarUploader < CarrierWave::Uploader::Base
   # def default_url
   #   "/images/fallback/" + [version_name, "default.png"].compact.join('_')
   # end
+  #
+
+
 
   # Process files as they are uploaded:
   # process :scale => [200, 300]
@@ -31,6 +34,54 @@ class AvatarUploader < CarrierWave::Uploader::Base
   # def scale(width, height)
   #   # do something
   # end
+  #
+
+  # Process file stripping unnecessary info and
+  # auto orienting if it has exif info
+  # both processes can be done separately but
+  # it is faster to do them in a same method
+  #
+
+  process :process_image
+
+  def process_image
+    manipulate! do |image|
+      if image.get_exif_by_entry.blank?
+        image
+      else
+        image.tap(&:auto_orient!)
+        image.tap(&:strip!)
+      end
+    end
+  end
+
+  # Process file with auto-rotation
+  # this should go before all other process steps
+  #
+  
+  def auto_orient
+    manipulate! do |image|
+      image.tap(&:auto_orient!)
+    end
+  end
+
+  # Rotate the image 90 degrees clockwise
+  #
+  
+  def rotate(degrees)
+    manipulate! do |image|
+      img = image.rotate!(degrees)
+      img
+    end
+  end
+
+  # Remove unnecesary info from image
+  #
+  def strip
+    manipulate! do |image|
+      image.tap(&:strip!)
+    end
+  end
 
   def store_dir
     "uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
@@ -52,5 +103,4 @@ class AvatarUploader < CarrierWave::Uploader::Base
   #def filename
   #  "avatar.jpg" if original_filename
   #end
-
 end

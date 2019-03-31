@@ -1,4 +1,4 @@
-== Contacts WS {<img src="https://www.codeship.io/projects/0025eaa0-0464-0132-2ccc-6a22af77eaef/status" />}[https://www.codeship.io/projects/30638] {<img src="https://codeclimate.com/github/dwaynemac/contacts.png" />}[https://codeclimate.com/github/dwaynemac/contacts] {<img src="https://gemnasium.com/dwaynemac/contacts.png" alt="Dependecies" />}[https://gemnasium.com/dwaynemac/contacts] {<img src="https://coveralls.io/repos/dwaynemac/contacts/badge.png" alt="Coverage Status" />}[https://coveralls.io/r/dwaynemac/contacts]
+== Contacts WS {<img src="https://www.codeship.io/projects/0025eaa0-0464-0132-2ccc-6a22af77eaef/status" />}[https://www.codeship.io/projects/30638] {<img src="https://codeclimate.com/github/dwaynemac/contacts.png" />}[https://codeclimate.com/github/dwaynemac/contacts] {<img src="https://gemnasium.com/dwaynemac/contacts.png" alt="Dependecies" />}[https://gemnasium.com/dwaynemac/contacts]
 
 Web service for handling PADMA's Contacts.
 

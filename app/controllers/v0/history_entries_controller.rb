@@ -5,6 +5,15 @@ class V0::HistoryEntriesController < V0::ApplicationController
 
   before_filter :get_contact
 
+  def index
+    @history_entries = @contact.history_entries.where(params[:where])
+
+    render json: {
+      collection: @history_entries.all,
+      total: @history_entries.count
+    }
+  end
+
   # @url /v0/history_entries
   # @action POST
   # @required [HistoryEntry] history_entry

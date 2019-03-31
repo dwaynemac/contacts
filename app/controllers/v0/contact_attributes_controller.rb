@@ -137,7 +137,7 @@ class V0::ContactAttributesController < V0::ApplicationController
   #  Destroys the contact attribute
   #
   #  == Request
-  # @url /v0/contact?attributes/:id 
+  # @url /v0/contact_attributes/:id 
   # @action DELETE
   # @url /v0/accounts/:account_name/contacts/:contact_id/contact_attributes/:id 
   # @action DELETE

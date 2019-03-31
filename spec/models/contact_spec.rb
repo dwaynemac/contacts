@@ -19,22 +19,13 @@ describe Contact do
   
   
   describe "slug" do
-    it "is generated from full_name" do
+    it "is generated from full_name and id" do
       c = Contact.make_unsaved
       c.save
-      expect(c.slug).to eq c.full_name.parameterize
+      min_id = c.id.to_s.last(3)
+      expect(c.slug).to eq "#{c.full_name.parameterize}-#{min_id}"
     end
-    it "avoid duplication by adding a sufix" do
-      c = Contact.make_unsaved
-      c.save
-      expect(c.slug).to eq c.full_name.parameterize
-      
-      oc = Contact.make_unsaved(first_name: c.first_name,
-                                last_name: c.last_name)
-      oc.save
-      expect(oc.slug).to match oc.full_name.parameterize
-      expect(oc.slug).not_to eq oc.full_name.parameterize
-    end
+
   end
 
   describe "capitalizes first word of first and last name" do

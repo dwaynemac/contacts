@@ -58,6 +58,7 @@ class ContactSerializer
     @mode = attributes[:mode] || 'select'
     self.account= attributes[:account]
     @include_masked = attributes[:include_masked]
+    @include_history = attributes[:include_history]
     @except = attributes[:except]
   end
 
@@ -131,6 +132,31 @@ class ContactSerializer
         end
       end
 
+      # we dont use serialize? because this should be false by default, even for select: :all
+      if @include_history
+        ActiveSupport::Notifications.instrument('include_history.build_hash.as_json.contact') do
+          @json['history_entries'] = @contact.history_entries.map do |he|
+            {
+              "_id" => he._id.to_s,
+              "historiable_id" => he.historiable_id.to_s,
+              "historiable_type" => he.historiable_type,
+              "attribute" => he.attribute.to_s,
+              "changed_at" => he.changed_at.to_s,
+              "old_value" => he.old_value
+            }
+          end
+        end
+      end
+
+      if serialize?(:local_teachers)
+        ActiveSupport::Notifications.instrument('local_teachers.build_hash.as_json.contact') do
+          @json['local_teachers'] = @contact.local_teachers.map{ |ls| {
+            'account_name' => ls.account_name.to_s,
+            'local_teacher' => ls.value.to_s
+          } }
+        end
+      end
+
       ActiveSupport::Notifications.instrument('account_attributes.build_hash.as_json.contact') do
       if @account
         if serialize?(:contact_attributes) || serialize?(:date_attribute)
@@ -164,16 +190,6 @@ class ContactSerializer
                                           .for_account(@account)
                                           .as_json
         end
-
-        if serialize?(:email)
-          email = if @account
-            @contact.primary_attribute(@account,'Email')
-          else
-            @contact.global_primary_attribute('Email')
-          end
-
-          @json['email'] = email.value unless email.nil?
-        end
         
         if serialize?(:telephone)
           telephone = if @account
@@ -182,16 +198,6 @@ class ContactSerializer
             @contact.global_primary_attribute('Telephone') 
           end
           @json['telephone'] = telephone.value unless telephone.nil?
-        end
-
-        if serialize?(:identification)
-          identification = if @account
-            @contact.primary_attribute(@account,'Identification') 
-          else
-            @contact.global_primary_attribute('Identification') 
-          end
-           
-          @json['identification'] = identification.value unless identification.nil?
         end
 
         if serialize?(:occupation)
@@ -218,6 +224,27 @@ class ContactSerializer
         end
 
       end
+     
+      if serialize?(:email)
+        email = if @account
+          @contact.primary_attribute(@account,'Email')
+        else
+          @contact.global_primary_attribute('Email')
+        end
+
+        @json['email'] = email.value unless email.nil?
+      end 
+      
+      if serialize?(:identification)
+        identification = if @account
+          @contact.primary_attribute(@account,'Identification') 
+        else
+          @contact.global_primary_attribute('Identification') 
+        end
+         
+        @json['identification'] = identification.value unless identification.nil?
+      end 
+        
       end
     end
   end
