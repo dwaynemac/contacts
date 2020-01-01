@@ -1,5 +1,5 @@
 class Telephone < ContactAttribute
-  TEL_REGEX = /^[\(|\d][\d| |\)\-|\.]{6,16}.*\d$/
+  TEL_REGEX = /^[+]*[\(|\d][\d| |\)\-|\.]{6,16}.*\d$/
   field :category
 
   #before_validation :camelize_category
