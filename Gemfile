@@ -6,7 +6,7 @@ gem 'rails', '~> 3.1.0'
 gem 'unicorn'
 gem 'unicorn-worker-killer'
 gem "mongoid", "2.3.3"
-gem 'bson', '= 1.4.0'
+gem 'bson', '4.5.0'
 gem "bson_ext", "= 1.4.0"
 gem 'mongoid_search'
 
