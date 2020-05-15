@@ -340,20 +340,31 @@ describe Merge do
     describe "delegates to CRM service" do
       let(:merge){Merge.new(first_contact_id: father.id, second_contact_id: son.id)}
       before do
-        mock = CrmMerge.new
-        CrmMerge.should_receive(:new).and_return(mock)
+        #mock = CrmMerge.new
+        #CrmMerge.should_receive(:new).and_return(mock)
         merge.save
       end
       context "when connection is successfull" do
         context "and merge succesfull" do
-          before { CrmMerge.any_instance.should_receive(:create).and_return(true) }
+          before do
+            expect(Typhoeus).to receive(:post).and_return Typhoeus::Response.new(code: 200,
+                                                                            return_code: :ok,
+                                                                            response_code: 200,
+                                                                            body: "OK")
+          end
+          #before { CrmMerge.any_instance.should_receive(:create).and_return(true) }
           it "sets services['crm'] to true" do
             merge.start
             merge.services['crm'].should be_truthy
           end
         end
         context "and merge fails" do
-          before { CrmMerge.any_instance.should_receive(:create).and_return(false) }
+          # before { CrmMerge.any_instance.should_receive(:create).and_return(false) }
+          before do
+            allow(Typhoeus).to receive(:post).and_return Typhoeus::Response.new(code: 400,
+                                                                            response_code: 400,
+                                                                            body: "OK")
+          end
           it "leaves services['crm'] in false" do
             merge.start
             merge.services['crm'].should be_falsy
@@ -366,7 +377,13 @@ describe Merge do
         end
       end
       context "when connection fails" do
-        before { CrmMerge.any_instance.should_receive(:create).and_return(nil) }
+        before {
+          allow(Typhoeus).to receive(:post).and_return Typhoeus::Response.new(code: 500,
+                                                                            return_code: :failed_init,
+                                                                            response_code: 500,
+                                                                            body: "OK")
+          # CrmMerge.any_instance.should_receive(:create).and_return(nil) 
+        }
         it "leaves services['crm'] in false" do
           merge.start
           merge.services['crm'].should be_falsy
@@ -386,9 +403,9 @@ describe Merge do
       ActivityStream::Merge.should_receive(:new).with(parent_id: father.id.to_s, son_id: son.id.to_s).and_return(activities_merge)
       ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
 
-      crm_merge = CrmMerge.new
-      CrmMerge.should_receive(:new).with(parent_id: father.id, son_id: son.id).and_return(crm_merge)
-      CrmMerge.any_instance.should_receive(:create).and_return(true)
+      #crm_merge = CrmMerge.new
+      #CrmMerge.should_receive(:new).with(parent_id: father.id, son_id: son.id).and_return(crm_merge)
+      #CrmMerge.any_instance.should_receive(:create).and_return(true)
 
       m.start
 
@@ -464,9 +481,12 @@ describe Merge do
       ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
 
       # it should call Crm API
-      mock = CrmMerge.new
-      CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
-      CrmMerge.any_instance.should_receive(:create).and_return(false)
+      expect(Typhoeus).to receive(:post).and_return Typhoeus::Response.new(code: 400,
+                                                                          response_code: 400,
+                                                                          body: "OK")
+      #mock = CrmMerge.new
+      #CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
+      #CrmMerge.any_instance.should_receive(:create).and_return(false)
 
       mailing_merge = MailingMerge.new
       MailingMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mailing_merge)
@@ -570,9 +590,13 @@ describe Merge do
         ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
 
         # it should call Crm API
-        mock = CrmMerge.new
-        CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
-        CrmMerge.any_instance.should_receive(:create).and_return(true)
+        expect(Typhoeus).to receive(:post).and_return Typhoeus::Response.new(code: 200,
+                                                                            return_code: :ok,
+                                                                            response_code: 200,
+                                                                            body: "OK")
+        #mock = CrmMerge.new
+        #CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
+        #CrmMerge.any_instance.should_receive(:create).and_return(true)
         
         # it should call Planning API
         mock = PlanningMerge.new
@@ -645,9 +669,13 @@ describe Merge do
         ActivityStream::Merge.any_instance.should_receive(:create).and_return(true)
 
         # it should call Crm API
-        mock = CrmMerge.new
-        CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
-        CrmMerge.any_instance.should_receive(:create).and_return(true)
+        expect(Typhoeus).to receive(:post).and_return Typhoeus::Response.new(code: 200,
+                                                                            return_code: :ok,
+                                                                            response_code: 200,
+                                                                            body: "OK")
+        # mock = CrmMerge.new
+        # CrmMerge.should_receive(:new).with(parent_id: @father.id, son_id: @son.id).and_return(mock)
+        # CrmMerge.any_instance.should_receive(:create).and_return(true)
         
         # it should call Planning API
         mock = PlanningMerge.new

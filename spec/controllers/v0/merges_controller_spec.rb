@@ -93,7 +93,11 @@ describe V0::MergesController do
 
           ActivityStream::Activity.any_instance.should_receive(:create).with(hash_including(:account_name, :username))
 
-          CrmMerge.any_instance.stub(:create).and_return(true)
+          #CrmMerge.any_instance.stub(:create).and_return(true)
+          allow(Typhoeus).to receive(:post).and_return Typhoeus::Response.new(code: 200,
+                                                                            return_code: :ok,
+                                                                            response_code: 200,
+                                                                            body: "OK")
           ActivityStream::Activity.any_instance.stub(:create).and_return(true)
           ActivityStream::Merge.any_instance.stub(:create).and_return(true)
           PlanningMerge.any_instance.stub(:create).and_return(true)

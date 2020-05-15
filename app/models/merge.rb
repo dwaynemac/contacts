@@ -122,7 +122,8 @@ class Merge
   def merge
     begin
       contacts_service_merge(father, son) unless self.services['contacts']
-      crm_service_merge(father, son) unless self.services['crm']
+      #crm_service_merge(father, son) unless self.services['crm']
+      tmp_crm_service_merge(father, son) unless self.services['crm']
       activity_stream_service_merge(father,son) unless self.services['activity_stream']
       planning_service_merge(father,son) unless self.services['planning']
       fnz_service_merge(father,son) unless self.services['fnz']
@@ -210,6 +211,28 @@ class Merge
         self.update_message :crm_service, I18n.t('errors.merge.services.connection_failed')
     end
     res
+  end
+
+  def tmp_crm_service_merge(father, son)
+    res = Typhoeus.post("https://#{PADMA_CRM_HOST}/api/v0/merges",
+                        ssl_verifypeer: false,
+                        body: {
+                                app_key: ENV['crm_key'],
+                                merge: {
+                                  son_id: son.id,
+                                  parent_id: father.id }
+                              }
+                       )
+    if res.success?
+      self.update_service('crm', true)
+      return true
+    elsif res.code < 500
+      self.update_message :crm_service, I18n.t('errors.merge.services.merge_failed')
+      return false
+    else
+      self.update_message :crm_service, I18n.t('errors.merge.services.connection_failed')
+      return nil
+    end
   end
 
   def planning_service_merge(father,son)
