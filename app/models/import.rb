@@ -581,7 +581,9 @@ class Import
       when 'm', 'female', 'mulher', 'mujer', 'femenino'
         'female'
       when 'h', 'male', 'homem', 'masculino'
-        'male'
+      'male'
+      when 'non_binary', 'no binario', 'nao binario'
+        'non_binary'
       else
         nil
       end

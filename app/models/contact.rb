@@ -7,7 +7,7 @@ require 'mongoid/criteria'
 # @property [String] first_name
 # @property [String] last_name
 #
-# @property [String] gender Valid values are '', 'male' and 'female'.
+# @property [String] gender Valid values are '', 'male', 'non_binary' and 'female'.
 class Contact
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -55,8 +55,9 @@ class Contact
   field :normalized_last_name
   before_save :update_normalized_attributes
 
+  VALID_GENDERS = %W(male female non_binary)
   field :gender
-  validates_inclusion_of :gender, in: %W(male female), allow_blank: true
+  validates_inclusion_of :gender, in: VALID_GENDERS, allow_blank: true
 
   field :avatar
   mount_uploader :avatar, AvatarUploader
