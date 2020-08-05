@@ -23,3 +23,5 @@ config/mongoid.yml
 /config/application.yml
 coverage/*
 config/deploy/production.pem
+start_mongodb.sh
+/mongodb-data
