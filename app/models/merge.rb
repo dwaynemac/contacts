@@ -125,7 +125,7 @@ class Merge
       #crm_service_merge(father, son) unless self.services['crm']
       tmp_crm_service_merge(father, son) unless self.services['crm']
       activity_stream_service_merge(father,son) unless self.services['activity_stream']
-      planning_service_merge(father,son) unless self.services['planning']
+      #planning_service_merge(father,son) unless self.services['planning']
       fnz_service_merge(father,son) unless self.services['fnz']
       mailing_service_merge(father,son) unless self.services['mailing']
       attendance_service_merge(father,son) unless self.services['attendance']
