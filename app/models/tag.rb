@@ -11,6 +11,7 @@ class Tag
   validates :account, :presence => true
 
   validates_uniqueness_of :name, :scope => :account_id
+  after_save :touch_contacts
 
   def self.remove_all_empty
     non_associated_tags = Tag.any_of({:contact_ids => nil}, {:contact_ids => []})
@@ -37,5 +38,12 @@ class Tag
       end
     end
     #handle_asynchronously :batch_add, priority: -1
+  end
+
+  def touch_contacts
+    contacts = Contact.find(contact_ids)
+    contacts.each do |contact|
+      contact.touch
+    end
   end
 end

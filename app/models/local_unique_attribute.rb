@@ -12,6 +12,7 @@ class LocalUniqueAttribute
   validates_uniqueness_of :account_id, scope: [:contact_id, '_type']  # scope: :contact_id might not be needed since it's embedded
 
   scope :for_account, ->(account_id){ where(account_id: account_id) }
+  after_save :touch_contact
 
   %W(coefficient local_status local_teacher observation last_seen_at).each do |lua|
     scope lua.pluralize, where( _type: lua.camelcase )
@@ -31,4 +32,7 @@ class LocalUniqueAttribute
     false
   end
 
+  def touch_contact
+    contact.touch
+  end
 end

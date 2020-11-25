@@ -28,6 +28,7 @@ class ContactAttribute
   referenced_in :account
 
   before_save :assign_owner
+  after_save :touch_contact
 
   # order of call of these two is important!
   before_save :ensure_only_one_primary
@@ -120,5 +121,9 @@ class ContactAttribute
 
   def contact_id
     contact.id
+  end
+
+  def touch_contact
+    contact.touch
   end
 end
