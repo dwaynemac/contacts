@@ -209,7 +209,7 @@ class V0::ContactsController < V0::ApplicationController
       account: @account,
     }
 
-    as_json_params[:include_masked] = params[:include_masked].nil?? default_masked : params[:include_masked]
+    as_json_params[:include_masked] = params[:include_masked].nil?? default_masked : params[:include_masked].to_s == "true"
 
     if params[:select].nil? || params[:select] == 'all'
       as_json_params[:mode] = 'all'
