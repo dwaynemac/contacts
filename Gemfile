@@ -22,7 +22,7 @@ gem 'gibbon', '~> 3.1', '>= 3.1.1'
 
 gem 'kaminari', '~> 0.13'
 
-gem 'aws-ses'
+gem 'aws-ses', '0.7.1'
 
 gem 'oj'
 
