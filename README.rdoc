@@ -6,6 +6,10 @@ This readme should be updated
 
 = Documentation
 
+== START on EC2
+
+bundle exec unicorn -c /home/ec2-user/contacts/current/config/unicorn/production.rb -E production -D -p 5000 &
+
 == Deployment
 
 rake periodic:notify_today_birthdays should be scheduled for daily run.
