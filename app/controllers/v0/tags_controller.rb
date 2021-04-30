@@ -111,7 +111,7 @@ class V0::TagsController < V0::ApplicationController
     @contacts = nil
 
     # if no contact is specified, it means all have been erased from this tag
-    if params[:tag][:contact_ids].nil?
+    if params[:tag][:contact_ids].blank?
       @tag.contacts = nil
     else
       @contacts = Contact.find(params[:tag][:contact_ids]) 
