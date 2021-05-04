@@ -33,6 +33,6 @@ class LocalUniqueAttribute
   end
 
   def touch_contact
-    contact.touch
+    #contact.touch
   end
 end

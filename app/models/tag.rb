@@ -43,7 +43,7 @@ class Tag
   def touch_contacts
     contacts = Contact.find(contact_ids)
     contacts.each do |contact|
-      contact.touch
+      #contact.touch
     end
   end
 end
