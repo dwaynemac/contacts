@@ -442,8 +442,8 @@ class V0::ContactsController < V0::ApplicationController
     @contact = @scope.find(params[:id])
     if @account
       @contact.unlink(@account)
-    else
-      @contact.destroy if can?(:destroy, @contact)
+    elsif params[:total_destruction] == "true"
+      @contact.destroy
     end
     render :json => "OK"
   end
