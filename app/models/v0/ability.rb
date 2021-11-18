@@ -11,7 +11,6 @@ class V0::Ability
           # Account not specified for this request
           can :manage, :all
 
-          cannot :destroy, Contact
           cannot :destroy, ContactAttribute
           cannot :destroy, Attachment
           cannot :create, Merge
@@ -19,10 +18,6 @@ class V0::Ability
 
           # Account specified in this request
           can :manage, :all
-
-          # Contact
-          cannot :destroy, Contact
-          can :destroy, Contact, owner: account
 
           # ContactAttribute
           cannot :manage, ContactAttribute
