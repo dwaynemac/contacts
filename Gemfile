@@ -42,7 +42,7 @@ gem 'figaro' # for environment variables managment
 
 gem 'rake', '< 11'
 
-gem 'i18n', '~> 0.6.6'
+gem 'i18n', '~> 0.8.0'
 
 gem 'minitest'
 
